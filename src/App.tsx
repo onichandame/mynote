@@ -1,46 +1,30 @@
-import { useState } from "react";
+import { FC } from 'react'
+import { Route, Routes, HashRouter } from 'react-router-dom'
+import { Box, Toolbar } from '@mui/material'
 
-import logo from "./logo.svg";
-import "./App.css";
+import { Topbar } from './topbar'
+import { Dial } from './dial'
+import { CreateNote } from './createNote'
+import { Notes } from './notes'
+import { Note } from './note'
 
-function App() {
-  const [count, setCount] = useState(0);
-
+export const App: FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {" | "}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
-  );
+    <HashRouter>
+      <Box sx={{ display: 'flex' }}>
+        <Topbar />
+        <Box sx={{ flexGrow: 1, padding: theme => theme.spacing(3) }}>
+          <Toolbar />
+          <Routes>
+            <Route path="createNote" element={<CreateNote />} />
+            <Route path="/">
+              <Route path="/" element={<Notes />} />
+              <Route path=":id" element={<Note />} />
+            </Route>
+          </Routes>
+        </Box>
+        <Dial />
+      </Box>
+    </HashRouter>
+  )
 }
-
-export default App;
