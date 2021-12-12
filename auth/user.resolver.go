@@ -1,6 +1,10 @@
 package auth
 
 import (
+	"errors"
+	"reflect"
+
+	"github.com/gin-gonic/gin"
 	"github.com/graphql-go/graphql"
 	"github.com/jinzhu/copier"
 	gimgraphql "github.com/onichandame/gim-graphql"
@@ -28,6 +32,21 @@ func newUserResolver(pwsvc *passwordService, gqlsvc *gimgraphql.GraphqlService, 
 			var out UserDTO
 			goutils.Assert(copier.Copy(&out, &user))
 			res = &out
+			return res, err
+		},
+	})
+	gqlsvc.AddQuery("getUser", &graphql.Field{
+		Type: graphql.NewNonNull(parser.ParseOutput(new(UserDTO))),
+		Resolve: func(p graphql.ResolveParams) (res interface{}, err error) {
+			defer goutils.RecoverToErr(&err)
+			ctx := p.Context.Value(reflect.TypeOf(new(gin.Context))).(*gin.Context)
+			if ctx == nil {
+				panic(errors.New("must login to get user info"))
+			}
+			res, ok := ctx.Get("user")
+			if !ok {
+				panic(errors.New("user not found"))
+			}
 			return res, err
 		},
 	})

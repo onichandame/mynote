@@ -1,13 +1,29 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { ListItemButton, List, ListItemText } from '@mui/material'
-import { FC } from 'react'
+import { useQuery } from '@onichandame/react-graphql-ws'
+import { FC, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { number } from 'yup/lib/locale'
 
-import { db } from '../db'
+import { useClient } from '../fetcher'
 
 export const Notes: FC = () => {
   const nav = useNavigate()
-  const notes = useLiveQuery(() => db.notes.reverse().sortBy(`createdAt`))
+  const client = useClient()
+  const [notes, setNotes] = useState<{ id: number; title: string }[]>([])
+  const fetch = useQuery<{
+    notes: { edges: { node: { id: number; title: string } }[] }
+  }>({ client, query: `query{notes{edges{node{id title}}}}` })
+  useEffect(() => {
+    let active = true
+    fetch().then(res => {
+      if (active) {
+        if (res.data) setNotes(res.data.notes.edges.map(v => v.node))
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [])
   return (
     <List>
       {notes?.map(note => (

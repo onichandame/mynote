@@ -16,7 +16,7 @@ export const Dial: FC = () => {
       icon={<SpeedDialIcon />}
     >
       <SpeedDialAction
-        onClick={() => nav(`/createNote`)}
+        onClick={() => nav(`/create`)}
         icon={<NoteAdd color="primary" />}
         tooltipTitle="Add note"
         tooltipOpen

@@ -4,8 +4,6 @@ import { FC } from 'react'
 import { useFormik } from 'formik'
 import { useNavigate } from 'react-router'
 
-import { db } from '../db'
-
 export const CreateNote: FC = () => {
   const nav = useNavigate()
   const schema = yup.object({

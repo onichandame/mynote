@@ -11,4 +11,5 @@ var AuthModule = gim.Module{
 	Name:      `Auth`,
 	Imports:   []*gim.Module{&gimgraphql.GraphqlModule, &db.DBModule, &gimgin.GinModule},
 	Providers: []interface{}{newUserResolver, newPasswordService, newAuthResolver, newSessionsService, newAuthMiddleware},
+	Exports:   []interface{}{newSessionsService},
 }

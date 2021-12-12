@@ -10,6 +10,6 @@ import (
 func newDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"))
 	goutils.Assert(err)
-	goutils.Assert(db.AutoMigrate(new(model.User), new(model.SessionKey)))
+	goutils.Assert(db.AutoMigrate(new(model.User), new(model.SessionKey), new(model.Note)))
 	return db
 }

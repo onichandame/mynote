@@ -8,24 +8,27 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gin-gonic/gin"
 	gimgin "github.com/onichandame/gim-gin"
 )
 
 type Server struct {
-	engine *gin.Engine
+	ginsvc *gimgin.GinService
 }
 
 func newServer(ginsvc *gimgin.GinService) *Server {
 	var srv Server
-	srv.engine = ginsvc.Bootstrap()
+	srv.ginsvc = ginsvc
 	return &srv
 }
 
 func (s *Server) Run() {
+	port := os.Getenv(`PORT`)
+	if port == "" {
+		port = `80`
+	}
 	srv := http.Server{
-		Handler: s.engine,
-		Addr:    fmt.Sprintf("0.0.0.0:80"),
+		Handler: s.ginsvc.Bootstrap(),
+		Addr:    fmt.Sprintf("0.0.0.0:%v", port),
 	}
 	done := make(chan int)
 	sigchan := make(chan os.Signal)
