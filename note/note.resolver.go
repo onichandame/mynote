@@ -77,10 +77,13 @@ func newResolver(db *gorm.DB, gqlsvc *gimgraphql.GraphqlService, parser *structg
 		Resolve: func(p graphql.ResolveParams) (res interface{}, err error) {
 			defer goutils.RecoverToErr(&err)
 			var input NoteInput
-			goutils.UnmarshalJSONFromMap(p.Args,&input)
+			goutils.UnmarshalJSONFromMap(p.Args, &input)
 			goutils.Assert(db.Scopes(auth.Self(p.Context)).Error)
 			return res, err
 		},
+	})
+	gqlsvc.AddMutation(`updateNote`, &graphql.Field{
+		Type: graphql.NewNonNull(parser.ParseOutput(new(NoteDTO))),
 	})
 	return &rsl
 }
