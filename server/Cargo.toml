@@ -1,0 +1,16 @@
+[package]
+name = "server"
+version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+auth = { path = "../auth" }
+frontend = { path = "../frontend" }
+db = { path = "../db" }
+warp = "0.3.2"
+async-graphql = { version = "3.0.19", features = ["apollo_tracing"] }
+async-graphql-warp = "3.0.19"
+tokio = { version = "1.15.0", features = ["full"] }
+warp-embed = "0.4.0"

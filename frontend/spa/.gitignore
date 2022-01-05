@@ -3,10 +3,4 @@ node_modules
 dist
 dist-ssr
 *.local
-
 yarn.lock
-
-# Added by cargo
-
-/target
-.env
