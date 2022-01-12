@@ -1,4 +1,32 @@
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[workspace]
-members = ["db", "server", "auth", "frontend", "note"]
+[package]
+name = "mynote"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+warp = "0.3.2"
+async-graphql-warp = "3.0.19"
+tokio = { version = "1.15.0", features = ["full"] }
+serde_json = "1.0.74"
+warp-embed = "0.4.0"
+sqlx = { version = "0.5", features = [
+    "runtime-tokio-native-tls",
+    "sqlite",
+    "migrate",
+    "chrono",
+    "time",
+] }
+rand = "0.8.4"
+chrono = "0.4.19"
+jsonwebtoken = "7"
+async-graphql = { version = "3.0.19", features = ["chrono"] }
+bcrypt = "0.10"
+thiserror = "1.0.30"
+serde = "1.0.133"
+rust-embed = { version = "6.3.0", features = ["compression"] }
+async-trait = "0.1.52"
+
+[dependencies.openssl]
+version = "*"
+features = ["vendored"]
