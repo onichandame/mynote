@@ -1,6 +1,6 @@
 use sqlx;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Clone)]
 pub struct User {
     // base + timestamp + persistent
     pub id: i64,
@@ -11,6 +11,7 @@ pub struct User {
     pub name: String,
     pub password: String,
     pub email: Option<String>,
+    pub avatar: Option<String>,
 }
 
 impl Default for User {
@@ -21,6 +22,7 @@ impl Default for User {
             deleted_at: None,
             updated_at: None,
             email: None,
+            avatar: None,
             name: "".to_string(),
             password: "".to_string(),
         }

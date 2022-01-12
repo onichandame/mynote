@@ -14,11 +14,11 @@ sqlx = { version = "0.5", features = [
     "time",
 ] }
 db = { path = "../db" }
+rand = "0.8.4"
 chrono = "0.4.19"
+jsonwebtoken = "7"
 async-graphql = { version = "3.0.19", features = [] }
-jwt-simple = "0.10.8"
 bcrypt = "0.10"
 thiserror = "1.0.30"
-serde_json = "1.0.74"
 serde = "1.0.133"
 async-trait = "0.1.52"

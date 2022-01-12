@@ -1,6 +1,16 @@
-import { FC, useState } from "react";
-import { SessionStateProvider } from "./auth";
+import { SnackbarProvider } from "notistack";
+import { FC } from "react";
+import { SessionProvider, UserProvider } from "./auth";
+import { ClientProvider } from "./request";
 
 export const Global: FC = ({ children }) => {
-  return <SessionStateProvider>{children}</SessionStateProvider>;
+  return (
+    <SessionProvider>
+      <ClientProvider>
+        <UserProvider>
+          <SnackbarProvider maxSnack={3}>{children}</SnackbarProvider>
+        </UserProvider>
+      </ClientProvider>
+    </SessionProvider>
+  );
 };

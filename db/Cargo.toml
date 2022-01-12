@@ -14,3 +14,6 @@ sqlx = { version = "0.5", features = [
     "time",
 ] }
 chrono = "0.4.19"
+
+[dev-dependencies]
+tokio = { version = "1.15.0", features = ["full"] }
