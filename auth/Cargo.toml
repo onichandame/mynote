@@ -1,0 +1,30 @@
+[package]
+name = "auth"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+db = { path = "../db" }
+dto = { path = "../dto" }
+async-graphql = { version = "3.0.19", features = ["chrono"] }
+chrono = "0.4.19"
+thiserror = "1.0.30"
+sqlx = { version = "0.5", features = [
+    "runtime-tokio-native-tls",
+    "sqlite",
+    "migrate",
+    "chrono",
+    "time",
+] }
+bcrypt = "0.10"
+jsonwebtoken = "7"
+rand = "0.8.4"
+serde = "1.0.133"
+async-trait = "0.1.52"
+
+# patch sqlx for cross-compilation
+[dependencies.openssl]
+version = "*"
+features = ["vendored"]

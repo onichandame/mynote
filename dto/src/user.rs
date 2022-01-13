@@ -1,6 +1,5 @@
 use async_graphql::SimpleObject;
-
-use crate::db::model;
+use db::model;
 
 #[derive(SimpleObject)]
 #[graphql(name = "User")]

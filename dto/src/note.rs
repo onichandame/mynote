@@ -1,7 +1,6 @@
 use async_graphql::{ComplexObject, Context, Result, SimpleObject};
+use db::model;
 use sqlx;
-
-use crate::db::{self, model};
 
 use super::user::UserDTO;
 

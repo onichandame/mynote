@@ -4,11 +4,9 @@ use super::{
     guard::LoginRequired,
     service,
 };
-use crate::{
-    db::{self, model},
-    dto::UserDTO,
-};
 use async_graphql::{Context, MaybeUndefined, Object, Result};
+use db::model;
+use dto::UserDTO;
 use sqlx;
 
 #[derive(Default)]

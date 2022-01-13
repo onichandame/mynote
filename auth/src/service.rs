@@ -1,13 +1,12 @@
 use async_graphql;
 use bcrypt;
 use chrono::{Duration, Utc};
+use db::model;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use rand::{self, distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use sqlx;
 use std::{error::Error, ops::Add, str};
-
-use crate::db::{self, model};
 
 use super::{error, Session};
 

@@ -1,13 +1,9 @@
 use async_graphql::{Context, Object, Result};
+use db::model;
+use dto::NoteDTO;
 use sqlx;
 
-use crate::{
-    auth,
-    db::{self, model},
-    dto::NoteDTO,
-};
-
-use super::dto::{NoteInputDTO, NoteUpdateDTO};
+use crate::dto::{NoteInputDTO, NoteUpdateDTO};
 
 #[derive(Default)]
 pub struct NoteQuery;

@@ -1,16 +1,15 @@
-use std::env;
-
 use async_graphql::{EmptySubscription, Schema};
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
+use auth;
+use db;
 use resolver::{Mutation, Query};
 use serde::Deserialize;
+use std::env;
+use tokio;
 use warp::{ws::Ws, Filter};
+use warp_embed;
+use web;
 
-mod auth;
-mod db;
-mod dto;
-mod frontend;
-mod note;
 mod resolver;
 
 #[tokio::main]
@@ -45,7 +44,7 @@ pub async fn main() {
                 protocol.sec_websocket_protocol(),
             )
         })
-        .or(warp_embed::embed(&frontend::Frontend));
+        .or(warp_embed::embed(&web::Frontend));
     let port = match env::var("PORT") {
         Ok(p) => p.parse::<u16>().unwrap(),
         _other => 80,

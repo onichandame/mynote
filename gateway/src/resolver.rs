@@ -1,9 +1,6 @@
 use async_graphql::MergedObject;
-
-use crate::{
-    auth::{SessionMutation, UserMutation, UserQuery},
-    note::{NoteMutation, NoteQuery},
-};
+use auth::{SessionMutation, UserMutation, UserQuery};
+use note::{NoteMutation, NoteQuery};
 
 #[derive(MergedObject, Default)]
 pub struct Query(UserQuery, NoteQuery);
