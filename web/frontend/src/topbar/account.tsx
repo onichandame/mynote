@@ -14,7 +14,7 @@ export const Account: FC = () => {
       <IconButton size="large" onClick={(e) => setMenuAnchor(e.currentTarget)}>
         {user ? (
           user.avatar ? (
-            <Avatar alt={user.name} src={user?.avatar} />
+            <Avatar alt={user.name} src={user.avatar} />
           ) : (
             <Avatar alt={user.name}>
               {user.name
@@ -32,8 +32,8 @@ export const Account: FC = () => {
         anchorEl={menuAnchor}
         keepMounted
         open={!!menuAnchor}
-        anchorOrigin={{ horizontal: `right`, vertical: `top` }}
-        transformOrigin={{ vertical: `top`, horizontal: `right` }}
+        anchorOrigin={{ horizontal: `center`, vertical: `bottom` }}
+        transformOrigin={{ vertical: `top`, horizontal: `center` }}
         onClose={() => setMenuAnchor(null)}
       >
         {user ? (

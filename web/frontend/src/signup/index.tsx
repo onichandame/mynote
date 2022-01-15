@@ -2,7 +2,7 @@ import { Button, Grid, TextField } from "@mui/material";
 import { useFormik } from "formik";
 import { useSnackbar } from "notistack";
 import { FC, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 
 import { User, useUser } from "../auth";
@@ -122,6 +122,9 @@ export const Signup: FC = () => {
           >
             sign up
           </Button>
+        </Grid>
+        <Grid item>
+          <Link to="/login">log in</Link>
         </Grid>
       </Grid>
     </form>

@@ -1,16 +1,17 @@
 import { FC, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button, Grid, TextField } from "@mui/material";
 
-import { useSessionSetter } from "../auth";
+import { useSessionSetter, useUser } from "../auth";
 import { useFetcher } from "../request";
 import { useSnackbar } from "notistack";
 
 export const Login: FC = () => {
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const setSession = useSessionSetter();
+  const user = useUser();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const login = useFetcher<
@@ -41,7 +42,6 @@ export const Login: FC = () => {
       promise
         .then((data) => {
           setSession(data.login);
-          navigate(`/`);
         })
         .catch((e) => {
           enqueueSnackbar(JSON.stringify(e), { variant: `error` });
@@ -53,6 +53,7 @@ export const Login: FC = () => {
     },
   });
   const form = useRef<null | HTMLFormElement>(null);
+  const submitButton = useRef<null | HTMLButtonElement>(null);
   useEffect(() => {
     if (params) {
       const name = params.get(`name`);
@@ -60,11 +61,16 @@ export const Login: FC = () => {
       const password = params.get(`password`);
       if (password) formik.setFieldValue(`password`, password);
     }
-    if (form) {
-      const autosubmit = params.get(`autoSubmit`);
-      if (autosubmit) form.current?.dispatchEvent(new Event(`submit`));
+    if (submitButton) {
+      formik.validateForm().then(() => {
+        const autosubmit = params.get(`autoSubmit`);
+        if (autosubmit) submitButton.current?.click();
+      });
     }
-  }, [form, params]);
+  }, [submitButton, params]);
+  useEffect(() => {
+    if (user) navigate(`/`);
+  }, [user]);
   return (
     <form ref={form} onSubmit={formik.handleSubmit}>
       <Grid container direction="column" spacing={2} alignItems="center">
@@ -92,12 +98,16 @@ export const Login: FC = () => {
         </Grid>
         <Grid item>
           <Button
+            ref={submitButton}
             variant="contained"
             type="submit"
             disabled={formik.isSubmitting}
           >
             log in
           </Button>
+        </Grid>
+        <Grid item>
+          <Link to="/signup">sign up</Link>
         </Grid>
       </Grid>
     </form>

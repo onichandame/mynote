@@ -28,13 +28,11 @@ export const UserProvider: FC = ({ children }) => {
       cleanup = stop;
       promise
         .then((data) => {
-          console.log(data);
           if (active) {
             userState[1](data.self);
           }
         })
         .catch((e) => {
-          console.log(`bitch`);
           console.error(e);
           if (active) {
             setSession(null);
@@ -47,7 +45,7 @@ export const UserProvider: FC = ({ children }) => {
       cleanup();
       active = false;
     };
-  }, [session, fetch]);
+  }, [session]);
   return <UserState.Provider value={userState}>{children}</UserState.Provider>;
 };
 export const useUser = () => useContext(UserState)[0];

@@ -26,6 +26,18 @@ impl NoteQuery {
                 .collect::<Vec<_>>(),
         )
     }
+    #[graphql(guard = "auth::LoginRequired::new()")]
+    async fn get_note<'a>(&self, ctx: &Context<'a>, id: i64) -> Result<NoteDTO> {
+        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let user = auth::get_user_from_ctx(ctx).await?;
+        Ok(NoteDTO::from(
+            sqlx::query_as::<_, model::Note>("SELECT * FROM notes WHERE user_id = ? AND id = ?")
+                .bind(user.id)
+                .bind(id)
+                .fetch_one(pool)
+                .await?,
+        ))
+    }
 }
 
 #[Object]
@@ -33,11 +45,12 @@ impl NoteMutation {
     #[graphql(guard = "auth::LoginRequired::new()")]
     async fn create_note(&self, ctx: &Context<'_>, input: NoteInputDTO) -> Result<NoteDTO> {
         let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let user = auth::get_user_from_ctx(ctx).await?;
         Ok(NoteDTO::from(
             sqlx::query_as::<_, model::Note>(
                 "INSERT INTO notes (user_id, title, content) VALUES (?,?,?) RETURNING *",
             )
-            .bind(input.user_id)
+            .bind(user.id)
             .bind(input.title)
             .bind(input.content)
             .fetch_one(pool)

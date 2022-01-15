@@ -8,6 +8,6 @@ CREATE table notes(
     user_id integer not null,
     title text not null,
     content text not null,
-    FOREIGN KEY(user_id) REFERENCES user(id)
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );
 

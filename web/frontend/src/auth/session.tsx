@@ -12,6 +12,7 @@ export const SessionProvider: FC = ({ children }) => {
   const sessionState = useState<Session>(null);
   useEffect(() => {
     const session = window.localStorage.getItem(sessionKey);
+    console.log(`hi`);
     if (session) sessionState[1](session);
   }, []);
   return (

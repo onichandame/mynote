@@ -2,7 +2,6 @@ use async_graphql::InputObject;
 
 #[derive(InputObject)]
 pub struct NoteInputDTO {
-    pub user_id: i64,
     pub title: String,
     pub content: String,
 }

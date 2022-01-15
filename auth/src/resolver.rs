@@ -30,11 +30,12 @@ impl UserMutation {
         let pool = ctx.data::<db::ConnectionPool>().unwrap();
         Ok(UserDTO::from(
             sqlx::query_as::<_, model::User>(
-                "INSERT INTO users (name,email,password) VALUES (?,?,?) RETURNING *",
+                "INSERT INTO users (name,email,password,avatar) VALUES (?,?,?,?) RETURNING *",
             )
             .bind(input.name)
             .bind(input.email)
             .bind(bcrypt::hash(input.password, bcrypt::DEFAULT_COST)?)
+            .bind(input.avatar)
             .fetch_one(pool)
             .await?,
         ))
