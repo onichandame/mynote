@@ -44,7 +44,7 @@ impl UserMutation {
     async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
         let pool = ctx.data::<db::ConnectionPool>().unwrap();
         let user = get_user_from_ctx(ctx).await.unwrap();
-        let mut update_str = vec!["updated_at=now"];
+        let mut update_str = vec!["updated_at=datetime('now')"];
         if let Some(_) = update.name {
             update_str.push("name=?");
         }
@@ -64,6 +64,7 @@ impl UserMutation {
             "UPDATE users SET",
             &update_str.join(","),
             "WHERE id=? RETURNING *",
+            "RETURNING *",
         ]
         .join(" ");
         let mut query = sqlx::query_as::<sqlx::Sqlite, model::User>(&query_str);

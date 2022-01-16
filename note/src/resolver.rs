@@ -66,7 +66,7 @@ impl NoteMutation {
     ) -> Result<NoteDTO> {
         let pool = ctx.data::<db::ConnectionPool>().unwrap();
         let user = auth::get_user_from_ctx(ctx).await?;
-        let mut update_query = vec!["updated_at=now"];
+        let mut update_query = vec!["updated_at=datetime('now')"];
         if let Some(_) = &update.title {
             update_query.push("title=?")
         }
@@ -77,6 +77,7 @@ impl NoteMutation {
             "UPDATE notes SET",
             &update_query.join(","),
             "WHERE id=? AND user_id=?",
+            "RETURNING *",
         ]
         .join(" ");
         let mut query = sqlx::query_as::<sqlx::Sqlite, model::Note>(&query_str);
@@ -89,5 +90,16 @@ impl NoteMutation {
         query = query.bind(id);
         query = query.bind(user.id);
         Ok(NoteDTO::from(query.fetch_one(pool).await?))
+    }
+    #[graphql(guard = "auth::LoginRequired::new()")]
+    async fn delete_note(&self, ctx: &Context<'_>, id: i64) -> Result<bool> {
+        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let user = auth::get_user_from_ctx(ctx).await?;
+        sqlx::query("DELETE FROM notes WHERE id = ? AND user_id = ?")
+            .bind(id)
+            .bind(user.id)
+            .execute(pool)
+            .await?;
+        Ok(true)
     }
 }

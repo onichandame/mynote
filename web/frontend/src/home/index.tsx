@@ -23,7 +23,11 @@ export const Home: FC = () => {
     <Grid container direction="row" spacing={3}>
       {cards.map((card) => (
         <Grid item key={card.url}>
-          <Card sx={{ maxWidth: 345 }}>
+          <Card
+            sx={{
+              maxWidth: 345,
+            }}
+          >
             <CardActionArea
               onClick={() => {
                 navigate(card.url);
