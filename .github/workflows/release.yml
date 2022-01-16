@@ -1,0 +1,35 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  release:
+    name: Release binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r22b
+      - uses: actions-rs/toolchain@v1
+        with:
+          target: aarch64-linux-android
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target aarch64-linux-android
+        env:
+          RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      - run: tar -cxf -C target/aarch64-linux-android/release android-arm64.tar.gz gateway
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: tar -cxf -C target/release linux-amd64.tar.gz gateway
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "android-arm64.tar.gz,linux-amd64.tar.gz"
+          token: ${{ secrets.GITHUB_TOKEN }}
