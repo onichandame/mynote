@@ -13,6 +13,8 @@ jobs:
         id: setup-ndk
         with:
           ndk-version: r22b
+      - run: echo "NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+      - run: echo "$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
       - uses: actions-rs/toolchain@v1
         with:
           target: aarch64-linux-android
@@ -24,8 +26,6 @@ jobs:
           args: --release --target aarch64-linux-android
         env:
           RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
-          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          PATH: $PATH:$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
       - run: tar -cxf -C target/aarch64-linux-android/release android-arm64.tar.gz gateway
       - uses: actions-rs/cargo@v1
         with:
