@@ -26,12 +26,12 @@ jobs:
           args: --release --target aarch64-linux-android
         env:
           RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
-      - run: tar -cxf -C target/aarch64-linux-android/release android-arm64.tar.gz gateway
+      - run: tar -C target/aarch64-linux-android/release -zcf android-arm64.tar.gz gateway
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
-      - run: tar -cxf -C target/release linux-amd64.tar.gz gateway
+      - run: tar -C target/release -zcf linux-amd64.tar.gz gateway
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "android-arm64.tar.gz,linux-amd64.tar.gz"
