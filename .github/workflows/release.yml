@@ -25,6 +25,7 @@ jobs:
         env:
           RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          PATH: $PATH:$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
       - run: tar -cxf -C target/aarch64-linux-android/release android-arm64.tar.gz gateway
       - uses: actions-rs/cargo@v1
         with:
