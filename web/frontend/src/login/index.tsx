@@ -69,7 +69,7 @@ export const Login: FC = () => {
     }
   }, [submitButton, params]);
   useEffect(() => {
-    if (user) navigate(`/`);
+    if (user) navigate(decodeURIComponent(params.get(`redirect`) || `/`));
   }, [user]);
   return (
     <form ref={form} onSubmit={formik.handleSubmit}>
