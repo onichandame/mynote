@@ -5,9 +5,9 @@ use super::{
     service,
 };
 use async_graphql::{Context, MaybeUndefined, Object, Result};
-use db::model;
 use dto::UserDTO;
-use sqlx;
+use model;
+use sea_orm::{ActiveValue::NotSet, Set};
 
 #[derive(Default)]
 pub struct UserQuery;
@@ -27,75 +27,70 @@ impl UserQuery {
 #[Object]
 impl UserMutation {
     async fn register(&self, ctx: &Context<'_>, input: UserInputDTO) -> Result<UserDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let db = ctx.data::<model::Database>().unwrap();
         Ok(UserDTO::from(
-            sqlx::query_as::<_, model::User>(
-                "INSERT INTO users (name,email,password,avatar) VALUES (?,?,?,?) RETURNING *",
-            )
-            .bind(input.name)
-            .bind(input.email)
-            .bind(bcrypt::hash(input.password, bcrypt::DEFAULT_COST)?)
-            .bind(input.avatar)
-            .fetch_one(pool)
-            .await?,
+            service::create_user(db, UserInputActiveModel::from(input).0).await?,
         ))
     }
     #[graphql(guard = "LoginRequired::new()")]
     async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let db = ctx.data::<model::Database>().unwrap();
         let user = get_user_from_ctx(ctx).await.unwrap();
-        let mut update_str = vec!["updated_at=datetime('now')"];
-        if let Some(_) = update.name {
-            update_str.push("name=?");
-        }
-        if let Some(_) = update.password {
-            update_str.push("password=?");
-        }
-        if let Some(_) = update.email {
-            update_str.push("email=?");
-        }
-        match &update.avatar {
-            MaybeUndefined::Value(_) | MaybeUndefined::Null => {
-                update_str.push("avatar=?");
-            }
-            _other => {}
-        }
-        let query_str = vec![
-            "UPDATE users SET",
-            &update_str.join(","),
-            "WHERE id=? RETURNING *",
-            "RETURNING *",
-        ]
-        .join(" ");
-        let mut query = sqlx::query_as::<sqlx::Sqlite, model::User>(&query_str);
-        if let Some(name) = &update.name {
-            query = query.bind(name);
-        }
-        if let Some(password) = &update.password {
-            query = query.bind(bcrypt::hash(password, bcrypt::DEFAULT_COST)?);
-        }
-        if let Some(email) = &update.email {
-            query = query.bind(email);
-        }
-        match &update.avatar {
-            MaybeUndefined::Value(avatar) => {
-                query = query.bind(avatar);
-            }
-            MaybeUndefined::Null => {
-                query = query.bind("NULL");
-            }
-            _other => {}
-        }
-        query = query.bind(user.id);
-        Ok(UserDTO::from(query.fetch_one(pool).await?))
+        Ok(UserDTO::from(
+            service::update_user(db, user.id, UserUpdateActiveModel::from(update).0).await?,
+        ))
     }
 }
 
 #[Object]
 impl SessionMutation {
     async fn login(&self, ctx: &Context<'_>, input: LoginInputDTO) -> Result<String> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
-        let session = service::login(&input.name, &input.password, pool).await?;
-        Ok(session)
+        let db = ctx.data::<model::Database>().unwrap();
+        Ok(service::login(db, &input.name, &input.password).await?)
+    }
+}
+
+struct UserInputActiveModel(pub model::user::ActiveModel);
+
+impl From<UserInputDTO> for UserInputActiveModel {
+    fn from(input: UserInputDTO) -> Self {
+        Self {
+            0: model::user::ActiveModel {
+                name: Set(input.name),
+                password: Set(input.password),
+                avatar: Set(input.avatar),
+                email: Set(input.email),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+struct UserUpdateActiveModel(pub model::user::ActiveModel);
+
+impl From<UserUpdateDTO> for UserUpdateActiveModel {
+    fn from(update: UserUpdateDTO) -> Self {
+        Self {
+            0: model::user::ActiveModel {
+                name: match update.name {
+                    None => NotSet,
+                    Some(newname) => Set(newname),
+                },
+                password: match update.password {
+                    None => NotSet,
+                    Some(newpassword) => Set(newpassword),
+                },
+                email: match update.email {
+                    None => NotSet,
+                    Some(newemail) => Set(Some(newemail)),
+                },
+                avatar: match update.avatar {
+                    MaybeUndefined::Null => Set(None),
+                    MaybeUndefined::Undefined => NotSet,
+                    MaybeUndefined::Value(newavatar) => Set(Some(newavatar)),
+                },
+                ..Default::default()
+            },
+        }
     }
 }

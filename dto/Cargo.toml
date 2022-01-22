@@ -6,18 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-db = { path = "../db" }
+model = { path = "../model" }
 async-graphql = { version = "3.0.19", features = ["chrono"] }
-sqlx = { version = "0.5", features = [
-    "runtime-tokio-native-tls",
-    "sqlite",
-    "migrate",
-    "chrono",
-    "time",
-] }
 chrono = "0.4.19"
-
-# patch sqlx for cross-compilation
-[dependencies.openssl]
-version = "*"
-features = ["vendored"]
+sea-orm = "^0"

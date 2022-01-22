@@ -4,4 +4,6 @@ use thiserror::Error;
 pub enum AuthError {
     #[error("password incorrect")]
     IncorrectPassword,
+    #[error("session not valid")]
+    SessionKeyNotFound,
 }

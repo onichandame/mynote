@@ -7,18 +7,8 @@ edition = "2021"
 
 [dependencies]
 auth = { path = "../auth" }
-db = { path = "../db" }
+model = { path = "../model" }
 dto = { path = "../dto" }
 async-graphql = { version = "3.0.19", features = ["chrono"] }
-sqlx = { version = "0.5", features = [
-    "runtime-tokio-native-tls",
-    "sqlite",
-    "migrate",
-    "chrono",
-    "time",
-] }
-
-# patch sqlx for cross-compilation
-[dependencies.openssl]
-version = "*"
-features = ["vendored"]
+sea-orm = "^0"
+thiserror = "1.0.30"

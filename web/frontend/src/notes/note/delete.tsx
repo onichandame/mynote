@@ -35,7 +35,7 @@ export const Delete: FC = () => {
           closeSnackbar(key);
         });
     }
-  }, [params, searchParams]);
+  }, [searchParams]);
   return (
     <div>
       <p>Deleted note cannot be recovered. Are you sure?</p>

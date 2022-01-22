@@ -1,18 +1,18 @@
 use async_graphql::{ComplexObject, Context, Result, SimpleObject};
-use db::model;
-use sqlx;
+use model;
+use sea_orm::entity::*;
 
 use super::user::UserDTO;
 
 #[derive(SimpleObject)]
 #[graphql(name = "Note")]
 pub struct NoteDTO {
-    pub id: i64,
+    pub id: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
     pub deleted_at: Option<chrono::NaiveDateTime>,
 
-    pub user_id: i64,
+    pub user_id: i32,
     pub title: String,
     pub content: String,
 }
@@ -20,19 +20,18 @@ pub struct NoteDTO {
 #[ComplexObject]
 impl NoteDTO {
     async fn user(&self, ctx: &Context<'_>) -> Result<UserDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
-        Ok(
-            sqlx::query_as::<_, model::User>("SELECT * FROM users WHERE id = ?")
-                .bind(self.user_id)
-                .fetch_one(pool)
+        let db = ctx.data::<model::Database>().unwrap();
+        Ok(UserDTO::from(
+            model::User::find_by_id(self.user_id)
+                .one(db)
                 .await?
-                .into(),
-        )
+                .ok_or("user not found")?,
+        ))
     }
 }
 
-impl From<&model::Note> for NoteDTO {
-    fn from(note: &model::Note) -> Self {
+impl From<&model::note::Model> for NoteDTO {
+    fn from(note: &model::note::Model) -> Self {
         Self {
             created_at: note.created_at.clone(),
             deleted_at: note.deleted_at.clone(),
@@ -45,8 +44,8 @@ impl From<&model::Note> for NoteDTO {
     }
 }
 
-impl From<model::Note> for NoteDTO {
-    fn from(note: model::Note) -> Self {
+impl From<model::note::Model> for NoteDTO {
+    fn from(note: model::note::Model) -> Self {
         Self {
             created_at: note.created_at,
             deleted_at: note.deleted_at,

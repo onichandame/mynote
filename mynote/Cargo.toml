@@ -1,5 +1,5 @@
 [package]
-name = "gateway"
+name = "mynote"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 auth = { path = "../auth" }
 note = { path = "../note" }
-db = { path = "../db" }
+model = { path = "../model" }
 web = { path = "../web" }
 tokio = { version = "1.15.0", features = ["full"] }
 warp-embed = "0.4.0"

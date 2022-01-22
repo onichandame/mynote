@@ -3,7 +3,6 @@ use sqlx::sqlite;
 use std::env;
 
 mod migration;
-pub mod model;
 
 pub type ConnectionPool = sqlite::SqlitePool;
 

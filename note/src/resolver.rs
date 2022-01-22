@@ -1,9 +1,12 @@
 use async_graphql::{Context, Object, Result};
-use db::model;
 use dto::NoteDTO;
-use sqlx;
+use model;
+use sea_orm::{NotSet, Set};
 
-use crate::dto::{NoteInputDTO, NoteUpdateDTO};
+use crate::{
+    dto::{NoteInputDTO, NoteUpdateDTO},
+    service,
+};
 
 #[derive(Default)]
 pub struct NoteQuery;
@@ -14,28 +17,21 @@ pub struct NoteMutation;
 impl NoteQuery {
     #[graphql(guard = "auth::LoginRequired::new()")]
     async fn list_notes<'a>(&self, ctx: &Context<'a>) -> Result<Vec<NoteDTO>> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let db = ctx.data::<model::Database>().unwrap();
         let user = auth::get_user_from_ctx(ctx).await?;
-        Ok(
-            sqlx::query_as::<_, model::Note>("SELECT * FROM notes WHERE user_id = ?")
-                .bind(user.id)
-                .fetch_all(pool)
-                .await?
-                .iter()
-                .map(|note| NoteDTO::from(note))
-                .collect::<Vec<_>>(),
-        )
+        Ok(service::find_notes(db, Some(user.id))
+            .await?
+            .iter()
+            .map(|note| NoteDTO::from(note))
+            .collect::<Vec<_>>())
     }
+
     #[graphql(guard = "auth::LoginRequired::new()")]
-    async fn get_note<'a>(&self, ctx: &Context<'a>, id: i64) -> Result<NoteDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+    async fn get_note<'a>(&self, ctx: &Context<'a>, id: i32) -> Result<NoteDTO> {
+        let db = ctx.data::<model::Database>().unwrap();
         let user = auth::get_user_from_ctx(ctx).await?;
         Ok(NoteDTO::from(
-            sqlx::query_as::<_, model::Note>("SELECT * FROM notes WHERE user_id = ? AND id = ?")
-                .bind(user.id)
-                .bind(id)
-                .fetch_one(pool)
-                .await?,
+            service::find_note(db, id, Some(user.id)).await?,
         ))
     }
 }
@@ -44,62 +40,65 @@ impl NoteQuery {
 impl NoteMutation {
     #[graphql(guard = "auth::LoginRequired::new()")]
     async fn create_note(&self, ctx: &Context<'_>, input: NoteInputDTO) -> Result<NoteDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+        let db = ctx.data::<model::Database>().unwrap();
         let user = auth::get_user_from_ctx(ctx).await?;
         Ok(NoteDTO::from(
-            sqlx::query_as::<_, model::Note>(
-                "INSERT INTO notes (user_id, title, content) VALUES (?,?,?) RETURNING *",
-            )
-            .bind(user.id)
-            .bind(input.title)
-            .bind(input.content)
-            .fetch_one(pool)
-            .await?,
+            service::create_note(db, NoteInputActiveModel::from(input).0, user.id).await?,
         ))
     }
+
     #[graphql(guard = "auth::LoginRequired::new()")]
     async fn update_note(
         &self,
         ctx: &Context<'_>,
-        id: i64,
+        id: i32,
         update: NoteUpdateDTO,
     ) -> Result<NoteDTO> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
-        let user = auth::get_user_from_ctx(ctx).await?;
-        let mut update_query = vec!["updated_at=datetime('now')"];
-        if let Some(_) = &update.title {
-            update_query.push("title=?")
-        }
-        if let Some(_) = &update.content {
-            update_query.push("content=?")
-        }
-        let query_str = vec![
-            "UPDATE notes SET",
-            &update_query.join(","),
-            "WHERE id=? AND user_id=?",
-            "RETURNING *",
-        ]
-        .join(" ");
-        let mut query = sqlx::query_as::<sqlx::Sqlite, model::Note>(&query_str);
-        if let Some(title) = &update.title {
-            query = query.bind(title)
-        }
-        if let Some(content) = &update.content {
-            query = query.bind(content)
-        }
-        query = query.bind(id);
-        query = query.bind(user.id);
-        Ok(NoteDTO::from(query.fetch_one(pool).await?))
+        let db = ctx.data::<model::Database>().unwrap();
+        Ok(NoteDTO::from(
+            service::update_note(db, id, NoteUpdateActiveModel::from(update).0).await?,
+        ))
     }
+
     #[graphql(guard = "auth::LoginRequired::new()")]
-    async fn delete_note(&self, ctx: &Context<'_>, id: i64) -> Result<bool> {
-        let pool = ctx.data::<db::ConnectionPool>().unwrap();
+    async fn delete_note(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+        let db = ctx.data::<model::Database>().unwrap();
         let user = auth::get_user_from_ctx(ctx).await?;
-        sqlx::query("DELETE FROM notes WHERE id = ? AND user_id = ?")
-            .bind(id)
-            .bind(user.id)
-            .execute(pool)
-            .await?;
+        service::delete_note(db, id, Some(user.id)).await?;
         Ok(true)
+    }
+}
+
+struct NoteInputActiveModel(model::note::ActiveModel);
+
+impl From<NoteInputDTO> for NoteInputActiveModel {
+    fn from(input: NoteInputDTO) -> Self {
+        Self {
+            0: model::note::ActiveModel {
+                title: Set(input.title),
+                content: Set(input.content),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+struct NoteUpdateActiveModel(model::note::ActiveModel);
+
+impl From<NoteUpdateDTO> for NoteUpdateActiveModel {
+    fn from(update: NoteUpdateDTO) -> Self {
+        Self {
+            0: model::note::ActiveModel {
+                title: match update.title {
+                    None => NotSet,
+                    Some(newtitle) => Set(newtitle),
+                },
+                content: match update.content {
+                    None => NotSet,
+                    Some(newcontent) => Set(newcontent),
+                },
+                ..Default::default()
+            },
+        }
     }
 }

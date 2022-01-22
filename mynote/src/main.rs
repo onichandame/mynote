@@ -1,7 +1,7 @@
 use async_graphql::{EmptySubscription, Schema};
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
 use auth;
-use db;
+use model;
 use resolver::{Mutation, Query};
 use serde::Deserialize;
 use std::env;
@@ -14,9 +14,9 @@ mod resolver;
 
 #[tokio::main]
 pub async fn main() {
-    let db_connection_pool = db::new_connection_pool().await;
+    let db_connection = model::new_connection().await;
     let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-        .data(db_connection_pool.clone())
+        .data(db_connection)
         .finish();
     let app = warp::path!("graphql")
         .and(warp::ws())

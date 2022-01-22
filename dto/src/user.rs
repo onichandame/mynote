@@ -1,10 +1,10 @@
 use async_graphql::SimpleObject;
-use db::model;
+use model;
 
 #[derive(SimpleObject)]
 #[graphql(name = "User")]
 pub struct UserDTO {
-    pub id: i64,
+    pub id: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
     pub deleted_at: Option<chrono::NaiveDateTime>,
@@ -15,8 +15,8 @@ pub struct UserDTO {
     pub avatar: Option<String>,
 }
 
-impl From<model::User> for UserDTO {
-    fn from(user: model::User) -> Self {
+impl From<model::user::Model> for UserDTO {
+    fn from(user: model::user::Model) -> Self {
         Self {
             created_at: user.created_at,
             deleted_at: user.deleted_at,
@@ -28,8 +28,8 @@ impl From<model::User> for UserDTO {
         }
     }
 }
-impl From<&model::User> for UserDTO {
-    fn from(user: &model::User) -> Self {
+impl From<&model::user::Model> for UserDTO {
+    fn from(user: &model::user::Model) -> Self {
         Self {
             created_at: user.created_at.clone(),
             deleted_at: user.deleted_at.clone(),
