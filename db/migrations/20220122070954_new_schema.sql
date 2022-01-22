@@ -1,7 +1,6 @@
 -- Add migration script here
-PRAGMA foreign_keys=off;
--- users
-CREATE table _users(
+ALTER TABLE users RENAME TO _users;
+CREATE table users(
     id integer not null primary key,
     created_at datetime not null default current_timestamp,
     updated_at datetime,
@@ -12,14 +11,12 @@ CREATE table _users(
     email text unique,
     avatar text
 );
-INSERT INTO _users ( id, created_at, updated_at, deleted_at, name, password, email, avatar)
+INSERT INTO users ( id, created_at, updated_at, deleted_at, name, password, email, avatar)
     SELECT id, created_at, updated_at, deleted_at, name, password, email, avatar
-    FROM users;
-DROP TABLE users;
-ALTER TABLE _users RENAME TO users;
+    FROM _users;
 
--- session keys
-CREATE table _session_keys(
+ALTER TABLE session_keys RENAME TO _session_keys;
+CREATE table session_keys(
     id integer not null primary key,
     created_at datetime not null default current_timestamp,
     updated_at datetime,
@@ -27,14 +24,12 @@ CREATE table _session_keys(
 
     key text not null
 );
-INSERT INTO _session_keys ( id, created_at, updated_at, deleted_at, key)
+INSERT INTO session_keys ( id, created_at, updated_at, deleted_at, key)
     SELECT id, created_at, updated_at, deleted_at, key
-    FROM session_keys;
-DROP TABLE session_keys;
-ALTER TABLE _session_keys RENAME TO session_keys;
+    FROM _session_keys;
 
--- notes
-CREATE table _notes(
+ALTER TABLE notes RENAME TO _notes;
+CREATE table notes(
     id integer not null primary key,
     created_at datetime not null default current_timestamp,
     updated_at datetime,
@@ -45,10 +40,10 @@ CREATE table _notes(
     content text not null,
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
-INSERT INTO _notes ( id, created_at, updated_at, deleted_at, user_id, title, content)
+INSERT INTO notes ( id, created_at, updated_at, deleted_at, user_id, title, content)
     SELECT id, created_at, updated_at, deleted_at, user_id, title, content
-    FROM notes;
-DROP TABLE notes;
-ALTER TABLE _notes RENAME TO notes;
+    FROM _notes;
 
-PRAGMA foreign_keys=on;
+drop table _notes;
+drop table _session_keys;
+drop table _users;
