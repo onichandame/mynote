@@ -15,19 +15,6 @@ pub struct UserDTO {
     pub avatar: Option<String>,
 }
 
-impl From<model::user::Model> for UserDTO {
-    fn from(user: model::user::Model) -> Self {
-        Self {
-            created_at: user.created_at,
-            deleted_at: user.deleted_at,
-            email: user.email,
-            avatar: user.avatar,
-            id: user.id,
-            name: user.name,
-            updated_at: user.updated_at,
-        }
-    }
-}
 impl From<&model::user::Model> for UserDTO {
     fn from(user: &model::user::Model) -> Self {
         Self {
@@ -39,5 +26,11 @@ impl From<&model::user::Model> for UserDTO {
             name: user.name.clone(),
             updated_at: user.updated_at.clone(),
         }
+    }
+}
+
+impl From<model::user::Model> for UserDTO {
+    fn from(user: model::user::Model) -> Self {
+        Self::from(&user)
     }
 }

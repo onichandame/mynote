@@ -46,14 +46,6 @@ impl From<&model::note::Model> for NoteDTO {
 
 impl From<model::note::Model> for NoteDTO {
     fn from(note: model::note::Model) -> Self {
-        Self {
-            created_at: note.created_at,
-            deleted_at: note.deleted_at,
-            user_id: note.user_id,
-            id: note.id,
-            title: note.title,
-            updated_at: note.updated_at,
-            content: note.content,
-        }
+        Self::from(&note)
     }
 }
