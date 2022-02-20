@@ -28,9 +28,3 @@ impl From<&model::user::Model> for UserDTO {
         }
     }
 }
-
-impl From<model::user::Model> for UserDTO {
-    fn from(user: model::user::Model) -> Self {
-        Self::from(&user)
-    }
-}

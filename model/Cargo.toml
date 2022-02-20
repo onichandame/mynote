@@ -6,14 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-db = { path = "../db" }
-bcrypt = "0.10"
-chrono = "0.4.19"
-sea-orm = { version = "^0", features = [
-    "with-json",
+bcrypt = "^0"
+chrono = "^0"
+sea-orm = { version = "^0", default-features = false, features = [
     "with-chrono",
-    "sqlx-sqlite",
-    "sqlx-json",
-    "sqlx-chrono",
-    "runtime-tokio-native-tls",
+    "macros",
 ] }

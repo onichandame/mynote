@@ -6,14 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sqlx = { version = "0.5", features = [
+model = { path = "../model" }
+sqlx = { version = "^0", features = [
     "runtime-tokio-native-tls",
     "sqlite",
     "migrate",
     "chrono",
     "time",
 ] }
-chrono = "0.4.19"
+sea-orm = { version = "^0", default-features = false, features = [
+    "sqlx-sqlite",
+] }
+chrono = "^0"
 
 # patch sqlx for cross-compilation
 [dependencies.openssl]

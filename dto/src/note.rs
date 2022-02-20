@@ -1,8 +1,5 @@
-use async_graphql::{ComplexObject, Context, Result, SimpleObject};
+use async_graphql::SimpleObject;
 use model;
-use sea_orm::entity::*;
-
-use super::user::UserDTO;
 
 #[derive(SimpleObject)]
 #[graphql(name = "Note")]
@@ -17,19 +14,6 @@ pub struct NoteDTO {
     pub content: String,
 }
 
-#[ComplexObject]
-impl NoteDTO {
-    async fn user(&self, ctx: &Context<'_>) -> Result<UserDTO> {
-        let db = ctx.data::<model::Database>().unwrap();
-        Ok(UserDTO::from(
-            model::User::find_by_id(self.user_id)
-                .one(db)
-                .await?
-                .ok_or("user not found")?,
-        ))
-    }
-}
-
 impl From<&model::note::Model> for NoteDTO {
     fn from(note: &model::note::Model) -> Self {
         Self {
@@ -41,11 +25,5 @@ impl From<&model::note::Model> for NoteDTO {
             updated_at: note.updated_at.clone(),
             content: note.content.clone(),
         }
-    }
-}
-
-impl From<model::note::Model> for NoteDTO {
-    fn from(note: model::note::Model) -> Self {
-        Self::from(&note)
     }
 }

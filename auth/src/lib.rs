@@ -1,11 +1,6 @@
-mod dto;
-mod error;
+mod auth;
 mod guard;
-mod resolver;
-mod service;
-mod types;
+mod session;
 
+pub use auth::{AuthModule, Session};
 pub use guard::LoginRequired;
-pub use resolver::{SessionMutation, UserMutation, UserQuery};
-pub use service::{deserialize_session, get_user_from_ctx};
-pub use types::Session;

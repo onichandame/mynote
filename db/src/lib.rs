@@ -1,12 +1,17 @@
 use migration::run_migration;
+use sea_orm::{DatabaseConnection, SqlxSqliteConnector};
 use sqlx::sqlite;
-use std::env;
+use std::{env, error::Error};
 
 mod migration;
 
-pub type ConnectionPool = sqlite::SqlitePool;
+pub async fn new_database_connection() -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
+    Ok(SqlxSqliteConnector::from_sqlx_sqlite_pool(
+        new_connection_pool().await?,
+    ))
+}
 
-pub async fn new_connection_pool() -> ConnectionPool {
+async fn new_connection_pool() -> Result<sqlite::SqlitePool, Box<dyn Error + Send + Sync>> {
     let db_addr_key = "DATABASE_URL";
     let db_addr = match env::var("UNITTEST") {
         Ok(_) => String::from("sqlite://:memory:"),
@@ -15,8 +20,7 @@ pub async fn new_connection_pool() -> ConnectionPool {
     let pool = sqlite::SqlitePoolOptions::new()
         .max_connections(5)
         .connect(&db_addr)
-        .await
-        .unwrap();
-    run_migration(&pool).await;
-    pool
+        .await?;
+    run_migration(&pool).await?;
+    Ok(pool)
 }

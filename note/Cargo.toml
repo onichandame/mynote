@@ -9,6 +9,6 @@ edition = "2021"
 auth = { path = "../auth" }
 model = { path = "../model" }
 dto = { path = "../dto" }
-async-graphql = { version = "3.0.19", features = ["chrono"] }
-sea-orm = "^0"
+async-graphql = { version = "^3", features = ["chrono"] }
+sea-orm = { version = "^0", default-features = false }
 thiserror = "1.0.30"

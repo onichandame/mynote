@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 model = { path = "../model" }
+db = { path = "../db" }
 dto = { path = "../dto" }
-async-graphql = { version = "3.0.19", features = ["chrono"] }
-chrono = "0.4.19"
-thiserror = "1.0.30"
-sea-orm = "^0"
-jsonwebtoken = "7"
-rand = "0.8.4"
-serde = "1.0.133"
-async-trait = "0.1.52"
+async-graphql = { version = "^3", features = ["chrono"] }
+chrono = "^0"
+sea-orm = { version = "^0", default-features = false, features = [] }
+jsonwebtoken = "^8"
+rand = "^0"
+serde = "^1"
+async-trait = "^0"
