@@ -6,9 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-auth = { path = "../auth" }
 model = { path = "../model" }
-dto = { path = "../dto" }
-async-graphql = { version = "^3", features = ["chrono"] }
 sea-orm = { version = "^0", default-features = false }
-thiserror = "1.0.30"

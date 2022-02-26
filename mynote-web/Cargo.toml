@@ -1,0 +1,22 @@
+[package]
+name = "mynote-web"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+auth = { path = "../auth" }
+note = { path = "../note" }
+model = { path = "../model" }
+mynote-core = { path = "../mynote-core" }
+chrono = "^0"
+tokio = { version = "^1", features = ["full"] }
+rust-embed = { version = "^6", features = ["compression", "debug-embed"] }
+warp-embed = "^0"
+async-graphql = { version = "^3", features = ["chrono"] }
+async-graphql-warp = "^3"
+serde = "^1"
+serde_json = "^1"
+warp = "^0"
+async-trait = "^0"

@@ -1,10 +1,13 @@
 [package]
-name = "user"
+name = "mynote-core"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-model = { path = "../model" }
+db = { path = "../db" }
+auth = { path = "../auth" }
+user = { path = "../user" }
+note = { path = "../note" }
 sea-orm = { version = "^0", default-features = false }

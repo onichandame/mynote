@@ -1,22 +1,27 @@
 use async_graphql::{EmptySubscription, Schema};
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
-use auth;
-use model;
+use frontend::Frontend;
+use mynote_core::MyNote;
 use resolver::{Mutation, Query};
 use serde::Deserialize;
 use std::env;
 use tokio;
 use warp::{ws::Ws, Filter};
 use warp_embed;
-use web;
 
+use crate::session::Session;
+
+mod dto;
+mod frontend;
+mod guard;
 mod resolver;
+mod session;
 
 #[tokio::main]
 pub async fn main() {
-    let db_connection = model::new_connection().await;
+    let core = MyNote::create().await.unwrap();
     let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-        .data(db_connection)
+        .data(core.clone())
         .finish();
     let app = warp::path!("graphql")
         .and(warp::ws())
@@ -28,7 +33,7 @@ pub async fn main() {
                     .on_connection_init(|v| async {
                         #[derive(Deserialize)]
                         struct Payload {
-                            session: auth::Session,
+                            session: Session,
                         }
                         let mut data = async_graphql::Data::default();
                         if let Ok(payload) = serde_json::from_value::<Payload>(v) {
@@ -44,7 +49,7 @@ pub async fn main() {
                 protocol.sec_websocket_protocol(),
             )
         })
-        .or(warp_embed::embed(&web::Frontend));
+        .or(warp_embed::embed(&Frontend));
     let port = match env::var("PORT") {
         Ok(p) => p.parse::<u16>().unwrap(),
         _other => 80,

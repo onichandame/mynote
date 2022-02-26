@@ -12,4 +12,5 @@ fn main() {
         .current_dir(&spa_root)
         .status()
         .unwrap();
+    println!("cargo:rerun-if-changed=frontend/src");
 }

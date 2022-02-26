@@ -1,2 +1,2 @@
 [workspace]
-members = ["mynote", "web", "dto", "db", "auth", "note", "model", "user"]
+members = ["mynote-core", "mynote-web", "db", "auth", "note", "model", "user"]

@@ -1,4 +1,4 @@
-use async_graphql::SimpleObject;
+use async_graphql::{InputObject, SimpleObject};
 use model;
 
 #[derive(SimpleObject)]
@@ -12,6 +12,23 @@ pub struct NoteDTO {
     pub user_id: i32,
     pub title: String,
     pub content: String,
+}
+
+#[derive(InputObject)]
+pub struct NoteListDTO {
+    pub first: Option<u64>,
+}
+
+#[derive(InputObject)]
+pub struct NoteInputDTO {
+    pub title: String,
+    pub content: String,
+}
+
+#[derive(InputObject)]
+pub struct NoteUpdateDTO {
+    pub title: Option<String>,
+    pub content: Option<String>,
 }
 
 impl From<&model::note::Model> for NoteDTO {

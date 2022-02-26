@@ -7,12 +7,8 @@ edition = "2021"
 
 [dependencies]
 model = { path = "../model" }
-db = { path = "../db" }
-dto = { path = "../dto" }
-async-graphql = { version = "^3", features = ["chrono"] }
 chrono = "^0"
 sea-orm = { version = "^0", default-features = false, features = [] }
 jsonwebtoken = "^8"
 rand = "^0"
 serde = "^1"
-async-trait = "^0"

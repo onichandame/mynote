@@ -1,4 +1,4 @@
-use async_graphql::SimpleObject;
+use async_graphql::{InputObject, MaybeUndefined, SimpleObject};
 use model;
 
 #[derive(SimpleObject)]
@@ -13,6 +13,31 @@ pub struct UserDTO {
     pub email: Option<String>,
     #[graphql(validator(url))]
     pub avatar: Option<String>,
+}
+
+#[derive(InputObject)]
+#[graphql(name = "CreateUserInput")]
+pub struct UserCreateDTO {
+    pub name: String,
+    pub password: String,
+    pub email: Option<String>,
+    pub avatar: Option<String>,
+}
+
+#[derive(InputObject)]
+#[graphql(name = "UpdateUserInput")]
+pub struct UserUpdateDTO {
+    pub name: Option<String>,
+    pub password: Option<String>,
+    pub email: MaybeUndefined<String>,
+    pub avatar: MaybeUndefined<String>,
+}
+
+#[derive(InputObject)]
+#[graphql(name = "LoginInput")]
+pub struct LoginInputDTO {
+    pub name_or_email: String,
+    pub password: String,
 }
 
 impl From<&model::user::Model> for UserDTO {
