@@ -2,8 +2,11 @@ use std::error::Error;
 
 use model::conversion::IntoActiveValue;
 use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, ModelTrait, QuerySelect, Set, Unchanged,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set,
 };
+
+mod filter;
+pub use filter::*;
 
 #[derive(Clone)]
 pub struct NoteModule {
@@ -25,21 +28,24 @@ impl NoteModule {
     pub async fn list(
         &self,
         limit: Option<u64>,
+        offset: Option<u64>,
+        filter: Option<Filter>,
     ) -> Result<Vec<model::note::Model>, Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::find();
-        match limit {
-            None => {}
-            Some(limit) => {
-                query = query.limit(limit);
-            }
-        }
+        query = self.apply_pagination(query, offset, limit);
+        query = self.apply_filter(query, filter);
         Ok(query.all(&self.db).await?)
     }
-    pub async fn get(&self, id: i32) -> Result<model::note::Model, Box<dyn Error + Send + Sync>> {
-        Ok(model::note::Entity::find_by_id(id)
+    pub async fn get(
+        &self,
+        filter: Filter,
+    ) -> Result<model::note::Model, Box<dyn Error + Send + Sync>> {
+        let mut query = model::note::Entity::find();
+        query = self.apply_filter(query, Some(filter));
+        Ok(query
             .one(&self.db)
             .await?
-            .ok_or(format!("note {} not found", id))?)
+            .ok_or(format!("note not found",))?)
     }
     pub async fn create(
         &self,
@@ -58,23 +64,48 @@ impl NoteModule {
     }
     pub async fn update(
         &self,
-        id: i32,
-        user: Option<i32>,
+        filter: Filter,
         title: Option<String>,
         content: Option<String>,
-    ) -> Result<model::note::Model, Box<dyn Error + Send + Sync>> {
-        Ok(model::note::ActiveModel {
-            id: Unchanged(id),
-            user_id: user.into_active_value(),
+    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let update = model::note::ActiveModel {
             title: title.into_active_value(),
             content: content.into_active_value(),
             ..Default::default()
-        }
-        .update(&self.db)
-        .await?)
+        };
+        let mut query = model::note::Entity::update_many().set(update);
+        query = self.apply_filter(query, Some(filter));
+        Ok(query.exec(&self.db).await.map(|_| ())?)
     }
-    pub async fn delete(&self, id: i32) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let doc = self.get(id).await?;
-        Ok(doc.delete(&self.db).await.map(|_| ())?)
+    pub async fn delete(&self, filter: Filter) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let mut query = model::note::Entity::delete_many();
+        query = self.apply_filter(query, Some(filter));
+        Ok(query.exec(&self.db).await.map(|_| ())?)
+    }
+}
+
+// private methods
+impl NoteModule {
+    fn apply_pagination<T: QuerySelect>(
+        &self,
+        mut query: T,
+        offset: Option<u64>,
+        limit: Option<u64>,
+    ) -> T {
+        if let Some(offset) = offset {
+            query = query.offset(offset)
+        }
+        if let Some(limit) = limit {
+            query = query.limit(limit)
+        }
+        query
+    }
+    fn apply_filter<T: QueryFilter>(&self, mut query: T, filter: Option<Filter>) -> T {
+        if let Some(filter) = filter {
+            if let Some(user_id) = filter.user_id {
+                query = query.filter(model::note::Column::UserId.eq(user_id));
+            }
+        }
+        query
     }
 }

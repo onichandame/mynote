@@ -12,3 +12,7 @@ sea-orm = { version = "^0", default-features = false, features = [] }
 jsonwebtoken = "^8"
 rand = "^0"
 serde = "^1"
+
+[dev-dependencies]
+tokio = { version = "^1", features = ["full"] }
+db = { path = "../db" }

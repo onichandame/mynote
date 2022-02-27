@@ -17,6 +17,7 @@ pub struct NoteDTO {
 #[derive(InputObject)]
 pub struct NoteListDTO {
     pub first: Option<u64>,
+    pub offset: Option<u64>,
 }
 
 #[derive(InputObject)]

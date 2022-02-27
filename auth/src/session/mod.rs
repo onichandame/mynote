@@ -107,3 +107,23 @@ struct Claims {
     sub: String,
     exp: usize,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+
+    use db::new_database_connection;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn get_latest_key() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let db = get_db().await?;
+        Ok(())
+    }
+
+    async fn get_db() -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
+        env::set_var("DATABASE_URL", "sqlite://:memory:");
+        Ok(new_database_connection().await?)
+    }
+}

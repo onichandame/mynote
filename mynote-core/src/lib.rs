@@ -1,10 +1,14 @@
+use sea_orm::DatabaseConnection;
 use std::error::Error;
 
 use auth::AuthModule;
 use db::new_database_connection;
 use note::NoteModule;
-use sea_orm::DatabaseConnection;
 use user::UserModule;
+
+pub use auth;
+pub use note;
+pub use user;
 
 #[derive(Clone)]
 pub struct MyNote {

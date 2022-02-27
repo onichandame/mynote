@@ -186,11 +186,13 @@ name = "auth"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "db",
  "jsonwebtoken",
  "model",
  "rand",
  "sea-orm",
  "serde",
+ "tokio",
 ]
 
 [[package]]
@@ -488,10 +490,10 @@ name = "db"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "model",
  "openssl",
  "sea-orm",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]

@@ -11,6 +11,7 @@ use warp_embed;
 
 use crate::session::Session;
 
+mod conversion;
 mod dto;
 mod frontend;
 mod guard;

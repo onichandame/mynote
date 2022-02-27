@@ -1,24 +1,28 @@
 use async_graphql::{Context, MergedObject, Object, Result};
-use mynote_core::MyNote;
+use mynote_core::{note, MyNote};
 
 use crate::{
+    conversion::IntoUniversal,
     dto::{
         LoginInputDTO, NoteDTO, NoteInputDTO, NoteListDTO, NoteUpdateDTO, UserCreateDTO, UserDTO,
+        UserUpdateDTO,
     },
     guard::LoginRequired,
     session::Session,
 };
 
 #[derive(MergedObject, Default)]
-pub struct Query(AuthQuery);
+pub struct Query(AuthQuery, NoteQuery);
 
 #[derive(MergedObject, Default)]
-pub struct Mutation(AuthMutation, NoteMutation);
+pub struct Mutation(AuthMutation, UserMutation, NoteMutation);
 
 #[derive(Default)]
 struct AuthQuery;
 #[derive(Default)]
 struct AuthMutation;
+#[derive(Default)]
+struct UserMutation;
 #[derive(Default)]
 struct NoteQuery;
 #[derive(Default)]
@@ -57,6 +61,27 @@ impl AuthMutation {
 }
 
 #[Object]
+impl UserMutation {
+    async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
+        let session = ctx.data::<Session>()?;
+        let core = ctx.data::<MyNote>()?;
+        let user = core.auth.get_user_for_session(session).await?;
+        Ok(UserDTO::from(
+            &core
+                .user
+                .update(
+                    user.id,
+                    update.name,
+                    update.password,
+                    update.email.into_universal(),
+                    update.avatar.into_universal(),
+                )
+                .await?,
+        ))
+    }
+}
+
+#[Object]
 impl NoteQuery {
     #[graphql("guard=LoginRequired::new()")]
     async fn list_note(&self, ctx: &Context<'_>, condition: NoteListDTO) -> Result<Vec<NoteDTO>> {
@@ -65,7 +90,14 @@ impl NoteQuery {
         let user = core.auth.get_user_for_session(session).await?;
         Ok(core
             .note
-            .list(condition.first)
+            .list(
+                condition.first,
+                condition.offset,
+                Some(note::Filter {
+                    user_id: Some(user.id),
+                    ..Default::default()
+                }),
+            )
             .await?
             .iter()
             .map(|v| NoteDTO::from(v))
@@ -75,11 +107,15 @@ impl NoteQuery {
     async fn get_note(&self, ctx: &Context<'_>, id: i32) -> Result<NoteDTO> {
         let core = ctx.data::<MyNote>()?;
         let session = ctx.data::<Session>()?;
-        let note = core.note.get(id).await?;
         let user = core.auth.get_user_for_session(session).await?;
-        if note.user_id != user.id {
-            return Err("note not found for current user".into());
-        }
+        let note = core
+            .note
+            .get(note::Filter {
+                id: Some(id),
+                user_id: Some(user.id),
+                ..Default::default()
+            })
+            .await?;
         Ok(NoteDTO::from(&note))
     }
 }
@@ -110,27 +146,28 @@ impl NoteMutation {
         let core = ctx.data::<MyNote>()?;
         let session = ctx.data::<Session>()?;
         let user = core.auth.get_user_for_session(session).await?;
-        let note = core.note.get(id).await?;
-        if note.user_id != user.id {
-            return Err("note not found for the current user".into());
-        }
-        Ok(NoteDTO::from(
-            &core
-                .note
-                .update(id, None, update.title, update.content)
-                .await?,
-        ))
+        let filter = note::Filter {
+            user_id: Some(user.id),
+            id: Some(id),
+            ..Default::default()
+        };
+        core.note
+            .update(filter.clone(), update.title, update.content)
+            .await?;
+        Ok(NoteDTO::from(&core.note.get(filter.clone()).await?))
     }
     #[graphql("guard=LoginRequired::new()")]
     async fn delete_note(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
         let core = ctx.data::<MyNote>()?;
         let session = ctx.data::<Session>()?;
         let user = core.auth.get_user_for_session(session).await?;
-        let note = core.note.get(id).await?;
-        if note.user_id != user.id {
-            return Err("note not found for the current user".into());
-        }
-        core.note.delete(id).await?;
+        core.note
+            .delete(note::Filter {
+                user_id: Some(user.id),
+                id: Some(id),
+                ..Default::default()
+            })
+            .await?;
         Ok(true)
     }
 }

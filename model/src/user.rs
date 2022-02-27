@@ -55,3 +55,47 @@ impl Model {
         Ok(bcrypt::verify(password, &self.password)?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::Unchanged;
+
+    use super::*;
+    fn get_default_model() -> Model {
+        Model {
+            avatar: None,
+            email: None,
+            created_at: chrono::NaiveDateTime::from_timestamp(0, 0),
+            deleted_at: None,
+            updated_at: None,
+            id: 0,
+            name: "".to_owned(),
+            password: "".to_owned(),
+        }
+    }
+    #[test]
+    fn hash_password() -> Result<(), Box<dyn Error + Send + Sync>> {
+        // hash before insert
+        let mut password = "asdf".to_owned();
+        let mut model = get_default_model();
+        let mut active_model: ActiveModel = model.clone().into();
+        active_model.password = Set(password.clone());
+        active_model = active_model.before_save(true)?;
+        assert_ne!(&password, active_model.password.as_ref());
+        model.password = active_model.password.as_ref().to_owned();
+        assert!(model.check_password(&password)?);
+        // don't hash if not changed
+        let hashed_password = active_model.password.as_ref().to_owned();
+        active_model.password = Unchanged(hashed_password.clone());
+        active_model = active_model.before_save(false)?;
+        assert_eq!(&hashed_password, active_model.password.as_ref());
+        // hash if changed in update
+        password = "zxcv".to_owned();
+        active_model.password = Set(password.clone());
+        active_model = active_model.before_save(false)?;
+        assert_ne!(&hashed_password, active_model.password.as_ref());
+        model.password = active_model.password.as_ref().to_owned();
+        assert!(model.check_password(&password)?);
+        Ok(())
+    }
+}
