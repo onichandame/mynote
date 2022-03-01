@@ -1,10 +1,11 @@
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
-use model;
 use rand::{distributions::Alphanumeric, Rng};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, QueryOrder, Set};
 use serde::{Deserialize, Serialize};
-use std::{error::Error, ops::Add};
+use std::error::Error;
+
+use model;
 
 #[derive(Clone)]
 pub struct SessionModule {
@@ -20,13 +21,14 @@ impl SessionModule {
 
 // public api
 impl SessionModule {
-    pub async fn create_session_for_user(
-        &self,
-        uid: i32,
-    ) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn serialize(&self, uid: i32) -> Result<String, Box<dyn Error + Send + Sync>> {
         let claims = Claims {
             sub: uid.to_string(),
-            exp: usize::try_from(Utc::now().add(Duration::days(31)).naive_utc().timestamp())?,
+            exp: usize::try_from(
+                (Utc::now() + self.get_session_ttl())
+                    .naive_utc()
+                    .timestamp(),
+            )?,
         };
         let key_doc = self.get_latest_key().await?;
         Ok(jsonwebtoken::encode(
@@ -39,7 +41,7 @@ impl SessionModule {
         )?)
     }
 
-    pub async fn deserialize_session(
+    pub async fn deserialize(
         &self,
         session: &str,
     ) -> Result<model::user::Model, Box<dyn Error + Sync + Send>> {
@@ -90,7 +92,7 @@ impl SessionModule {
                 if chrono::Utc::now()
                     .naive_utc()
                     .signed_duration_since(key.created_at)
-                    .gt(&chrono::Duration::days(30))
+                    .gt(&self.get_key_ttl())
                 {
                     create_key().await
                 } else {
@@ -99,6 +101,14 @@ impl SessionModule {
             }
             None => create_key().await,
         }
+    }
+
+    fn get_key_ttl(&self) -> chrono::Duration {
+        chrono::Duration::days(30)
+    }
+
+    fn get_session_ttl(&self) -> chrono::Duration {
+        chrono::Duration::days(7)
     }
 }
 
@@ -113,17 +123,110 @@ mod tests {
     use std::env;
 
     use db::new_database_connection;
+    use sea_orm::sea_query::Expr;
 
     use super::*;
 
     #[tokio::test]
     async fn get_latest_key() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let db = get_db().await?;
+        let module = get_module().await?;
+        // first call
+        assert_eq!(
+            0,
+            model::session_key::Entity::find()
+                .all(&module.db)
+                .await?
+                .len()
+        );
+        let first_key = module.get_latest_key().await?;
+        assert_eq!(
+            1,
+            model::session_key::Entity::find()
+                .all(&module.db)
+                .await?
+                .len()
+        );
+        // second call
+        let second_key = module.get_latest_key().await?;
+        assert_eq!(
+            1,
+            model::session_key::Entity::find()
+                .all(&module.db)
+                .await?
+                .len()
+        );
+        assert_eq!(first_key.key, second_key.key);
+        // first call after the latest has expired
+        model::session_key::Entity::update_many()
+            .col_expr(
+                model::session_key::Column::CreatedAt,
+                Expr::value(chrono::Utc::now().naive_utc() - module.get_key_ttl() * 2),
+            )
+            .exec(&module.db)
+            .await?;
+        let third_key = module.get_latest_key().await?;
+        assert_eq!(
+            2,
+            model::session_key::Entity::find()
+                .all(&module.db)
+                .await?
+                .len()
+        );
+        assert_ne!(second_key.key, third_key.key);
+        // second call after the latest has expired
+        let forth_key = module.get_latest_key().await?;
+        assert_eq!(
+            2,
+            model::session_key::Entity::find()
+                .all(&module.db)
+                .await?
+                .len()
+        );
+        assert_eq!(forth_key.key, third_key.key);
+        // expired key can be retrieved by id
+        assert_eq!(
+            first_key.key,
+            model::session_key::Entity::find_by_id(first_key.id)
+                .one(&module.db)
+                .await?
+                .ok_or("failed to find expired key")?
+                .key
+        );
         Ok(())
     }
 
-    async fn get_db() -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
+    #[tokio::test]
+    async fn serialize_session() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let module = get_module().await?;
+        let user = model::user::ActiveModel {
+            name: Set("".to_owned()),
+            password: Set("".to_owned()),
+            ..Default::default()
+        }
+        .insert(&module.db)
+        .await?;
+        assert!(module.serialize(user.id).await.is_ok());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn deserialize() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let module = get_module().await?;
+        // succeed for valid session
+        let user = model::user::ActiveModel {
+            name: Set("".to_owned()),
+            password: Set("".to_owned()),
+            ..Default::default()
+        }
+        .insert(&module.db)
+        .await?;
+        let session = module.serialize(user.id).await?;
+        assert_eq!(user.id, module.deserialize(&session).await?.id);
+        Ok(())
+    }
+
+    async fn get_module() -> Result<SessionModule, Box<dyn Error + Send + Sync>> {
         env::set_var("DATABASE_URL", "sqlite://:memory:");
-        Ok(new_database_connection().await?)
+        Ok(SessionModule::new(new_database_connection().await?.clone()))
     }
 }

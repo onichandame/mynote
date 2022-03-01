@@ -39,7 +39,7 @@ impl AuthModule {
             .await?
             .ok_or("user not found")?;
         if user.check_password(password)? {
-            Ok(self.session.create_session_for_user(user.id).await?)
+            Ok(self.session.serialize(user.id).await?)
         } else {
             Err("password incorrect".into())
         }
@@ -67,6 +67,84 @@ impl AuthModule {
         &self,
         session: &str,
     ) -> Result<model::user::Model, Box<dyn Error + Send + Sync>> {
-        Ok(self.session.deserialize_session(session).await?)
+        Ok(self.session.deserialize(session).await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+
+    use db::new_database_connection;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn login() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let username = "asdf".to_owned();
+        let password = "zxcv".to_owned();
+        let email = "email@test.com".to_owned();
+        let module = get_module().await?;
+        // fail for non-existing user
+        assert_eq!(0, model::user::Entity::find().all(&module.db).await?.len());
+        assert!(module.login(&username, &password).await.is_err());
+        // succeed for existing user
+        model::user::ActiveModel {
+            name: Set(username.clone()),
+            password: Set(password.clone()),
+            email: Set(Some(email.clone())),
+            ..Default::default()
+        }
+        .insert(&module.db)
+        .await?;
+        assert_eq!(1, model::user::Entity::find().all(&module.db).await?.len());
+        assert!(module.login(&username, &password).await.is_ok());
+        assert!(module.login(&email, &password).await.is_ok());
+        // fail for wrong password
+        assert!(module.login(&username, "qwer").await.is_err());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn signup() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let module = get_module().await?;
+        // first user
+        let name = "asdf".to_owned();
+        let password = "asdf".to_owned();
+        let email = "asdf".to_owned();
+        assert_eq!(0, model::user::Entity::find().all(&module.db).await?.len());
+        assert!(module
+            .sign_up(&name, &password, Some(email.clone()), None)
+            .await
+            .is_ok());
+        assert_eq!(1, model::user::Entity::find().all(&module.db).await?.len());
+        model::user::Entity::find()
+            .filter(model::user::Column::Name.eq(name.clone()))
+            .one(&module.db)
+            .await?
+            .ok_or("signed up user not found")?;
+        // cannot signup with same user name
+        assert!(module.sign_up(&name, &password, None, None).await.is_err());
+        assert_eq!(1, model::user::Entity::find().all(&module.db).await?.len());
+        // cannot signup with same email
+        assert!(module
+            .sign_up("zxcv", &password, Some(email.clone()), None)
+            .await
+            .is_err());
+        assert_eq!(1, model::user::Entity::find().all(&module.db).await?.len());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn deserialize_session() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let module = get_module().await?;
+        // can deserialize valid session
+        Ok(())
+    }
+
+    async fn get_module() -> Result<AuthModule, Box<dyn Error + Send + Sync>> {
+        env::set_var("DATABASE_URL", "sqlite://:memory:");
+        let db = new_database_connection().await?;
+        Ok(AuthModule::new(db))
     }
 }
