@@ -44,3 +44,41 @@ impl UserModule {
         .await?)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+
+    use db::new_database_connection;
+    use sea_orm::Set;
+
+    use super::*;
+    #[tokio::test]
+    async fn user() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let module = get_module().await?;
+        // get user by id
+        let user = model::user::ActiveModel {
+            name: Set("".to_owned()),
+            password: Set("".to_owned()),
+            ..Default::default()
+        }
+        .insert(&module.db)
+        .await?;
+        assert_eq!(user.id, module.get(user.id).await?.id);
+        // update user
+        let name = "asdf".to_owned();
+        let updated_user = module
+            .update(user.id, Some(name.clone()), None, None, None)
+            .await?;
+        assert_eq!(name, updated_user.name);
+        assert_eq!(user.id, updated_user.id);
+        assert_eq!(updated_user.name, module.get(updated_user.id).await?.name);
+        Ok(())
+    }
+
+    async fn get_module() -> Result<UserModule, Box<dyn Error + Send + Sync>> {
+        env::set_var("DATABASE_URL", "sqlite://:memory:");
+        let db = new_database_connection().await?;
+        Ok(UserModule::new(db))
+    }
+}

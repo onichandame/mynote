@@ -1,4 +1,5 @@
 use sea_orm::DatabaseConnection;
+use session::SessionModule;
 use std::error::Error;
 
 use auth::AuthModule;
@@ -6,16 +7,17 @@ use db::new_database_connection;
 use note::NoteModule;
 use user::UserModule;
 
-pub use auth;
+// re-export structs for DTO
 pub use note;
-pub use user;
 
+/// Every instance of MyNote is an independent application
 #[derive(Clone)]
 pub struct MyNote {
     pub auth: AuthModule,
     pub db: DatabaseConnection,
     pub user: UserModule,
     pub note: NoteModule,
+    pub session: SessionModule,
 }
 
 impl MyNote {
@@ -26,6 +28,7 @@ impl MyNote {
             auth: AuthModule::new(db.clone()),
             user: UserModule::new(db.clone()),
             note: NoteModule::new(db.clone()),
+            session: SessionModule::new(db.clone()),
         })
     }
 }

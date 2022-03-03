@@ -1,14 +1,10 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter, Set,
 };
-use session::SessionModule;
 use std::error::Error;
-
-mod session;
 
 #[derive(Clone)]
 pub struct AuthModule {
-    session: SessionModule,
     db: DatabaseConnection,
 }
 
@@ -17,7 +13,6 @@ impl AuthModule {
     pub fn new(db_connection: DatabaseConnection) -> Self {
         Self {
             db: db_connection.clone(),
-            session: SessionModule::new(db_connection.clone()),
         }
     }
 }
@@ -28,7 +23,7 @@ impl AuthModule {
         &self,
         name_or_email: &str,
         password: &str,
-    ) -> Result<String, Box<dyn Error + Send + Sync>> {
+    ) -> Result<model::user::Model, Box<dyn Error + Send + Sync>> {
         let user = model::user::Entity::find()
             .filter(
                 Condition::any()
@@ -39,7 +34,7 @@ impl AuthModule {
             .await?
             .ok_or("user not found")?;
         if user.check_password(password)? {
-            Ok(self.session.serialize(user.id).await?)
+            Ok(user)
         } else {
             Err("password incorrect".into())
         }
@@ -61,13 +56,6 @@ impl AuthModule {
         }
         .insert(&self.db)
         .await?)
-    }
-
-    pub async fn get_user_for_session(
-        &self,
-        session: &str,
-    ) -> Result<model::user::Model, Box<dyn Error + Send + Sync>> {
-        Ok(self.session.deserialize(session).await?)
     }
 }
 
@@ -132,13 +120,6 @@ mod tests {
             .await
             .is_err());
         assert_eq!(1, model::user::Entity::find().all(&module.db).await?.len());
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn deserialize_session() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let module = get_module().await?;
-        // can deserialize valid session
         Ok(())
     }
 

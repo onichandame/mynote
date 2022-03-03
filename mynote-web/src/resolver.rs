@@ -1,10 +1,13 @@
-use async_graphql::{Context, MergedObject, Object, Result};
+use async_graphql::{
+    connection::{Connection, Edge, EmptyFields},
+    Context, MergedObject, Object, Result,
+};
 use mynote_core::{note, MyNote};
 
 use crate::{
     conversion::IntoUniversal,
     dto::{
-        LoginInputDTO, NoteDTO, NoteInputDTO, NoteListDTO, NoteUpdateDTO, UserCreateDTO, UserDTO,
+        LoginInputDTO, NoteDTO, NoteFilterDTO, NoteInputDTO, NoteUpdateDTO, UserCreateDTO, UserDTO,
         UserUpdateDTO,
     },
     guard::LoginRequired,
@@ -34,9 +37,7 @@ impl AuthQuery {
     async fn me(&self, ctx: &Context<'_>) -> Result<UserDTO> {
         let session = ctx.data::<Session>()?;
         let core = ctx.data::<MyNote>()?;
-        Ok(UserDTO::from(
-            &core.auth.get_user_for_session(session).await?,
-        ))
+        Ok(UserDTO::from(&core.session.deserialize(session).await?))
     }
 }
 
@@ -54,8 +55,13 @@ impl AuthMutation {
     async fn login(&self, ctx: &Context<'_>, input: LoginInputDTO) -> Result<String> {
         let core = ctx.data::<MyNote>()?;
         Ok(core
-            .auth
-            .login(&input.name_or_email, &input.password)
+            .session
+            .serialize(
+                &core
+                    .auth
+                    .login(&input.name_or_email, &input.password)
+                    .await?,
+            )
             .await?)
     }
 }
@@ -65,7 +71,7 @@ impl UserMutation {
     async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
         let session = ctx.data::<Session>()?;
         let core = ctx.data::<MyNote>()?;
-        let user = core.auth.get_user_for_session(session).await?;
+        let user = core.session.deserialize(session).await?;
         Ok(UserDTO::from(
             &core
                 .user
@@ -84,24 +90,37 @@ impl UserMutation {
 #[Object]
 impl NoteQuery {
     #[graphql("guard=LoginRequired::new()")]
-    async fn list_note(&self, ctx: &Context<'_>, condition: NoteListDTO) -> Result<Vec<NoteDTO>> {
+    async fn list_notes(
+        &self,
+        ctx: &Context<'_>,
+        first: Option<u64>,
+        after: Option<String>,
+        last: Option<u64>,
+        before: Option<String>,
+        filter: Option<NoteFilterDTO>,
+    ) -> Result<Connection<String, NoteDTO>> {
         let core = ctx.data::<MyNote>()?;
         let session = ctx.data::<Session>()?;
-        let user = core.auth.get_user_for_session(session).await?;
-        Ok(core
+        let user = core.session.deserialize(session).await?;
+        let notes = core
             .note
             .list(
-                condition.first,
-                condition.offset,
+                first,
+                after,
                 Some(note::Filter {
                     user_id: Some(user.id),
                     ..Default::default()
                 }),
             )
-            .await?
-            .iter()
-            .map(|v| NoteDTO::from(v))
-            .collect())
+            .await?;
+        let mut connection = Connection::new();
+        connection.append(
+            notes
+                .iter()
+                .enumerate()
+                .map(|(ind, val)| Edge::new(format!("offset:{}", ind), NoteDTO::from(val))),
+        );
+        Ok(connection)
     }
     #[graphql("guard=LoginRequired::new()")]
     async fn get_note(&self, ctx: &Context<'_>, id: i32) -> Result<NoteDTO> {

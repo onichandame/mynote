@@ -10,7 +10,7 @@ impl async_graphql::Guard for LoginRequired {
     async fn check(&self, ctx: &async_graphql::Context<'_>) -> async_graphql::Result<()> {
         let session = ctx.data::<Session>()?;
         let core = ctx.data::<MyNote>()?;
-        Ok(core.auth.get_user_for_session(session).await.map(|_| ())?)
+        Ok(core.session.deserialize(session).await.map(|_| ())?)
     }
 }
 

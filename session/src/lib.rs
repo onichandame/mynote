@@ -21,9 +21,12 @@ impl SessionModule {
 
 // public api
 impl SessionModule {
-    pub async fn serialize(&self, uid: i32) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn serialize(
+        &self,
+        user: &model::user::Model,
+    ) -> Result<String, Box<dyn Error + Send + Sync>> {
         let claims = Claims {
-            sub: uid.to_string(),
+            sub: user.id.to_string(),
             exp: usize::try_from(
                 (Utc::now() + self.get_session_ttl())
                     .naive_utc()
@@ -123,38 +126,28 @@ mod tests {
     use std::env;
 
     use db::new_database_connection;
-    use sea_orm::sea_query::Expr;
+    use sea_orm::{sea_query::Expr, ModelTrait};
 
     use super::*;
 
     #[tokio::test]
     async fn get_latest_key() -> Result<(), Box<dyn Error + Send + Sync>> {
         let module = get_module().await?;
+        let get_keys_count = || async {
+            Ok::<usize, Box<dyn Error + Send + Sync>>(
+                model::session_key::Entity::find()
+                    .all(&module.db)
+                    .await?
+                    .len(),
+            )
+        };
         // first call
-        assert_eq!(
-            0,
-            model::session_key::Entity::find()
-                .all(&module.db)
-                .await?
-                .len()
-        );
+        assert_eq!(0, get_keys_count().await?);
         let first_key = module.get_latest_key().await?;
-        assert_eq!(
-            1,
-            model::session_key::Entity::find()
-                .all(&module.db)
-                .await?
-                .len()
-        );
+        assert_eq!(1, get_keys_count().await?);
         // second call
         let second_key = module.get_latest_key().await?;
-        assert_eq!(
-            1,
-            model::session_key::Entity::find()
-                .all(&module.db)
-                .await?
-                .len()
-        );
+        assert_eq!(1, get_keys_count().await?);
         assert_eq!(first_key.key, second_key.key);
         // first call after the latest has expired
         model::session_key::Entity::update_many()
@@ -165,23 +158,11 @@ mod tests {
             .exec(&module.db)
             .await?;
         let third_key = module.get_latest_key().await?;
-        assert_eq!(
-            2,
-            model::session_key::Entity::find()
-                .all(&module.db)
-                .await?
-                .len()
-        );
+        assert_eq!(2, get_keys_count().await?);
         assert_ne!(second_key.key, third_key.key);
         // second call after the latest has expired
         let forth_key = module.get_latest_key().await?;
-        assert_eq!(
-            2,
-            model::session_key::Entity::find()
-                .all(&module.db)
-                .await?
-                .len()
-        );
+        assert_eq!(2, get_keys_count().await?);
         assert_eq!(forth_key.key, third_key.key);
         // expired key can be retrieved by id
         assert_eq!(
@@ -196,7 +177,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn serialize_session() -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn session() -> Result<(), Box<dyn Error + Send + Sync>> {
         let module = get_module().await?;
         let user = model::user::ActiveModel {
             name: Set("".to_owned()),
@@ -205,23 +186,15 @@ mod tests {
         }
         .insert(&module.db)
         .await?;
-        assert!(module.serialize(user.id).await.is_ok());
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn deserialize() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let module = get_module().await?;
-        // succeed for valid session
-        let user = model::user::ActiveModel {
-            name: Set("".to_owned()),
-            password: Set("".to_owned()),
-            ..Default::default()
-        }
-        .insert(&module.db)
-        .await?;
-        let session = module.serialize(user.id).await?;
+        // serialize for valid user
+        let session = module.serialize(&user).await?;
+        // desialize for valid user
         assert_eq!(user.id, module.deserialize(&session).await?.id);
+        // desialize for invalid session
+        assert!(module.deserialize("").await.is_err());
+        // desialize for invalid user
+        user.delete(&module.db).await?;
+        assert!(module.deserialize(&session).await.is_err());
         Ok(())
     }
 

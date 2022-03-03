@@ -185,13 +185,9 @@ dependencies = [
 name = "auth"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "db",
- "jsonwebtoken",
  "model",
- "rand",
  "sea-orm",
- "serde",
  "tokio",
 ]
 
@@ -573,6 +569,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3fcf0cee53519c866c09b5de1f6c56ff9d647101f81c1964fa632e148896cdf"
 dependencies = [
  "instant",
+]
+
+[[package]]
+name = "filter"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "chrono",
 ]
 
 [[package]]
@@ -1186,6 +1190,7 @@ dependencies = [
  "db",
  "note",
  "sea-orm",
+ "session",
  "user",
 ]
 
@@ -1196,11 +1201,10 @@ dependencies = [
  "async-graphql",
  "async-graphql-warp",
  "async-trait",
- "auth",
  "chrono",
+ "filter",
  "model",
  "mynote-core",
- "note",
  "rust-embed",
  "serde",
  "serde_json",
@@ -1242,8 +1246,11 @@ dependencies = [
 name = "note"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "db",
  "model",
  "sea-orm",
+ "tokio",
 ]
 
 [[package]]
@@ -1987,6 +1994,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "session"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "db",
+ "jsonwebtoken",
+ "model",
+ "rand",
+ "sea-orm",
+ "serde",
+ "tokio",
+]
+
+[[package]]
 name = "sha-1"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2659,8 +2680,10 @@ dependencies = [
 name = "user"
 version = "0.1.0"
 dependencies = [
+ "db",
  "model",
  "sea-orm",
+ "tokio",
 ]
 
 [[package]]

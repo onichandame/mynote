@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 model = { path = "../model" }
 sea-orm = { version = "^0", default-features = false }
+chrono = "^0"
+
+[dev-dependencies]
+tokio = { version = "^1", features = ["full"] }
+db = { path = "../db" }
