@@ -10,5 +10,6 @@ model = { path = "../model" }
 sea-orm = { version = "^0", default-features = false, features = [] }
 
 [dev-dependencies]
-tokio = { version = "^1", features = ["full"] }
+config = { path = "../config" }
 db = { path = "../db" }
+tokio = { version = "^1", features = ["full"] }

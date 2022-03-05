@@ -185,6 +185,7 @@ dependencies = [
 name = "auth"
 version = "0.1.0"
 dependencies = [
+ "config",
  "db",
  "model",
  "sea-orm",
@@ -362,6 +363,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.1.0"
+
+[[package]]
 name = "const_fn"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -486,6 +491,7 @@ name = "db"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "config",
  "openssl",
  "sea-orm",
  "sqlx",
@@ -1998,6 +2004,7 @@ name = "session"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "config",
  "db",
  "jsonwebtoken",
  "model",
@@ -2680,6 +2687,7 @@ dependencies = [
 name = "user"
 version = "0.1.0"
 dependencies = [
+ "config",
  "db",
  "model",
  "sea-orm",
