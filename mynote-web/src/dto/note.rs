@@ -1,8 +1,7 @@
 use async_graphql::{InputObject, MaybeUndefined, SimpleObject};
 use model;
-use mynote_core::note::Filter;
 
-use super::filter::DateTimeFilter;
+use super::DateTimeFilter;
 
 #[derive(SimpleObject)]
 #[graphql(name = "Note")]
@@ -19,7 +18,7 @@ pub struct NoteDTO {
 
 #[derive(InputObject)]
 pub struct NoteFilterDTO {
-    deleted_at: MaybeUndefined<DateTimeFilter>,
+    deleted_at: Option<DateTimeFilter>,
 }
 
 #[derive(InputObject)]
@@ -48,9 +47,9 @@ impl From<&model::note::Model> for NoteDTO {
     }
 }
 
-impl Into<Filter> for NoteFilterDTO{
+impl Into<Filter> for NoteFilterDTO {
     fn into(self) -> Filter {
-        Filter{
+        Filter {
             ..Default::default()
         }
     }

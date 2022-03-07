@@ -581,8 +581,8 @@ dependencies = [
 name = "filter"
 version = "0.1.0"
 dependencies = [
- "async-graphql",
  "chrono",
+ "sea-orm",
 ]
 
 [[package]]
@@ -1189,32 +1189,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "mynote-core"
-version = "0.1.0"
-dependencies = [
- "auth",
- "db",
- "note",
- "sea-orm",
- "session",
- "user",
-]
-
-[[package]]
 name = "mynote-web"
 version = "0.1.0"
 dependencies = [
  "async-graphql",
  "async-graphql-warp",
  "async-trait",
+ "auth",
  "chrono",
+ "config",
+ "db",
  "filter",
  "model",
- "mynote-core",
+ "note",
+ "pagination",
  "rust-embed",
  "serde",
  "serde_json",
+ "session",
+ "sorting",
  "tokio",
+ "user",
  "warp",
  "warp-embed",
 ]
@@ -1253,9 +1248,13 @@ name = "note"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "config",
  "db",
+ "filter",
  "model",
+ "pagination",
  "sea-orm",
+ "sorting",
  "tokio",
 ]
 
@@ -1411,6 +1410,14 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "pagination"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "sea-orm",
 ]
 
 [[package]]
@@ -2119,6 +2126,13 @@ checksum = "66d72b759436ae32898a2af0a14218dbf55efde3feeb170eb623637db85ee1e0"
 dependencies = [
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "sorting"
+version = "0.1.0"
+dependencies = [
+ "sea-orm",
 ]
 
 [[package]]

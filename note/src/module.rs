@@ -1,10 +1,14 @@
 use std::error::Error;
 
 use model::conversion::IntoActiveValue;
+use pagination::Pagination;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Set,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, Set,
 };
+use sorting::Sorting;
 
+use crate::NoteFilter;
 
 #[derive(Clone)]
 pub struct NoteModule<'a> {
@@ -12,34 +16,41 @@ pub struct NoteModule<'a> {
 }
 
 /// constructor
-impl <'a>NoteModule <'a>{
+impl<'a> NoteModule<'a> {
     pub fn new(db: &'a DatabaseConnection) -> Self {
-        Self {
-            db,
-        }
+        Self { db }
     }
 }
 
 /// public api
-impl NoteModule <'_>{
+impl NoteModule<'_> {
     /// TODO: filter/sort/pagination
     pub async fn list(
         &self,
-        limit: Option<u64>,
-        offset: Option<u64>,
-        filter: Option<Filter>,
+        filter: Option<NoteFilter>,
+        pagination: Option<Pagination>,
+        sorting: Option<Vec<Sorting>>,
     ) -> Result<Vec<model::note::Model>, Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::find();
-        query = self.apply_pagination(query, offset, limit);
-        query = self.apply_filter(query, filter);
+        query = self.apply_pagination(query, &pagination);
+        query = self.apply_filter(query, &filter);
+        query = self.apply_sorting(query, &sorting);
         Ok(query.all(self.db).await?)
+    }
+    pub async fn count(
+        &self,
+        filter: Option<NoteFilter>,
+    ) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let mut query = model::note::Entity::find();
+        query = self.apply_filter(query, &filter);
+        Ok(query.count(self.db).await?)
     }
     pub async fn get(
         &self,
-        filter: Filter,
+        filter: NoteFilter,
     ) -> Result<model::note::Model, Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::find();
-        query = self.apply_filter(query, Some(filter));
+        query = self.apply_filter(query, &Some(filter));
         Ok(query
             .one(self.db)
             .await?
@@ -62,7 +73,7 @@ impl NoteModule <'_>{
     }
     pub async fn update(
         &self,
-        filter: Filter,
+        filter: NoteFilter,
         title: Option<String>,
         content: Option<String>,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -72,58 +83,38 @@ impl NoteModule <'_>{
             ..Default::default()
         };
         let mut query = model::note::Entity::update_many().set(update);
-        query = self.apply_filter(query, Some(filter));
+        query = self.apply_filter(query, &Some(filter));
         Ok(query.exec(self.db).await.map(|_| ())?)
     }
-    pub async fn delete(&self, filter: Filter) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn delete(&self, filter: NoteFilter) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::delete_many();
-        query = self.apply_filter(query, Some(filter));
+        query = self.apply_filter(query, &Some(filter));
         Ok(query.exec(self.db).await.map(|_| ())?)
     }
 }
 
 // private methods
-impl NoteModule <'_>{
-    fn apply_pagination<T: QuerySelect>(
-        &self,
-        mut query: T,
-        offset: Option<u64>,
-        limit: Option<u64>,
-    ) -> T {
-        if let Some(offset) = offset {
-            query = query.offset(offset)
-        }
-        if let Some(limit) = limit {
-            query = query.limit(limit)
+impl NoteModule<'_> {
+    fn apply_pagination<T: QuerySelect>(&self, mut query: T, pagination: &Option<Pagination>) -> T {
+        if let Some(pagination) = pagination {
+            query = pagination.build(query)
         }
         query
     }
-    fn apply_filter<T: QueryFilter>(&self, mut query: T, filter: Option<Filter>) -> T {
+    fn apply_filter<T: QueryFilter>(&self, mut query: T, filter: &Option<NoteFilter>) -> T {
         if let Some(filter) = filter {
-            if let Some(user_id) = filter.user_id {
-                query = query.filter(model::note::Column::UserId.eq(user_id));
-            }
-            if let Some(id) = filter.id {
-                query = query.filter(model::note::Column::Id.eq(id));
-            }
-            if let Some(deleted_at_maybe) = filter.deleted_at {
-                query = match deleted_at_maybe {
-                    Some(deleted_at_filter) => {
-                        if let Some(gt) = deleted_at_filter.gt {
-                            query = query.filter(model::note::Column::DeletedAt.gt(gt));
-                        }
-                        if let Some(gte) = deleted_at_filter.gte {
-                            query = query.filter(model::note::Column::DeletedAt.gte(gte));
-                        }
-                        if let Some(lt) = deleted_at_filter.lt {
-                            query = query.filter(model::note::Column::DeletedAt.gt(lt));
-                        }
-                        if let Some(lte) = deleted_at_filter.lte {
-                            query = query.filter(model::note::Column::DeletedAt.gte(lte));
-                        }
-                        query
+            query = filter.apply_filter(query);
+        }
+        query
+    }
+    fn apply_sorting<T: QueryOrder>(&self, mut query: T, sorting: &Option<Vec<Sorting>>) -> T {
+        if let Some(sortings) = sorting {
+            for sorting in sortings {
+                match sorting.field.as_str() {
+                    "created_at" => {
+                        query = sorting.build(query, model::note::Column::CreatedAt);
                     }
-                    None => query.filter(model::note::Column::DeletedAt.is_null()),
+                    _ => {}
                 };
             }
         }
@@ -133,17 +124,19 @@ impl NoteModule <'_>{
 
 #[cfg(test)]
 mod tests {
-    use std::env;
+    use config::{ConfigModule, Mode};
+    use db::DbModule;
+    use filter::Filter;
 
     use super::*;
 
     #[tokio::test]
     async fn note() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let module = get_module().await?;
+        let config = ConfigModule::create(Mode::UnitTest)?;
+        let db = DbModule::create(&config).await?;
+        let note = NoteModule::new(&db);
         let count_notes = || async {
-            Ok::<usize, Box<dyn Error + Send + Sync>>(
-                model::note::Entity::find().all(&module.db).await?.len(),
-            )
+            Ok::<usize, Box<dyn Error + Send + Sync>>(model::note::Entity::find().count(&db).await?)
         };
         // create
         let user = model::user::ActiveModel {
@@ -151,36 +144,112 @@ mod tests {
             password: Set("".to_owned()),
             ..Default::default()
         }
-        .insert(&module.db)
+        .insert(&db)
         .await?;
         assert_eq!(0, count_notes().await?);
-        let created_note = module.create(user.id, "", "").await?;
+        let created_note = note.create(user.id, "", "").await?;
         assert_eq!(1, count_notes().await?);
         // get
-        let got_note = module
-            .get(Filter {
-                id: Some(created_note.id),
+        let got_note = note
+            .get(NoteFilter {
+                id: Some(Filter {
+                    eq: Some(created_note.id),
+                    ..Default::default()
+                }),
                 ..Default::default()
             })
             .await?;
         assert_eq!(created_note.id, got_note.id);
         // list
-        let listed_notes = module.list(None, None, None).await?;
+        let listed_notes = note.list(None, None, None).await?;
         assert_eq!(1, listed_notes.len());
         assert_eq!(
             created_note.id,
             listed_notes.get(0).ok_or("fatal error")?.id
         );
-        // limit
-        assert_eq!(0, module.list(Some(0), None, None).await?.len());
-        // offset
-        assert_eq!(0, module.list(Some(1), Some(1), None).await?.len());
+        // count
+        assert_eq!(1, note.count(None).await?);
+        // filter
+        assert_eq!(
+            0,
+            note.count(Some(NoteFilter {
+                id: Some(Filter {
+                    lt: Some(0),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),)
+                .await?
+        );
+        // pagination
+        assert_eq!(
+            0,
+            note.list(
+                None,
+                Some(Pagination {
+                    limit: Some(0),
+                    ..Default::default()
+                }),
+                None
+            )
+            .await?
+            .len()
+        );
+        assert_eq!(
+            0,
+            note.list(
+                None,
+                Some(Pagination {
+                    limit: Some(1),
+                    offset: Some(1),
+                    ..Default::default()
+                }),
+                None
+            )
+            .await?
+            .len()
+        );
+        // sorting
+        let second_note = note.create(user.id, "", "").await?;
+        assert_eq!(
+            created_note.id,
+            note.list(
+                None,
+                None,
+                Some(vec!(Sorting {
+                    field: "created_at".to_owned(),
+                    direction: sorting::SortDirection::ASC
+                }))
+            )
+            .await?
+            .get(0)
+            .ok_or("fatal error")?
+            .id
+        );
+        assert_eq!(
+            second_note.id,
+            note.list(
+                None,
+                None,
+                Some(vec!(Sorting {
+                    field: "created_at".to_owned(),
+                    direction: sorting::SortDirection::DESC
+                }))
+            )
+            .await?
+            .get(0)
+            .ok_or("fatal error")?
+            .id
+        );
         // update
         let title = "asdf".to_owned();
-        assert!(module
+        assert!(note
             .update(
-                Filter {
-                    id: Some(created_note.id),
+                NoteFilter {
+                    id: Some(Filter {
+                        eq: Some(created_note.id),
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
                 Some(title.clone()),
@@ -191,42 +260,26 @@ mod tests {
         assert_eq!(
             title,
             model::note::Entity::find_by_id(created_note.id)
-                .one(&module.db)
+                .one(&db)
                 .await?
                 .ok_or("fatal error")?
                 .title
         );
         // delete
-        assert!(module
-            .delete(Filter {
-                id: Some(created_note.id),
+        assert!(note
+            .delete(NoteFilter {
+                id: Some(Filter {
+                    eq: Some(created_note.id),
+                    ..Default::default()
+                }),
                 ..Default::default()
             })
             .await
             .is_ok());
         assert!(model::note::Entity::find_by_id(created_note.id)
-            .one(&module.db)
+            .one(&db)
             .await?
             .is_none());
         Ok(())
-    }
-
-    async fn filter() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let module = get_module().await?;
-        let user = model::user::ActiveModel {
-            name: Set(""),
-            password: Set(""),
-            ..Default::default()
-        }
-        .insert(&module.db)
-        .await?;
-        let note = module.create(user.id, "", "").await?;
-        Ok(())
-    }
-
-    async fn get_module() -> Result<NoteModule, Box<dyn Error + Send + Sync>> {
-        env::set_var("DATABASE_URL", "sqlite://:memory:");
-        let db = new_database_connection().await?;
-        Ok(NoteModule::new(db))
     }
 }

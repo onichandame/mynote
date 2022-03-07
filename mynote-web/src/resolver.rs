@@ -1,8 +1,10 @@
 use async_graphql::{
-    connection::{Connection, Edge, EmptyFields},
+    connection::{Connection, Edge},
     Context, MergedObject, Object, Result,
 };
-use mynote_core::{note, MyNote};
+use auth::AuthModule;
+use session::SessionModule;
+use user::UserModule;
 
 use crate::{
     conversion::IntoUniversal,
@@ -35,31 +37,29 @@ struct NoteMutation;
 impl AuthQuery {
     #[graphql(name = "self", guard = "LoginRequired::new()")]
     async fn me(&self, ctx: &Context<'_>) -> Result<UserDTO> {
-        let session = ctx.data::<Session>()?;
-        let core = ctx.data::<MyNote>()?;
-        Ok(UserDTO::from(&core.session.deserialize(session).await?))
+        let token = ctx.data::<Session>()?;
+        let session = ctx.data::<SessionModule>()?;
+        Ok(UserDTO::from(&session.deserialize(token).await?))
     }
 }
 
 #[Object]
 impl AuthMutation {
     async fn sign_up(&self, ctx: &Context<'_>, input: UserCreateDTO) -> Result<UserDTO> {
-        let core = ctx.data::<MyNote>()?;
+        let auth = ctx.data::<AuthModule>()?;
         Ok(UserDTO::from(
-            &core
-                .auth
-                .sign_up(&input.name, &input.password, input.email, input.avatar)
+            &auth
+                .signup(&input.name, &input.password, input.email, input.avatar)
                 .await?,
         ))
     }
     async fn login(&self, ctx: &Context<'_>, input: LoginInputDTO) -> Result<String> {
-        let core = ctx.data::<MyNote>()?;
-        Ok(core
-            .session
+        let session = ctx.data::<SessionModule>()?;
+        let auth = ctx.data::<AuthModule>()?;
+        Ok(session
             .serialize(
-                &core
-                    .auth
-                    .login(&input.name_or_email, &input.password)
+                &auth
+                    .login_by_password(&input.name_or_email, &input.password)
                     .await?,
             )
             .await?)
@@ -69,12 +69,12 @@ impl AuthMutation {
 #[Object]
 impl UserMutation {
     async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
-        let session = ctx.data::<Session>()?;
-        let core = ctx.data::<MyNote>()?;
-        let user = core.session.deserialize(session).await?;
+        let token = ctx.data::<Session>()?;
+        let session = ctx.data::<SessionModule>()?;
+        let user_module = ctx.data::<UserModule>()?;
+        let user = session.deserialize(token).await?;
         Ok(UserDTO::from(
-            &core
-                .user
+            &user_module
                 .update(
                     user.id,
                     update.name,

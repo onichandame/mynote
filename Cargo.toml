@@ -2,7 +2,8 @@
 members = [
     "config",
     "filter",
-    "mynote-core",
+    "sorting",
+    "pagination",
     "mynote-web",
     "db",
     "auth",

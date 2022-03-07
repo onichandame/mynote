@@ -7,9 +7,13 @@ edition = "2021"
 
 [dependencies]
 model = { path = "../model" }
+filter = { path = "../filter" }
+pagination = { path = "../pagination" }
+sorting = { path = "../sorting" }
 sea-orm = { version = "^0", default-features = false }
 chrono = "^0"
 
 [dev-dependencies]
-tokio = { version = "^1", features = ["full"] }
 db = { path = "../db" }
+config = { path = "../config" }
+tokio = { version = "^1", features = ["full"] }

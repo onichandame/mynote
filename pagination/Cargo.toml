@@ -1,5 +1,5 @@
 [package]
-name = "filter"
+name = "pagination"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,9 +9,4 @@ edition = "2021"
 sea-orm = { version = "^0", default-features = false }
 
 [dev-dependencies]
-sea-orm = { version = "^0", default-features = false, features = [
-    "mock",
-    "with-chrono",
-    "macros",
-] }
 chrono = "^0"

@@ -1,10 +1,12 @@
 use async_graphql::{EmptySubscription, Schema};
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
+use auth::AuthModule;
+use config::{ConfigModule, Mode};
+use db::DbModule;
 use frontend::Frontend;
-use mynote_core::MyNote;
 use resolver::{Mutation, Query};
 use serde::Deserialize;
-use std::env;
+use std::{env, error::Error};
 use tokio;
 use warp::{ws::Ws, Filter};
 use warp_embed;
@@ -19,10 +21,12 @@ mod resolver;
 mod session;
 
 #[tokio::main]
-pub async fn main() {
-    let core = MyNote::create().await.unwrap();
+pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let config = ConfigModule::create(Mode::Production)?;
+    let db= DbModule::create(&config).await?;
+    let auth= AuthModule::new(&db);
     let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-        .data(core.clone())
+        .data(config)
         .finish();
     let app = warp::path!("graphql")
         .and(warp::ws())
@@ -56,4 +60,5 @@ pub async fn main() {
         _other => 80,
     };
     warp::serve(app).run(([0, 0, 0, 0], port)).await;
+    Ok(())
 }

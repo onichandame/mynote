@@ -1,16 +1,22 @@
 use chrono::NaiveDateTime;
+use filter::Filter;
+use sea_orm::{Condition, QueryFilter};
 
 #[derive(Default, Clone)]
-pub struct Filter {
-    pub id: Option<i32>,
-    pub user_id: Option<i32>,
-    pub deleted_at: Option<Option<DateTimeFilter>>,
+pub struct NoteFilter {
+    pub id: Option<Filter<i32>>,
+    pub deleted_at: Option<Filter<NaiveDateTime>>,
 }
 
-#[derive(Default, Clone)]
-pub struct DateTimeFilter {
-    pub gt: Option<NaiveDateTime>,
-    pub gte: Option<NaiveDateTime>,
-    pub lt: Option<NaiveDateTime>,
-    pub lte: Option<NaiveDateTime>,
+impl NoteFilter {
+    pub fn apply_filter<T: QueryFilter>(&self, query: T) -> T {
+        let mut filter = Condition::all();
+        if let Some(id) = &self.id {
+            filter = filter.add(id.build(model::note::Column::Id));
+        }
+        if let Some(deleted_at) = &self.deleted_at {
+            filter = filter.add(deleted_at.build(model::note::Column::DeletedAt));
+        }
+        query.filter(filter)
+    }
 }

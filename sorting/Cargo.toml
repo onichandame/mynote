@@ -1,14 +1,9 @@
 [package]
-name = "mynote-core"
+name = "sorting"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-db = { path = "../db" }
-auth = { path = "../auth" }
-user = { path = "../user" }
-note = { path = "../note" }
-session = { path = "../session" }
 sea-orm = { version = "^0", default-features = false }

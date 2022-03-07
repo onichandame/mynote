@@ -8,8 +8,15 @@ edition = "2021"
 [dependencies]
 # local
 model = { path = "../model" }
-mynote-core = { path = "../mynote-core" }
+config = { path = "../config" }
+db = { path = "../db" }
+auth = { path = "../auth" }
+session = { path = "../session" }
+user = { path = "../user" }
+note = { path = "../note" }
 filter = { path = "../filter" }
+pagination = { path = "../pagination" }
+sorting = { path = "../sorting" }
 # async framework
 tokio = { version = "^1", features = ["full"] }
 # web framework
