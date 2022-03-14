@@ -11,7 +11,6 @@
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.5",
     "@mui/material": "^5.2.7",
-    "@olian/typescript-helpers": "^2.4.1",
     "formik": "^2.2.9",
     "graphql": "^16.2.0",
     "graphql-ws": "^5.5.5",

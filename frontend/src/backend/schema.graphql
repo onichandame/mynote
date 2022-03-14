@@ -14,9 +14,34 @@ mutation signup(
     ...UserCommon
   }
 }
+
 query self {
   self {
     ...UserCommon
+  }
+}
+
+mutation createNote($title: String!, $content: String!) {
+  createNote(input: { title: $title, content: $content }) {
+    ...NoteCommon
+  }
+}
+
+query listNotes(
+  $first: Int
+  $after: String
+  $filter: NoteFilter
+  $sorting: [Sorting!]
+) {
+  listNotes(first: $first, after: $after, filter: $filter, sorting: $sorting) {
+    hasPreviousPage
+    hasNextPage
+    edges {
+      cursor
+      node {
+        ...NoteCommon
+      }
+    }
   }
 }
 
@@ -25,4 +50,13 @@ fragment UserCommon on User {
   name
   email
   avatar
+}
+
+fragment NoteCommon on Note {
+  id
+  title
+  content
+  createdAt
+  updatedAt
+  deletedAt
 }

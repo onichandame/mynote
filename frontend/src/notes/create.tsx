@@ -4,20 +4,12 @@ import * as yup from "yup";
 import { FC } from "react";
 import { useFormik } from "formik";
 import { useSnackbar } from "notistack";
-
-import { useFetcher } from "../backend";
+import { useBackend } from "../backend";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
-  const create = useFetcher<
-    {},
-    { title: string; content: string }
-  >(`mutation createNote($title:String!,$content:String!){
-      createNote(input:{title:$title,content:$content}){
-          id
-      }
-  }`);
+  const backend = useBackend();
   const schema = yup
     .object()
     .shape({
@@ -28,22 +20,19 @@ export const Create: FC = () => {
   const formik = useFormik({
     validationSchema: schema,
     initialValues: schema.getDefault(),
-    onSubmit: (vals, helpers) => {
+    onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      const [promise, cancel] = create(vals);
       const key = enqueueSnackbar(`creating note`, {
         variant: `info`,
-        action: <Button onClick={() => cancel()}>cancel</Button>,
       });
-      promise
-        .then(() => {
-          enqueueSnackbar(`new note created!`, { variant: `success` });
-          navigate(`../`);
-        })
-        .finally(() => {
-          helpers.setSubmitting(false);
-          closeSnackbar(key);
-        });
+      try {
+        const note = await backend.createNote(vals.title, vals.content);
+        enqueueSnackbar(`new note created`, { variant: `success` });
+        navigate(`../`);
+      } finally {
+        closeSnackbar(key);
+        helpers.setSubmitting(false);
+      }
     },
   });
   return (

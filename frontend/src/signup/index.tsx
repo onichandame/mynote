@@ -27,15 +27,17 @@ export const Signup: FC = () => {
     initialValues: schema.getDefault(),
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      enqueueSnackbar(`signing up...`, {
+      const key = enqueueSnackbar(`signing up...`, {
         variant: `info`,
       });
       try {
         await backend.signup(vals);
+        enqueueSnackbar(`signup successful`, { variant: `success` });
         navigate(
           `/login?name=${vals.name}&password=${vals.password}&autoSubmit=true`
         );
       } finally {
+        closeSnackbar(key);
         helpers.setSubmitting(false);
       }
     },

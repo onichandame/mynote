@@ -1,7 +1,6 @@
-import { Bucket } from "@olian/typescript-helpers";
 import EventEmitter from "events";
 import { Client, createClient } from "graphql-ws";
-import { User } from "../model";
+import { Connection, Note, NoteFilter, Sortings, User } from "../model";
 
 import { Channel } from "./channel";
 import { Event } from "./event";
@@ -33,6 +32,21 @@ export class Backend extends EventEmitter {
 
   public self() {
     const chan = this.request<User>(`self`);
+    return this.waitOnce(chan);
+  }
+
+  public createNote(title: string, content: string) {
+    const chan = this.request<Note>(`createNote`, { title, content });
+    return this.waitOnce(chan);
+  }
+
+  public listNotes(args: {
+    filter?: NoteFilter;
+    sorting?: Sortings;
+    first?: number;
+    after?: string;
+  }) {
+    const chan = this.request<Connection<Note>>(`listNotes`, args);
     return this.waitOnce(chan);
   }
 

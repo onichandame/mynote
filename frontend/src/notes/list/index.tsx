@@ -4,23 +4,14 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Actions } from "../../actions";
-import { useFetcher } from "../../backend";
+import { useBackend } from "../../backend";
 import { Item } from "./item";
 import { Note } from "./type";
 
 export const List: FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const navigate = useNavigate();
-  const fetch = useFetcher<{
-    listNotes: Note[];
-  }>(`query listNotes{
-        listNotes{
-            id
-            createdAt
-            title
-            content
-        }
-    }`);
+  const backend = useBackend();
   const updateList = useCallback(() => {
     const [promise] = fetch({});
     promise.then((data) => {

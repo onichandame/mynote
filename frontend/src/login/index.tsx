@@ -9,7 +9,7 @@ import { useSessionSetter, useUser } from "../auth";
 import { useBackend } from "../backend";
 
 export const Login: FC = () => {
-  const { enqueueSnackbar } = useSnackbar();
+  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const setSession = useSessionSetter();
   const user = useUser();
   const navigate = useNavigate();
@@ -27,13 +27,15 @@ export const Login: FC = () => {
     initialValues: schema.getDefault(),
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      enqueueSnackbar(`logging in`, {
+      const key = enqueueSnackbar(`logging in...`, {
         variant: `info`,
       });
       try {
         const session = await backend.login(vals.name, vals.password);
+        enqueueSnackbar(`login successful`, { variant: `success` });
         setSession(session);
       } finally {
+        closeSnackbar(key);
         helpers.setSubmitting(false);
       }
     },
