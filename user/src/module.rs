@@ -4,22 +4,20 @@ use model::conversion::IntoActiveValue;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Unchanged};
 
 #[derive(Clone)]
-pub struct UserModule<'a> {
-    db: &'a DatabaseConnection,
+pub struct UserModule {
+    db: DatabaseConnection,
 }
 
 /// constructor
-impl<'a> UserModule<'a> {
-    pub fn new(db: &'a DatabaseConnection) -> Self {
-        Self { db }
-    }
+pub fn new_user_module(db: DatabaseConnection) -> UserModule {
+    UserModule { db }
 }
 
 /// public api
-impl UserModule<'_> {
+impl UserModule {
     pub async fn get(&self, id: i32) -> Result<model::user::Model, Box<dyn Error + Send + Sync>> {
         Ok(model::user::Entity::find_by_id(id)
-            .one(self.db)
+            .one(&self.db)
             .await?
             .ok_or(format!("user {} not found", id))?)
     }
@@ -40,30 +38,28 @@ impl UserModule<'_> {
             avatar: avatar.into_active_value(),
             ..Default::default()
         }
-        .update(self.db)
+        .update(&self.db)
         .await?)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use config::{ConfigModule, Mode};
-    use db::DbModule;
+    use config::{new_config_provider, Mode};
+    use db::new_db_connection;
     use sea_orm::Set;
 
     use super::*;
     #[tokio::test]
     async fn user() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let user = UserModule::new(&db);
+        let user = init().await?;
         // get user by id
         let mocked_user = model::user::ActiveModel {
             name: Set("".to_owned()),
             password: Set("".to_owned()),
             ..Default::default()
         }
-        .insert(&db)
+        .insert(&user.db)
         .await?;
         assert_eq!(mocked_user.id, user.get(mocked_user.id).await?.id);
         // update user
@@ -75,5 +71,11 @@ mod tests {
         assert_eq!(mocked_user.id, updated_user.id);
         assert_eq!(updated_user.name, user.get(updated_user.id).await?.name);
         Ok(())
+    }
+
+    async fn init() -> Result<UserModule, Box<dyn Error + Send + Sync>> {
+        let config = new_config_provider(Mode::UnitTest)?;
+        let db = new_db_connection(config.clone()).await?;
+        Ok(new_user_module(db.clone()))
     }
 }

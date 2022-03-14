@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 sea-orm = { version = "^0", default-features = false }
+merge = "^0"
 
 [dev-dependencies]
 sea-orm = { version = "^0", default-features = false, features = [
-    "mock",
     "with-chrono",
     "macros",
 ] }

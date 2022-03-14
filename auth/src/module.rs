@@ -3,19 +3,18 @@ use sea_orm::{
 };
 use std::error::Error;
 
-pub struct AuthModule<'a> {
-    db: &'a DatabaseConnection,
+#[derive(Clone)]
+pub struct AuthModule {
+    db: DatabaseConnection,
 }
 
 // constructor
-impl<'a> AuthModule<'a> {
-    pub fn new(db: &'a DatabaseConnection) -> Self {
-        Self { db }
-    }
+pub fn new_auth_module(db: DatabaseConnection) -> AuthModule {
+    AuthModule { db }
 }
 
 // public api
-impl AuthModule<'_> {
+impl AuthModule {
     pub async fn login_by_password(
         &self,
         identity: &str,
@@ -27,7 +26,7 @@ impl AuthModule<'_> {
                     .add(model::user::Column::Email.eq(identity.to_owned()))
                     .add(model::user::Column::Name.eq(identity.to_owned())),
             )
-            .one(self.db)
+            .one(&self.db)
             .await?
             .ok_or("user not found")?;
         if user.check_password(password)? {
@@ -51,29 +50,27 @@ impl AuthModule<'_> {
             avatar: Set(avatar),
             ..Default::default()
         }
-        .insert(self.db)
+        .insert(&self.db)
         .await?)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use config::{ConfigModule, Mode};
-    use db::DbModule;
+    use config::{new_config_provider, Mode};
+    use db::new_db_connection;
 
     use super::*;
 
     #[tokio::test]
     async fn login() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let auth = AuthModule::new(&db);
+        let auth = init().await?;
 
         let username = "asdf".to_owned();
         let password = "zxcv".to_owned();
         let email = "email@test.com".to_owned();
         // fail for non-existing user
-        assert_eq!(0, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(0, model::user::Entity::find().all(&auth.db).await?.len());
         assert!(auth.login_by_password(&username, &password).await.is_err());
         // succeed for existing user
         model::user::ActiveModel {
@@ -82,9 +79,9 @@ mod tests {
             email: Set(Some(email.clone())),
             ..Default::default()
         }
-        .insert(&db)
+        .insert(&auth.db)
         .await?;
-        assert_eq!(1, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(1, model::user::Entity::find().all(&auth.db).await?.len());
         assert!(auth.login_by_password(&username, &password).await.is_ok());
         assert!(auth.login_by_password(&email, &password).await.is_ok());
         // fail for wrong password
@@ -94,33 +91,37 @@ mod tests {
 
     #[tokio::test]
     async fn signup() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let auth = AuthModule::new(&db);
+        let auth = init().await?;
         // first user
         let name = "asdf".to_owned();
         let password = "asdf".to_owned();
         let email = "asdf".to_owned();
-        assert_eq!(0, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(0, model::user::Entity::find().all(&auth.db).await?.len());
         assert!(auth
             .signup(&name, &password, Some(email.clone()), None)
             .await
             .is_ok());
-        assert_eq!(1, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(1, model::user::Entity::find().all(&auth.db).await?.len());
         model::user::Entity::find()
             .filter(model::user::Column::Name.eq(name.clone()))
-            .one(auth.db)
+            .one(&auth.db)
             .await?
             .ok_or("signed up user not found")?;
         // cannot signup with same user name
         assert!(auth.signup(&name, &password, None, None).await.is_err());
-        assert_eq!(1, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(1, model::user::Entity::find().all(&auth.db).await?.len());
         // cannot signup with same email
         assert!(auth
             .signup("zxcv", &password, Some(email.clone()), None)
             .await
             .is_err());
-        assert_eq!(1, model::user::Entity::find().all(&db).await?.len());
+        assert_eq!(1, model::user::Entity::find().all(&auth.db).await?.len());
         Ok(())
+    }
+
+    async fn init() -> Result<AuthModule, Box<dyn Error + Send + Sync>> {
+        let config = new_config_provider(Mode::UnitTest)?;
+        let db = new_db_connection(config).await?;
+        Ok(new_auth_module(db.clone()))
     }
 }

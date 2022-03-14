@@ -11,20 +11,17 @@ use sorting::Sorting;
 use crate::NoteFilter;
 
 #[derive(Clone)]
-pub struct NoteModule<'a> {
-    db: &'a DatabaseConnection,
+pub struct NoteModule {
+    db: DatabaseConnection,
 }
 
 /// constructor
-impl<'a> NoteModule<'a> {
-    pub fn new(db: &'a DatabaseConnection) -> Self {
-        Self { db }
-    }
+pub fn new_note_module(db: DatabaseConnection) -> NoteModule {
+    NoteModule { db }
 }
 
 /// public api
-impl NoteModule<'_> {
-    /// TODO: filter/sort/pagination
+impl NoteModule {
     pub async fn list(
         &self,
         filter: Option<NoteFilter>,
@@ -35,7 +32,7 @@ impl NoteModule<'_> {
         query = self.apply_pagination(query, &pagination);
         query = self.apply_filter(query, &filter);
         query = self.apply_sorting(query, &sorting);
-        Ok(query.all(self.db).await?)
+        Ok(query.all(&self.db).await?)
     }
     pub async fn count(
         &self,
@@ -43,7 +40,7 @@ impl NoteModule<'_> {
     ) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::find();
         query = self.apply_filter(query, &filter);
-        Ok(query.count(self.db).await?)
+        Ok(query.count(&self.db).await?)
     }
     pub async fn get(
         &self,
@@ -52,7 +49,7 @@ impl NoteModule<'_> {
         let mut query = model::note::Entity::find();
         query = self.apply_filter(query, &Some(filter));
         Ok(query
-            .one(self.db)
+            .one(&self.db)
             .await?
             .ok_or(format!("note not found",))?)
     }
@@ -68,7 +65,7 @@ impl NoteModule<'_> {
             content: Set(content.to_owned()),
             ..Default::default()
         }
-        .insert(self.db)
+        .insert(&self.db)
         .await?)
     }
     pub async fn update(
@@ -84,17 +81,17 @@ impl NoteModule<'_> {
         };
         let mut query = model::note::Entity::update_many().set(update);
         query = self.apply_filter(query, &Some(filter));
-        Ok(query.exec(self.db).await.map(|_| ())?)
+        Ok(query.exec(&self.db).await.map(|_| ())?)
     }
     pub async fn delete(&self, filter: NoteFilter) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut query = model::note::Entity::delete_many();
         query = self.apply_filter(query, &Some(filter));
-        Ok(query.exec(self.db).await.map(|_| ())?)
+        Ok(query.exec(&self.db).await.map(|_| ())?)
     }
 }
 
 // private methods
-impl NoteModule<'_> {
+impl NoteModule {
     fn apply_pagination<T: QuerySelect>(&self, mut query: T, pagination: &Option<Pagination>) -> T {
         if let Some(pagination) = pagination {
             query = pagination.build(query)
@@ -124,19 +121,19 @@ impl NoteModule<'_> {
 
 #[cfg(test)]
 mod tests {
-    use config::{ConfigModule, Mode};
-    use db::DbModule;
+    use config::{new_config_provider, Mode};
+    use db::new_db_connection;
     use filter::Filter;
 
     use super::*;
 
     #[tokio::test]
     async fn note() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let note = NoteModule::new(&db);
+        let note = init().await?;
         let count_notes = || async {
-            Ok::<usize, Box<dyn Error + Send + Sync>>(model::note::Entity::find().count(&db).await?)
+            Ok::<usize, Box<dyn Error + Send + Sync>>(
+                model::note::Entity::find().count(&note.db).await?,
+            )
         };
         // create
         let user = model::user::ActiveModel {
@@ -144,7 +141,7 @@ mod tests {
             password: Set("".to_owned()),
             ..Default::default()
         }
-        .insert(&db)
+        .insert(&note.db)
         .await?;
         assert_eq!(0, count_notes().await?);
         let created_note = note.create(user.id, "", "").await?;
@@ -260,7 +257,7 @@ mod tests {
         assert_eq!(
             title,
             model::note::Entity::find_by_id(created_note.id)
-                .one(&db)
+                .one(&note.db)
                 .await?
                 .ok_or("fatal error")?
                 .title
@@ -277,9 +274,15 @@ mod tests {
             .await
             .is_ok());
         assert!(model::note::Entity::find_by_id(created_note.id)
-            .one(&db)
+            .one(&note.db)
             .await?
             .is_none());
         Ok(())
+    }
+
+    async fn init() -> Result<NoteModule, Box<dyn Error + Send + Sync>> {
+        let config = new_config_provider(Mode::UnitTest)?;
+        let db = new_db_connection(config.clone()).await?;
+        Ok(new_note_module(db.clone()))
     }
 }

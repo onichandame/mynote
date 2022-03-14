@@ -1,10 +1,42 @@
+[package]
+name = "mynote"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# local
+model = { path = "./model" }
+config = { path = "./config" }
+db = { path = "./db" }
+auth = { path = "./auth" }
+session = { path = "./session" }
+user = { path = "./user" }
+note = { path = "./note" }
+filter = { path = "./filter" }
+pagination = { path = "./pagination" }
+sorting = { path = "./sorting" }
+# async framework
+tokio = { version = "^1", features = ["full"] }
+# web framework
+warp = "^0"
+rust-embed = { version = "^6", features = ["compression", "debug-embed"] }
+warp-embed = "^0"
+async-graphql = { version = "^3", features = ["chrono"] }
+async-graphql-warp = "^3"
+# interface definition
+chrono = "^0"
+serde = "^1"
+serde_json = "^1"
+async-trait = "^0"
+base64 = "^0"
+merge = "^0"
+
 [workspace]
 members = [
     "config",
     "filter",
     "sorting",
     "pagination",
-    "mynote-web",
     "db",
     "auth",
     "note",

@@ -16,6 +16,23 @@ impl Pagination {
         }
         query
     }
+
+    pub fn has_prev(&self) -> bool {
+        match self.offset {
+            Some(offset) => offset > 0,
+            None => false,
+        }
+    }
+
+    pub fn has_next(&self, total_count: u64) -> bool {
+        match self.offset {
+            Some(offset) => match self.limit {
+                Some(limit) => offset + limit < total_count,
+                None => false,
+            },
+            None => false,
+        }
+    }
 }
 
 // TODO: test like filter

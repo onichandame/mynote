@@ -1,9 +1,9 @@
+use merge::Merge;
 use sea_orm::{ColumnTrait, Condition, Value};
 
-#[derive(Default, Clone)]
-pub struct Filter<TData: Clone + Into<Value>> {
+#[derive(Clone, Default)]
+pub struct Filter<TData> {
     pub eq: Option<TData>,
-    /// is null or is not null
     pub null: Option<bool>,
     pub lt: Option<TData>,
     pub lte: Option<TData>,
@@ -12,7 +12,8 @@ pub struct Filter<TData: Clone + Into<Value>> {
     pub like: Option<String>,
     pub and: Option<Vec<Filter<TData>>>,
     pub or: Option<Vec<Filter<TData>>>,
-    pub not: Option<Box<Filter<TData>>>,
+    /// if true the current filter is negated
+    pub not: Option<bool>,
 }
 
 impl<TData: Clone + Into<Value>> Filter<TData> {
@@ -57,10 +58,25 @@ impl<TData: Clone + Into<Value>> Filter<TData> {
             }
             filter = filter.add(cond);
         }
-        if let Some(not) = &self.not {
-            filter = filter.add(Condition::all().not().add(not.as_ref().build(col.clone())));
+        if matches!(&self.not, Some(true)) {
+            filter = filter.not();
         }
         filter
+    }
+}
+
+impl<T> Merge for Filter<T> {
+    fn merge(&mut self, other: Self) {
+        self.eq.merge(other.eq);
+        self.null.merge(other.null);
+        self.lt.merge(other.lt);
+        self.lte.merge(other.lte);
+        self.gt.merge(other.gt);
+        self.gte.merge(other.gte);
+        self.like.merge(other.like);
+        self.and.merge(other.and);
+        self.or.merge(other.or);
+        self.not.merge(other.not);
     }
 }
 
@@ -237,17 +253,13 @@ mod tests {
         assert_eq!(
             build_query(
                 Filter::<String> {
-                    not: Some(Box::new(Filter {
-                        eq: Some("".to_owned()),
-                        ..Default::default()
-                    })),
+                    eq: Some("".to_owned()),
+                    not: Some(true),
                     ..Default::default()
                 }
                 .build(model::Column::Text)
             ),
-            build_query(
-                Condition::all().add(Condition::all().not().add(model::Column::Text.eq("")))
-            ),
+            build_query(Condition::all().not().add(model::Column::Text.eq(""))),
         )
     }
 

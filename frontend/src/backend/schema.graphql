@@ -1,0 +1,28 @@
+mutation login($nameOrEmail: String!, $password: String!) {
+  login(input: { identity: $nameOrEmail, password: $password })
+}
+
+mutation signup(
+  $name: String!
+  $password: String!
+  $email: String
+  $avatar: String
+) {
+  register(
+    input: { name: $name, password: $password, email: $email, avatar: $avatar }
+  ) {
+    ...UserCommon
+  }
+}
+query self {
+  self {
+    ...UserCommon
+  }
+}
+
+fragment UserCommon on User {
+  id
+  name
+  email
+  avatar
+}

@@ -1,35 +1,35 @@
 use std::error::Error;
 
-use config::ConfigModule;
+use config::ConfigProvider;
 use sea_orm::{DatabaseConnection, SqlxSqliteConnector};
 use sqlx::{migrate, sqlite};
 
-pub struct DbModule {}
-
 /// constructor
-impl DbModule {
-    pub async fn create(
-        config: &ConfigModule,
-    ) -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
-        let pool = sqlite::SqlitePoolOptions::new()
-            .max_connections(5)
-            .connect(&config.database_url)
-            .await?;
-        migrate!().run(&pool).await?;
-        Ok(SqlxSqliteConnector::from_sqlx_sqlite_pool(pool))
-    }
+pub async fn new_db_connection(
+    config: ConfigProvider,
+) -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
+    let pool = sqlite::SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(&config.database_url)
+        .await?;
+    migrate!().run(&pool).await?;
+    Ok(SqlxSqliteConnector::from_sqlx_sqlite_pool(pool))
 }
 
 #[cfg(test)]
 mod tests {
-    use config::{ConfigModule, Mode};
+    use config::{new_config_provider, Mode};
 
     use super::*;
 
     #[tokio::test]
     async fn connection_pool() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        DbModule::create(&config).await?;
+        init().await?;
         Ok(())
+    }
+
+    async fn init() -> Result<DatabaseConnection, Box<dyn Error + Send + Sync>> {
+        let config = new_config_provider(Mode::UnitTest)?;
+        Ok(new_db_connection(config.clone()).await?)
     }
 }

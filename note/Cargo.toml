@@ -12,6 +12,7 @@ pagination = { path = "../pagination" }
 sorting = { path = "../sorting" }
 sea-orm = { version = "^0", default-features = false }
 chrono = "^0"
+merge = "^0"
 
 [dev-dependencies]
 db = { path = "../db" }

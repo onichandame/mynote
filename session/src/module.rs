@@ -8,25 +8,29 @@ use std::error::Error;
 use model;
 
 #[derive(Clone)]
-pub struct SessionModule<'a> {
-    db: &'a DatabaseConnection,
+pub struct SessionModule {
+    db: DatabaseConnection,
     key_ttl: chrono::Duration,
     session_ttl: chrono::Duration,
 }
 
 // constructor
-impl<'a> SessionModule<'a> {
-    pub fn new(db: &'a DatabaseConnection) -> Self {
-        Self {
-            db,
-            key_ttl: chrono::Duration::days(30),
-            session_ttl: chrono::Duration::days(7),
-        }
+pub fn new_session_module(db: DatabaseConnection) -> SessionModule {
+    SessionModule {
+        db,
+        key_ttl: chrono::Duration::days(30),
+        session_ttl: chrono::Duration::days(7),
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    exp: usize,
+}
+
 // public api
-impl SessionModule<'_> {
+impl SessionModule {
     pub async fn serialize(
         &self,
         user: &model::user::Model,
@@ -53,7 +57,7 @@ impl SessionModule<'_> {
         let meta = jsonwebtoken::decode_header(session)?;
         let kid = meta.kid.ok_or("session key id empty")?;
         let key_doc = model::session_key::Entity::find_by_id(kid.parse()?)
-            .one(self.db)
+            .one(&self.db)
             .await?
             .ok_or("session key not found")?;
         let claim = jsonwebtoken::decode::<Claims>(
@@ -64,14 +68,14 @@ impl SessionModule<'_> {
         .claims;
         let uid = claim.sub;
         Ok(model::user::Entity::find_by_id(uid.parse()?)
-            .one(self.db)
+            .one(&self.db)
             .await?
             .ok_or("user not found")?)
     }
 }
 
 // private methods
-impl SessionModule<'_> {
+impl SessionModule {
     async fn get_latest_key(
         &self,
     ) -> Result<model::session_key::Model, Box<dyn Error + Sync + Send>> {
@@ -85,12 +89,12 @@ impl SessionModule<'_> {
                 key: Set(key),
                 ..Default::default()
             }
-            .insert(self.db)
+            .insert(&self.db)
             .await?)
         };
         match model::session_key::Entity::find()
             .order_by_desc(model::session_key::Column::CreatedAt)
-            .one(self.db)
+            .one(&self.db)
             .await?
         {
             Some(key) => {
@@ -109,28 +113,23 @@ impl SessionModule<'_> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: String,
-    exp: usize,
-}
-
 #[cfg(test)]
 mod tests {
-    use config::{ConfigModule, Mode};
-    use db::DbModule;
+    use config::{new_config_provider, Mode};
+    use db::new_db_connection;
     use sea_orm::{sea_query::Expr, ModelTrait};
 
     use super::*;
 
     #[tokio::test]
     async fn get_latest_key() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let session = SessionModule::new(&db);
+        let session = init().await?;
         let get_keys_count = || async {
             Ok::<usize, Box<dyn Error + Send + Sync>>(
-                model::session_key::Entity::find().all(&db).await?.len(),
+                model::session_key::Entity::find()
+                    .all(&session.db)
+                    .await?
+                    .len(),
             )
         };
         // first call
@@ -147,7 +146,7 @@ mod tests {
                 model::session_key::Column::CreatedAt,
                 Expr::value(chrono::Utc::now().naive_utc() - session.key_ttl * 2),
             )
-            .exec(&db)
+            .exec(&session.db)
             .await?;
         let third_key = session.get_latest_key().await?;
         assert_eq!(2, get_keys_count().await?);
@@ -160,7 +159,7 @@ mod tests {
         assert_eq!(
             first_key.key,
             model::session_key::Entity::find_by_id(first_key.id)
-                .one(&db)
+                .one(&session.db)
                 .await?
                 .ok_or("failed to find expired key")?
                 .key
@@ -170,15 +169,13 @@ mod tests {
 
     #[tokio::test]
     async fn session() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let config = ConfigModule::create(Mode::UnitTest)?;
-        let db = DbModule::create(&config).await?;
-        let session = SessionModule::new(&db);
+        let session = init().await?;
         let user = model::user::ActiveModel {
             name: Set("".to_owned()),
             password: Set("".to_owned()),
             ..Default::default()
         }
-        .insert(&db)
+        .insert(&session.db)
         .await?;
         // serialize for valid user
         let token = session.serialize(&user).await?;
@@ -187,8 +184,14 @@ mod tests {
         // desialize for invalid session
         assert!(session.deserialize("").await.is_err());
         // desialize for invalid user
-        user.delete(&db).await?;
+        user.delete(&session.db).await?;
         assert!(session.deserialize(&token).await.is_err());
         Ok(())
+    }
+
+    async fn init() -> Result<SessionModule, Box<dyn Error + Send + Sync>> {
+        let config = new_config_provider(Mode::UnitTest)?;
+        let db = new_db_connection(config.clone()).await?;
+        Ok(new_session_module(db.clone()))
     }
 }
