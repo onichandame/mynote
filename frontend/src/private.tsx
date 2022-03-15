@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useLocation, Routes, Route, Navigate } from "react-router-dom";
 
 import { Home } from "./home";
-import { useUser } from "./auth";
+import { useUser } from "./backend";
 import { Notes } from "./notes";
 
 export const Private: FC = () => {

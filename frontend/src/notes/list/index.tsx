@@ -4,20 +4,18 @@ import { FC, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Actions } from "../../actions";
-import { useBackend } from "../../backend";
+import { useService } from "../../backend";
+import { Note } from "../../model";
 import { Item } from "./item";
-import { Note } from "./type";
 
 export const List: FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const navigate = useNavigate();
-  const backend = useBackend();
-  const updateList = useCallback(() => {
-    const [promise] = fetch({});
-    promise.then((data) => {
-      setNotes(data.listNotes);
-    });
-  }, [fetch]);
+  const svc = useService();
+  const updateList = useCallback(async () => {
+    const notes = await svc.listNotes();
+    setNotes(notes.edges.map((v) => v.node));
+  }, [svc]);
   useEffect(() => {
     updateList();
   }, [updateList]);

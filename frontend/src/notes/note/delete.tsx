@@ -3,33 +3,25 @@ import { useSnackbar } from "notistack";
 import { FC, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import { useFetcher } from "../../backend";
+import { useService } from "../../backend";
 
 export const Delete: FC = () => {
   const params = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const deleteNote = useFetcher<
-    {},
-    { id: number }
-  >(`mutation deleteNote($id:Int!){
-        deleteNote(id:$id)
-    }`);
+  const svc = useService();
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     const id = parseInt(params.id || ``);
     if (id && searchParams.get(`delete`)) {
-      const [promise, cancel] = deleteNote({ id });
       const key = enqueueSnackbar(`deleting note ${id}`, {
         variant: `info`,
-        action: <Button onClick={cancel}>cancel</Button>,
       });
-      promise
+      svc
+        .deleteNote(id)
         .then(() => {
+          enqueueSnackbar(`delete note successful`, { variant: `success` });
           navigate(`../../`);
-        })
-        .catch((e) => {
-          enqueueSnackbar(JSON.stringify(e), { variant: `error` });
         })
         .finally(() => {
           closeSnackbar(key);

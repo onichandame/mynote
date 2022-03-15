@@ -7,7 +7,7 @@ import { Event } from "./event";
 import Schema from "./schema.graphql?raw";
 
 /** interface to a backend service */
-export class Backend extends EventEmitter {
+export class Service extends EventEmitter {
   private channels = new Set<Channel<any>>();
   private client: Client;
   constructor(url: string, session?: string) {
@@ -40,13 +40,28 @@ export class Backend extends EventEmitter {
     return this.waitOnce(chan);
   }
 
-  public listNotes(args: {
+  public listNotes(args?: {
     filter?: NoteFilter;
     sorting?: Sortings;
     first?: number;
     after?: string;
   }) {
     const chan = this.request<Connection<Note>>(`listNotes`, args);
+    return this.waitOnce(chan);
+  }
+
+  public getNote(id: number) {
+    const chan = this.request<Note>(`getNote`, { id });
+    return this.waitOnce(chan);
+  }
+
+  public updateNote(id: number, update: { title?: string; content?: string }) {
+    const chan = this.request<Note>(`updateNote`, { id, ...update });
+    return this.waitOnce(chan);
+  }
+
+  public deleteNote(id: number) {
+    const chan = this.request<boolean>(`deleteNote`, { id });
     return this.waitOnce(chan);
   }
 

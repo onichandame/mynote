@@ -12,7 +12,7 @@ import { MoreVert } from "@mui/icons-material";
 import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Note } from "./type";
+import { Note } from "../../model";
 
 export const Item: FC<{ item: Note }> = ({ item }) => {
   const navigate = useNavigate();

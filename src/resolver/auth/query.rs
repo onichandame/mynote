@@ -8,7 +8,7 @@ pub struct AuthQuery;
 
 #[Object]
 impl AuthQuery {
-    #[graphql(guard = "LoginRequired::new()")]
+    #[graphql(name = "self", guard = "LoginRequired::new()")]
     async fn me(&self, ctx: &Context<'_>) -> Result<UserDTO> {
         let token = ctx.data::<Session>()?;
         let session = ctx.data::<SessionModule>()?;

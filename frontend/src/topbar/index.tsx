@@ -2,7 +2,7 @@ import { Menu } from "@mui/icons-material";
 import { Typography, AppBar, IconButton, Toolbar } from "@mui/material";
 import { FC } from "react";
 
-import { Account } from "./account";
+import { Account } from "./account/account";
 
 export const TopBar: FC = () => {
   return (

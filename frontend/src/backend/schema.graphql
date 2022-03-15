@@ -8,7 +8,7 @@ mutation signup(
   $email: String
   $avatar: String
 ) {
-  register(
+  signup(
     input: { name: $name, password: $password, email: $email, avatar: $avatar }
   ) {
     ...UserCommon
@@ -34,14 +34,32 @@ query listNotes(
   $sorting: [Sorting!]
 ) {
   listNotes(first: $first, after: $after, filter: $filter, sorting: $sorting) {
-    hasPreviousPage
-    hasNextPage
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+    }
     edges {
       cursor
       node {
         ...NoteCommon
       }
     }
+  }
+}
+
+query getNote($id: Int!) {
+  getNote(id: $id) {
+    ...NoteCommon
+  }
+}
+
+mutation deleteNote($id: Int!) {
+  deleteNote(id: $id)
+}
+
+mutation updateNote($id: Int!, $title: String, $content: String) {
+  updateNote(id: $id, update: { title: $title, content: $content }) {
+    ...NoteCommon
   }
 }
 

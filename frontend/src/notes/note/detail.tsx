@@ -2,7 +2,7 @@ import { Grid, Typography } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import { FC } from "react";
 
-import { Note } from "./type";
+import { Note } from "../../model";
 
 export const Detail: FC<{ note: Note }> = ({ note }) => {
   return (

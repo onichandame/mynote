@@ -5,14 +5,13 @@ import { FC, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 
-import { useUser } from "../auth";
-import { useBackend } from "../backend";
+import { useService, useUser } from "../backend";
 
 export const Signup: FC = () => {
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const user = useUser();
-  const backend = useBackend();
+  const svc = useService();
   const schema = yup
     .object()
     .shape({
@@ -31,7 +30,7 @@ export const Signup: FC = () => {
         variant: `info`,
       });
       try {
-        await backend.signup(vals);
+        await svc.signup(vals);
         enqueueSnackbar(`signup successful`, { variant: `success` });
         navigate(
           `/login?name=${vals.name}&password=${vals.password}&autoSubmit=true`

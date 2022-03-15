@@ -18,11 +18,13 @@ pub struct NoteDTO {
 }
 
 #[derive(InputObject)]
+#[graphql(name = "NoteFilter")]
 pub struct NoteFilterDTO {
     deleted_at: Option<DateTimeFilter>,
 }
 
 #[derive(InputObject)]
+#[graphql(name = "NoteInput")]
 pub struct NoteInputDTO {
     pub title: String,
     pub content: String,

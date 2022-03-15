@@ -5,20 +5,13 @@ import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 
-import { Note } from "./type";
-import { useFetcher } from "../../backend";
+import { useService } from "../../backend";
+import { Note } from "../../model";
 
 export const Update: FC<{ note: Note }> = ({ note }) => {
   const navigate = useNavigate();
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
-  const update = useFetcher<
-    {},
-    { id: number; title?: string; content?: string }
-  >(`mutation updateNote($id:Int!,$title:String,$content:String){
-      updateNote(id:$id,update:{title:$title,content:$content}){
-          id
-      }
-  }`);
+  const svc = useService();
   const schema = yup
     .object()
     .shape({
@@ -29,23 +22,17 @@ export const Update: FC<{ note: Note }> = ({ note }) => {
   const formik = useFormik({
     validationSchema: schema,
     initialValues: schema.getDefault(),
-    onSubmit: (vals, helpers) => {
+    onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      const [promise, cancel] = update({ id: note.id, ...vals });
       const key = enqueueSnackbar(`updating note ${note.id}`, {
         variant: `info`,
-        action: <Button onClick={cancel}>cancel</Button>,
       });
-      promise
-        .then(() => {
-          navigate(`../`);
-        })
-        .catch((e) => {
-          enqueueSnackbar(JSON.stringify(e), { variant: `error` });
-        })
-        .finally(() => {
-          closeSnackbar(key);
-        });
+      try {
+        await svc.updateNote(note.id, vals);
+        navigate(`../`);
+      } finally {
+        closeSnackbar(key);
+      }
     },
   });
   return (

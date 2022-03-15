@@ -1,46 +1,28 @@
-import { useSnackbar } from "notistack";
 import { SpeedDialAction } from "@mui/material";
 import { Delete, NoteAdd, NoteAlt } from "@mui/icons-material";
 import { FC, useEffect, useState } from "react";
 import { useNavigate, Routes, Route, useParams } from "react-router-dom";
 
-import { useFetcher } from "../../backend";
-import { Note as NoteType } from "./type";
 import { Detail } from "./detail";
 import { Delete as DeleteNote } from "./delete";
 import { Actions } from "../../actions";
 import { Update } from "./update";
+import { useService } from "../../backend";
+import { Note as NoteModel } from "../../model";
 
 export const Note: FC = () => {
-  const { enqueueSnackbar } = useSnackbar();
-  const [note, setNote] = useState<NoteType | null>(null);
+  const [note, setNote] = useState<NoteModel | null>(null);
   const navigate = useNavigate();
   const params = useParams();
-  const fetch = useFetcher<
-    { getNote: NoteType },
-    { id: number }
-  >(`query getNote($id:Int!){
-        getNote(id:$id){
-            id
-            createdAt
-            updatedAt
-            title
-            content
-        }
-    }`);
+  const svc = useService();
   useEffect(() => {
     if (!params.id) return;
     const id = parseInt(params.id);
     if (!id) return;
     let active = true;
-    const [promise] = fetch({ id });
-    promise
-      .then((data) => {
-        if (active) setNote(data.getNote);
-      })
-      .catch((e) => {
-        enqueueSnackbar(JSON.stringify(e), { variant: `error` });
-      });
+    svc.getNote(id).then((note) => {
+      if (active) setNote(note);
+    });
     return () => {
       active = false;
     };

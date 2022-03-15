@@ -4,12 +4,13 @@ import * as yup from "yup";
 import { FC } from "react";
 import { useFormik } from "formik";
 import { useSnackbar } from "notistack";
-import { useBackend } from "../backend";
+
+import { useService } from "../backend";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
-  const backend = useBackend();
+  const svc = useService();
   const schema = yup
     .object()
     .shape({
@@ -26,7 +27,7 @@ export const Create: FC = () => {
         variant: `info`,
       });
       try {
-        const note = await backend.createNote(vals.title, vals.content);
+        const note = await svc.createNote(vals.title, vals.content);
         enqueueSnackbar(`new note created`, { variant: `success` });
         navigate(`../`);
       } finally {

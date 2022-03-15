@@ -5,8 +5,7 @@ import * as yup from "yup";
 import { Button, Grid, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 
-import { useSessionSetter, useUser } from "../auth";
-import { useBackend } from "../backend";
+import { useService, useUser, useSessionSetter } from "../backend";
 
 export const Login: FC = () => {
   const { closeSnackbar, enqueueSnackbar } = useSnackbar();
@@ -14,7 +13,7 @@ export const Login: FC = () => {
   const user = useUser();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const backend = useBackend();
+  const svc = useService();
   const schema = yup
     .object()
     .shape({
@@ -31,7 +30,7 @@ export const Login: FC = () => {
         variant: `info`,
       });
       try {
-        const session = await backend.login(vals.name, vals.password);
+        const session = await svc.login(vals.name, vals.password);
         enqueueSnackbar(`login successful`, { variant: `success` });
         setSession(session);
       } finally {
