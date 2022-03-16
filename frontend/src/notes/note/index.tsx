@@ -9,6 +9,7 @@ import { Actions } from "../../actions";
 import { Update } from "./update";
 import { useService } from "../../backend";
 import { Note as NoteModel } from "../../model";
+import { Form } from "../../common";
 
 export const Note: FC = () => {
   const [note, setNote] = useState<NoteModel | null>(null);
@@ -31,7 +32,14 @@ export const Note: FC = () => {
     <>
       <Routes>
         <Route path="/" element={<Detail note={note} />} />
-        <Route path="update" element={<Update note={note} />} />
+        <Route
+          path="update"
+          element={
+            <Form>
+              <Update note={note} />
+            </Form>
+          }
+        />
         <Route path="delete" element={<DeleteNote />} />
       </Routes>
       <Actions>

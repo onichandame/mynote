@@ -76,6 +76,7 @@ export const Login: FC = () => {
           <TextField
             placeholder="Password"
             name="password"
+            type="password"
             value={formik.values.password}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
