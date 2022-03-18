@@ -6,12 +6,11 @@ use filter::Filter;
 use merge::Merge;
 use note::{NoteFilter, NoteModule};
 use pagination::Pagination;
-use session::SessionModule;
 
 use crate::{
     cursor::Cursor,
     dto::{NoteDTO, NoteFilterDTO, SortingDTO},
-    session::Session,
+    get_user,
 };
 
 #[derive(Default)]
@@ -28,10 +27,8 @@ impl NoteQuery {
         filter: Option<NoteFilterDTO>,
         sorting: Option<Vec<SortingDTO>>,
     ) -> Result<Connection<String, NoteDTO>> {
-        let token = ctx.data::<Session>()?;
+        get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
-        let session = ctx.data::<SessionModule>()?;
-        let user = session.deserialize(token).await?;
         let aux_filter = filter;
         let mut filter = NoteFilter {
             user_id: Some(Filter {
@@ -72,10 +69,8 @@ impl NoteQuery {
     }
     #[graphql("guard=LoginRequired::new()")]
     async fn get_note(&self, ctx: &Context<'_>, id: i32) -> Result<NoteDTO> {
-        let token = ctx.data::<Session>()?;
-        let session = ctx.data::<SessionModule>()?;
+        get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
-        let user = session.deserialize(token).await?;
         Ok(NoteDTO::from(
             &note
                 .get(NoteFilter {

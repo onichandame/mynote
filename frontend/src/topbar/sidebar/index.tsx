@@ -1,6 +1,7 @@
-import { Settings } from "@mui/icons-material";
+import { NoteAlt, Settings } from "@mui/icons-material";
 import {
   Box,
+  Divider,
   Drawer,
   List,
   ListItem,
@@ -30,11 +31,18 @@ export const Sidebar: FC<{ open: boolean; setOpen: (_: boolean) => void }> = ({
       <Box sx={{ width: 250 }} role="presentation">
         <List>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={click(() => {
-                navigate(`/settings`);
-              })}
-            >
+            <ListItemButton onClick={click(() => navigate(`/notes`))}>
+              <ListItemIcon>
+                <NoteAlt />
+              </ListItemIcon>
+              <ListItemText primary="Notes" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        <Divider />
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton onClick={click(() => navigate(`/settings`))}>
               <ListItemIcon>
                 <Settings />
               </ListItemIcon>

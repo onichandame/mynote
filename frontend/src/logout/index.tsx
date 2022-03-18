@@ -10,7 +10,7 @@ export const Logout: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   useEffect(() => {
     setSession();
-    enqueueSnackbar(`logout successful`, { variant: `success` });
+    enqueueSnackbar(`logout done`, { variant: `success` });
     navigate(`/`);
   }, []);
   return <div>logging out</div>;

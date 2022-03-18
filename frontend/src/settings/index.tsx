@@ -1,6 +1,10 @@
 import { Box, Tab, Tabs } from "@mui/material";
 import { FC, useState } from "react";
 
+import { Form } from "../common";
+import { Profile } from "./profile";
+import { Security } from "./security";
+
 const TabPanel: FC<{
   index: number | string;
   currentIndex: number | string;
@@ -17,31 +21,36 @@ const TabPanel: FC<{
   );
 };
 
-const IndexedTab: FC<{ index: number | string }> = ({ index }) => {
-  return (
-    <Tab
-      label="Profile"
-      id={`settings-tab-${index}`}
-      aria-controls={`settings-panel-${index}`}
-    />
-  );
-};
-
 export const Settings: FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
+  const getTabProps = (index: number | string, title: string) => ({
+    label: title,
+    value: index,
+    id: `settings-tab-${index}`,
+    "aria-controls": `settings-panel-${index}`,
+  });
   return (
     <Box sx={{ width: `auto` }}>
       <Box sx={{ borderBottom: 1, borderColor: `divider` }}>
         <Tabs
+          value={currentTab}
           onChange={(_, newIndex) => {
             setCurrentTab(newIndex);
           }}
         >
-          <IndexedTab index={0} />
+          <Tab {...getTabProps(0, `Profile`)} />
+          <Tab {...getTabProps(1, `Security`)} />
         </Tabs>
       </Box>
       <TabPanel index={0} currentIndex={currentTab}>
-        profile
+        <Form>
+          <Profile />
+        </Form>
+      </TabPanel>
+      <TabPanel index={1} currentIndex={currentTab}>
+        <Form>
+          <Security />
+        </Form>
       </TabPanel>
     </Box>
   );

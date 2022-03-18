@@ -3,13 +3,11 @@ import { useNavigate } from "react-router";
 import * as yup from "yup";
 import { FC } from "react";
 import { useFormik } from "formik";
-import { useSnackbar } from "notistack";
 
 import { useService } from "../backend";
 
 export const Create: FC = () => {
   const navigate = useNavigate();
-  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const svc = useService();
   const schema = yup
     .object()
@@ -23,15 +21,10 @@ export const Create: FC = () => {
     initialValues: schema.getDefault(),
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      const key = enqueueSnackbar(`creating note`, {
-        variant: `info`,
-      });
       try {
-        const note = await svc.createNote(vals.title, vals.content);
-        enqueueSnackbar(`new note created`, { variant: `success` });
+        const note = await svc.createNote(vals, { notification: true });
         navigate(`../`);
       } finally {
-        closeSnackbar(key);
         helpers.setSubmitting(false);
       }
     },
@@ -41,7 +34,7 @@ export const Create: FC = () => {
       <Grid container direction="column" spacing={2} alignItems="center">
         <Grid item>
           <TextField
-            placeholder="Title"
+            label="Title"
             name="title"
             value={formik.values.title}
             onChange={formik.handleChange}
@@ -53,7 +46,7 @@ export const Create: FC = () => {
         <Grid item>
           <TextField
             multiline
-            placeholder="Content"
+            label="Content"
             name="content"
             value={formik.values.content}
             onChange={formik.handleChange}
@@ -63,7 +56,11 @@ export const Create: FC = () => {
           />
         </Grid>
         <Grid item>
-          <Button type="submit" variant="contained">
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={formik.isSubmitting}
+          >
             create
           </Button>
         </Grid>

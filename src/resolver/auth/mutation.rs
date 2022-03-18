@@ -1,11 +1,12 @@
 use async_graphql::{Context, Object, Result};
 use auth::AuthModule;
 use session::SessionModule;
+use user::UserModule;
 
 use crate::{
     dto::{LoginInputDTO, UserCreateDTO, UserDTO},
+    get_user,
     guard::LoginRequired,
-    session::Session,
 };
 
 #[derive(Default)]
@@ -37,8 +38,25 @@ impl AuthMutation {
     #[graphql(guard = "LoginRequired::new()")]
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
         let session = ctx.data::<SessionModule>()?;
-        let token = ctx.data::<Session>()?;
-        let user = session.deserialize(token).await?;
+        get_user!(user, ctx);
         Ok(session.serialize(&user).await?)
+    }
+
+    #[graphql(guard = "LoginRequired::new()")]
+    async fn change_password(
+        &self,
+        ctx: &Context<'_>,
+        old_password: String,
+        new_password: String,
+    ) -> Result<bool> {
+        let user_module = ctx.data::<UserModule>()?;
+        get_user!(user, ctx);
+        if !user.check_password(&old_password)? {
+            return Err("password incorrect".into());
+        }
+        user_module
+            .update(user.id, None, Some(new_password), None, None)
+            .await?;
+        Ok(true)
     }
 }

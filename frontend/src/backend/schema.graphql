@@ -15,6 +15,18 @@ mutation signup(
   }
 }
 
+mutation changePassword($oldPass: String!, $newPass: String!) {
+  changePassword(oldPassword: $oldPass, newPassword: $newPass)
+}
+
+mutation updateSelf($name: String, $email: String, $avatar: String) {
+  updateSelf: updateUser(
+    update: { name: $name, email: $email, avatar: $avatar }
+  ) {
+    ...UserCommon
+  }
+}
+
 query self {
   self {
     ...UserCommon

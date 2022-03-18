@@ -1,6 +1,5 @@
 import { Button, Grid, TextField } from "@mui/material";
 import { useFormik } from "formik";
-import { useSnackbar } from "notistack";
 import { FC, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
@@ -8,7 +7,6 @@ import * as yup from "yup";
 import { useService, useUser } from "../backend";
 
 export const Signup: FC = () => {
-  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const user = useUser();
   const svc = useService();
@@ -17,6 +15,12 @@ export const Signup: FC = () => {
     .shape({
       name: yup.string().required().min(4).max(20),
       password: yup.string().required().min(6).max(40),
+      password2: yup
+        .string()
+        .required()
+        .when(`password`, (password, schema) =>
+          schema.oneOf([password], `passwords do not match`)
+        ),
       email: yup.string().notRequired().email(),
       avatar: yup.string().notRequired().url(),
     })
@@ -26,17 +30,12 @@ export const Signup: FC = () => {
     initialValues: schema.getDefault(),
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      const key = enqueueSnackbar(`signing up...`, {
-        variant: `info`,
-      });
       try {
-        await svc.signup(vals);
-        enqueueSnackbar(`signup successful`, { variant: `success` });
+        await svc.signup(vals, { notification: true });
         navigate(
           `/login?name=${vals.name}&password=${vals.password}&autoSubmit=true`
         );
       } finally {
-        closeSnackbar(key);
         helpers.setSubmitting(false);
       }
     },
@@ -49,7 +48,8 @@ export const Signup: FC = () => {
       <Grid container direction="column" alignItems="center" spacing={2}>
         <Grid item>
           <TextField
-            placeholder="Username"
+            required
+            label="Username"
             name="name"
             value={form.values.name}
             error={!!form.errors.name}
@@ -60,8 +60,10 @@ export const Signup: FC = () => {
         </Grid>
         <Grid item>
           <TextField
-            placeholder="Password"
+            required
+            label="Password"
             name="password"
+            type="password"
             value={form.values.password}
             error={!!form.errors.password}
             helperText={form.errors.password}
@@ -71,7 +73,20 @@ export const Signup: FC = () => {
         </Grid>
         <Grid item>
           <TextField
-            placeholder="Email"
+            required
+            label="Re-type Password"
+            name="password2"
+            type="password"
+            value={form.values.password2}
+            error={!!form.errors.password2}
+            helperText={form.errors.password2}
+            onChange={form.handleChange}
+            onBlur={form.handleBlur}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            label="Email"
             name="email"
             value={form.values.email}
             error={!!form.errors.email}
@@ -82,7 +97,7 @@ export const Signup: FC = () => {
         </Grid>
         <Grid item>
           <TextField
-            placeholder="Avatar"
+            label="Avatar Link"
             name="avatar"
             value={form.values.avatar}
             error={!!form.errors.avatar}

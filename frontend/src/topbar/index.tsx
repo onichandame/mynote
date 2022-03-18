@@ -10,7 +10,7 @@ export const TopBar: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
-      <AppBar position="static">
+      <AppBar>
         <Toolbar>
           <IconButton
             size="large"

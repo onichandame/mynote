@@ -28,7 +28,6 @@ pub struct UserCreateDTO {
 #[graphql(name = "UpdateUserInput")]
 pub struct UserUpdateDTO {
     pub name: Option<String>,
-    pub password: Option<String>,
     pub email: MaybeUndefined<String>,
     pub avatar: MaybeUndefined<String>,
 }

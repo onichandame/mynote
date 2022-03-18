@@ -3,12 +3,10 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button, Grid, TextField } from "@mui/material";
-import { useSnackbar } from "notistack";
 
 import { useService, useUser, useSessionSetter } from "../backend";
 
 export const Login: FC = () => {
-  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const setSession = useSessionSetter();
   const user = useUser();
   const navigate = useNavigate();
@@ -26,15 +24,16 @@ export const Login: FC = () => {
     initialValues: schema.getDefault(),
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
-      const key = enqueueSnackbar(`logging in...`, {
-        variant: `info`,
-      });
       try {
-        const session = await svc.login(vals.name, vals.password);
-        enqueueSnackbar(`login successful`, { variant: `success` });
+        const session = await svc.login(
+          {
+            nameOrEmail: vals.name,
+            password: vals.password,
+          },
+          { notification: true }
+        );
         setSession(session);
       } finally {
-        closeSnackbar(key);
         helpers.setSubmitting(false);
       }
     },
@@ -63,7 +62,8 @@ export const Login: FC = () => {
       <Grid container direction="column" spacing={2} alignItems="center">
         <Grid item>
           <TextField
-            placeholder="Username"
+            required
+            label="Username"
             name="name"
             value={formik.values.name}
             onChange={formik.handleChange}
@@ -74,7 +74,8 @@ export const Login: FC = () => {
         </Grid>
         <Grid item>
           <TextField
-            placeholder="Password"
+            required
+            label="Password"
             name="password"
             type="password"
             value={formik.values.password}

@@ -1,5 +1,12 @@
 import { useSnackbar } from "notistack";
-import { createContext, FC, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  FC,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { User } from "../model";
 import { formatError, getSvcUrl } from "../util";
@@ -16,6 +23,16 @@ const BackendContext = createContext<[Backend, (_: Backend) => void]>([
 
 export const useService = () => useContext(BackendContext)[0].svc;
 export const useUser = () => useContext(BackendContext)[0].user;
+export const useUserSetter = () => {
+  const [backend, setBackend] = useContext(BackendContext);
+  const updateUser = useCallback(
+    (user: User) => {
+      setBackend({ ...backend, user });
+    },
+    [backend, setBackend]
+  );
+  return updateUser;
+};
 export const useSessionSetter = () => {
   const [, setBackend] = useContext(BackendContext);
   return async (session?: string) => {
@@ -35,11 +52,44 @@ export const useSessionSetter = () => {
 };
 
 export const BackendProvider: FC = ({ children }) => {
-  const { enqueueSnackbar } = useSnackbar();
+  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
   const backendState = useState<Backend>({
     svc: new Service(getSvcUrl()),
   });
   useEffect(() => {
+    const getPendingKey = (chanId: number | string) => `pending:${chanId}`;
+    const formatRequestName = (raw: string) =>
+      raw
+        .split(/(?=[A-Z])/)
+        .map((v) => v.toLowerCase())
+        .join(` `);
+    backendState[0].svc.on(`send`, (chan) => {
+      if (
+        chan.opts?.notification &&
+        !(
+          typeof chan.opts.notification !== `boolean` &&
+          chan.opts.notification.disablePending
+        )
+      )
+        enqueueSnackbar(`${formatRequestName(chan.request)} pending...`, {
+          key: getPendingKey(chan.id),
+          variant: `info`,
+        });
+    });
+    backendState[0].svc.on(`close`, (chan, success) => {
+      if (
+        chan.opts?.notification &&
+        !(
+          typeof chan.opts.notification !== `boolean` &&
+          chan.opts.notification.disableFinal
+        )
+      )
+        enqueueSnackbar(
+          `${formatRequestName(chan.request)} ${success ? `done` : `failed`}`,
+          { variant: success ? `success` : `error` }
+        );
+      closeSnackbar(getPendingKey(chan.id));
+    });
     backendState[0].svc.on(`error`, (_, e) => {
       console.log(e);
       enqueueSnackbar(formatError(e), { variant: `error` });

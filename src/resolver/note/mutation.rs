@@ -1,11 +1,10 @@
 use async_graphql::{Context, Object, Result};
 use filter::Filter;
 use note::{NoteFilter, NoteModule};
-use session::SessionModule;
 
 use crate::{
     dto::{NoteDTO, NoteInputDTO, NoteUpdateDTO},
-    session::Session,
+    get_user,
 };
 
 #[derive(Default)]
@@ -15,10 +14,8 @@ pub struct NoteMutation;
 impl NoteMutation {
     #[graphql("guard=LoginRequired::new()")]
     async fn create_note(&self, ctx: &Context<'_>, input: NoteInputDTO) -> Result<NoteDTO> {
-        let token = ctx.data::<Session>()?;
-        let session = ctx.data::<SessionModule>()?;
         let note = ctx.data::<NoteModule>()?;
-        let user = session.deserialize(token).await?;
+        get_user!(user, ctx);
         Ok(NoteDTO::from(
             &note.create(user.id, &input.title, &input.content).await?,
         ))
@@ -30,10 +27,8 @@ impl NoteMutation {
         id: i32,
         update: NoteUpdateDTO,
     ) -> Result<NoteDTO> {
-        let token = ctx.data::<Session>()?;
-        let session = ctx.data::<SessionModule>()?;
+        get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
-        let user = session.deserialize(token).await?;
         let filter = NoteFilter {
             user_id: Some(Filter {
                 eq: Some(user.id),
@@ -51,10 +46,8 @@ impl NoteMutation {
     }
     #[graphql("guard=LoginRequired::new()")]
     async fn delete_note(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let token = ctx.data::<Session>()?;
-        let session = ctx.data::<SessionModule>()?;
+        get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
-        let user = session.deserialize(token).await?;
         note.delete(NoteFilter {
             user_id: Some(Filter {
                 eq: Some(user.id),

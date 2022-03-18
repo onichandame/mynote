@@ -1,1 +1,1 @@
-export type Event = `data` | `error` | `close`;
+export type Event = `send` | `data` | `error` | `close`;
