@@ -1,10 +1,11 @@
 use std::error::Error;
 
+use chrono::NaiveDateTime;
 use model::conversion::IntoActiveValue;
 use pagination::Pagination;
 use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect, Set,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, NotSet, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect, Set,
 };
 use sorting::Sorting;
 
@@ -58,11 +59,21 @@ impl NoteModule {
         user: i32,
         title: &str,
         content: &str,
+        uuid: Option<String>,
+        lamport_clock: Option<i32>,
     ) -> Result<model::note::Model, Box<dyn Error + Send + Sync>> {
         Ok(model::note::ActiveModel {
             user_id: Set(user),
             title: Set(title.to_owned()),
             content: Set(content.to_owned()),
+            uuid: match uuid {
+                Some(v) => Set(v),
+                None => NotSet,
+            },
+            lamport_clock: match lamport_clock {
+                Some(v) => Set(v),
+                None => NotSet,
+            },
             ..Default::default()
         }
         .insert(&self.db)
@@ -73,10 +84,12 @@ impl NoteModule {
         filter: NoteFilter,
         title: Option<String>,
         content: Option<String>,
+        deleted_at: Option<Option<NaiveDateTime>>,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         let update = model::note::ActiveModel {
             title: title.into_active_value(),
             content: content.into_active_value(),
+            deleted_at: deleted_at.into_active_value(),
             ..Default::default()
         };
         let mut query = model::note::Entity::update_many().set(update);
@@ -144,7 +157,7 @@ mod tests {
         .insert(&note.db)
         .await?;
         assert_eq!(0, count_notes().await?);
-        let created_note = note.create(user.id, "", "").await?;
+        let created_note = note.create(user.id, "", "", None, None).await?;
         assert_eq!(1, count_notes().await?);
         // get
         let got_note = note
@@ -207,7 +220,7 @@ mod tests {
             .len()
         );
         // sorting
-        let second_note = note.create(user.id, "", "").await?;
+        let second_note = note.create(user.id, "", "", None, None).await?;
         assert_eq!(
             created_note.id,
             note.list(
@@ -251,6 +264,7 @@ mod tests {
                 },
                 Some(title.clone()),
                 None,
+                None
             )
             .await
             .is_ok());

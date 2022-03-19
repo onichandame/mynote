@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 model = { path = "../model" }
-sea-orm = { version = "^0", default-features = false }
+sea-orm = { version = "^0", default-features = false, features = ["chrono"] }
 
 [dev-dependencies]
 db = { path = "../db" }

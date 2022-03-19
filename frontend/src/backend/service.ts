@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { Client, createClient } from "graphql-ws";
-import { Connection, Note, NoteFilter, Sortings, User } from "../model";
 
+import { Connection, Note, NoteFilter, Sortings, User } from "../model";
 import { Channel, ChannelOptions } from "./channel";
 import { Event } from "./event";
 import Schema from "./schema.graphql?raw";

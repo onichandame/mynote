@@ -8,6 +8,8 @@ use super::DateTimeFilter;
 #[graphql(name = "Note")]
 pub struct NoteDTO {
     pub id: i32,
+    pub uuid: String,
+    pub lamport_clock: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
     pub deleted_at: Option<chrono::NaiveDateTime>,
@@ -43,6 +45,8 @@ impl From<&model::note::Model> for NoteDTO {
             deleted_at: note.deleted_at.clone(),
             user_id: note.user_id.clone(),
             id: note.id.clone(),
+            uuid: note.uuid.clone(),
+            lamport_clock: note.lamport_clock.clone(),
             title: note.title.clone(),
             updated_at: note.updated_at.clone(),
             content: note.content.clone(),

@@ -12,6 +12,7 @@ auth = { path = "./auth" }
 session = { path = "./session" }
 user = { path = "./user" }
 note = { path = "./note" }
+pass = { path = "./pass" }
 filter = { path = "./filter" }
 pagination = { path = "./pagination" }
 sorting = { path = "./sorting" }
@@ -37,6 +38,7 @@ members = [
     "filter",
     "sorting",
     "pagination",
+    "pass",
     "db",
     "auth",
     "note",

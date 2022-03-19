@@ -17,7 +17,9 @@ impl NoteMutation {
         let note = ctx.data::<NoteModule>()?;
         get_user!(user, ctx);
         Ok(NoteDTO::from(
-            &note.create(user.id, &input.title, &input.content).await?,
+            &note
+                .create(user.id, &input.title, &input.content, None, None)
+                .await?,
         ))
     }
     #[graphql("guard=LoginRequired::new()")]
@@ -40,7 +42,7 @@ impl NoteMutation {
             }),
             ..Default::default()
         };
-        note.update(filter.clone(), update.title, update.content)
+        note.update(filter.clone(), update.title, update.content, None)
             .await?;
         Ok(NoteDTO::from(&note.get(filter.clone()).await?))
     }
@@ -48,17 +50,22 @@ impl NoteMutation {
     async fn delete_note(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
         get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
-        note.delete(NoteFilter {
-            user_id: Some(Filter {
-                eq: Some(user.id),
+        note.update(
+            NoteFilter {
+                user_id: Some(Filter {
+                    eq: Some(user.id),
+                    ..Default::default()
+                }),
+                id: Some(Filter {
+                    eq: Some(id),
+                    ..Default::default()
+                }),
                 ..Default::default()
-            }),
-            id: Some(Filter {
-                eq: Some(id),
-                ..Default::default()
-            }),
-            ..Default::default()
-        })
+            },
+            None,
+            None,
+            Some(Some(chrono::Utc::now().naive_utc())),
+        )
         .await?;
         Ok(true)
     }
