@@ -69,4 +69,18 @@ impl NoteMutation {
         .await?;
         Ok(true)
     }
+    #[graphql("guard=LoginRequired::new()")]
+    async fn sync_notes(
+        &self,
+        ctx: &Context<'_>,
+        remote_username: String,
+        remote_password: String,
+        url: String,
+    ) -> Result<bool> {
+        get_user!(user, ctx);
+        let note = ctx.data::<NoteModule>()?;
+        note.sync_from(&url, &remote_username, &remote_password, user.id)
+            .await?;
+        Ok(true)
+    }
 }

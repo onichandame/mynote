@@ -12,12 +12,13 @@ auth = { path = "./auth" }
 session = { path = "./session" }
 user = { path = "./user" }
 note = { path = "./note" }
-pass = { path = "./pass" }
 filter = { path = "./filter" }
 pagination = { path = "./pagination" }
 sorting = { path = "./sorting" }
 # async framework
 tokio = { version = "^1", features = ["full"] }
+futures = "^0"
+futures-util = "^0"
 # web framework
 warp = "^0"
 rust-embed = { version = "^6", features = ["compression", "debug-embed"] }
@@ -38,7 +39,6 @@ members = [
     "filter",
     "sorting",
     "pagination",
-    "pass",
     "db",
     "auth",
     "note",

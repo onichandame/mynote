@@ -1,4 +1,4 @@
-import { NoteAdd } from "@mui/icons-material";
+import { NoteAdd, Sync } from "@mui/icons-material";
 import { Grid, SpeedDialAction } from "@mui/material";
 import { FC, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -47,6 +47,13 @@ export const List: FC = () => {
           tooltipTitle="Create"
           onClick={() => {
             navigate(`create`);
+          }}
+        />
+        <SpeedDialAction
+          icon={<Sync />}
+          tooltipTitle="Sync from"
+          onClick={() => {
+            navigate(`sync`);
           }}
         />
       </Actions>

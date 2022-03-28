@@ -102,6 +102,20 @@ export class Service extends EventEmitter {
     return this.waitOnce(chan);
   }
 
+  public syncNotes(
+    url: string,
+    username: string,
+    password: string,
+    opts?: ChannelOptions
+  ) {
+    const chan = this.request<boolean>(
+      `syncNotes`,
+      { url, username, password },
+      opts
+    );
+    return this.waitOnce(chan);
+  }
+
   public dispose() {
     this.channels.forEach((chan) => chan.emit(`close`, false));
     this.channels.clear();

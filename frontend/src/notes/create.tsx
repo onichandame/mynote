@@ -22,7 +22,7 @@ export const Create: FC = () => {
     onSubmit: async (vals, helpers) => {
       helpers.setSubmitting(true);
       try {
-        const note = await svc.createNote(vals, { notification: true });
+        await svc.createNote(vals, { notification: true });
         navigate(`../`);
       } finally {
         helpers.setSubmitting(false);

@@ -68,7 +68,7 @@ export const BackendProvider: FC = ({ children }) => {
         chan.opts?.notification &&
         !(
           typeof chan.opts.notification !== `boolean` &&
-          chan.opts.notification.disablePending
+          !chan.opts.notification.pending
         )
       )
         enqueueSnackbar(`${formatRequestName(chan.request)} pending...`, {
@@ -81,7 +81,7 @@ export const BackendProvider: FC = ({ children }) => {
         chan.opts?.notification &&
         !(
           typeof chan.opts.notification !== `boolean` &&
-          chan.opts.notification.disableFinal
+          !chan.opts.notification.done
         )
       )
         enqueueSnackbar(

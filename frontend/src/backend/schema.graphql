@@ -75,6 +75,10 @@ mutation updateNote($id: Int!, $title: String, $content: String) {
   }
 }
 
+mutation syncNotes($url: String!, $username: String!, $password: String!) {
+  syncNotes(remoteUsername: $username, remotePassword: $password, url: $url)
+}
+
 fragment UserCommon on User {
   id
   name

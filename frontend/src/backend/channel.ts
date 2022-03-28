@@ -41,5 +41,5 @@ export class Channel<TData = unknown> extends EventEmitter {
 
 export interface ChannelOptions {
   /** whether the user should be notified about the progress */
-  notification?: { disablePending?: boolean; disableFinal?: boolean } | boolean;
+  notification?: { pending?: boolean; done?: boolean } | boolean;
 }

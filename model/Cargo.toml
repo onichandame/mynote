@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bcrypt = "^0"
 chrono = "^0"
+serde = "^1"
 sea-orm = { version = "^0", default-features = false, features = [
     "with-chrono",
     "macros",

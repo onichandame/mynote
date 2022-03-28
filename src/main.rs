@@ -1,13 +1,12 @@
 use ::session::new_session_module;
-use async_graphql::{EmptySubscription, Schema};
+use async_graphql::Schema;
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
 use auth::new_auth_module;
 use config::{new_config_provider, Mode};
 use db::new_db_connection;
 use frontend::Frontend;
 use note::new_note_module;
-use pass::new_pass_module;
-use resolver::{Mutation, Query};
+use resolver::{Mutation, Query, Subscription};
 use serde::Deserialize;
 use std::{error::Error, net::SocketAddr};
 use tokio;
@@ -35,15 +34,17 @@ pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let session = new_session_module(db.clone());
     let user = new_user_module(db.clone());
     let note = new_note_module(db.clone());
-    let pass = new_pass_module(db.clone());
-    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-        .data(config.clone())
-        .data(auth.clone())
-        .data(session.clone())
-        .data(user.clone())
-        .data(note.clone())
-        .data(pass.clone())
-        .finish();
+    let schema = Schema::build(
+        Query::default(),
+        Mutation::default(),
+        Subscription::default(),
+    )
+    .data(config.clone())
+    .data(auth.clone())
+    .data(session.clone())
+    .data(user.clone())
+    .data(note.clone())
+    .finish();
 
     // api route
     let apis = warp::path!("graphql")
