@@ -190,7 +190,6 @@ impl NoteModule {
             stream_notes: model::note::Model,
         }
         while let Some(Ok(remote_note)) = stream.recv().await {
-            println!("{}", serde_json::to_string(&remote_note)?);
             let remote_note = serde_json::from_value::<NoteStream>(remote_note.data)?.stream_notes;
             let local_note = model::note::Entity::find()
                 .filter(model::note::Column::Uuid.eq(remote_note.uuid.clone()))
