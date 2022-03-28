@@ -220,7 +220,9 @@ impl NoteModule {
                 };
                 if local_note.lamport_clock < remote_note.lamport_clock {
                     update_note.await?;
-                } else if local_note.updated_at < remote_note.updated_at {
+                } else if local_note.lamport_clock == remote_note.lamport_clock
+                    && local_note.updated_at < remote_note.updated_at
+                {
                     update_note.await?;
                 }
             } else {
