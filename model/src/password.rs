@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[sea_orm(table_name = "notes")]
+#[sea_orm(table_name = "passwords")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: i32,
@@ -15,12 +15,22 @@ pub struct Model {
     pub updated_at: Option<DateTime>,
     pub deleted_at: Option<DateTime>,
     pub user_id: i32,
+    pub group_id: Option<i32>,
     pub title: String,
-    pub content: String,
+    pub password: String,
+    pub url: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::password_group::Entity",
+        from = "Column::GroupId",
+        to = "super::password_group::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    PasswordGroup,
     #[sea_orm(
         belongs_to = "super::user::Entity",
         from = "Column::UserId",
@@ -29,6 +39,12 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     User,
+}
+
+impl Related<super::password_group::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::PasswordGroup.def()
+    }
 }
 
 impl Related<super::user::Entity> for Entity {

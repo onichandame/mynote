@@ -1,27 +1,11 @@
-use async_graphql::{Enum, InputObject};
-use sorting::{SortDirection, Sorting};
-
-#[derive(InputObject)]
-#[graphql(name = "Sorting")]
-pub struct SortingDTO {
-    pub field: String,
-    pub direction: SortDirectionDTO,
-}
+use async_graphql::Enum;
+use sorting::SortDirection;
 
 #[derive(Enum, Clone, Copy, PartialEq, Eq)]
 #[graphql(name = "SortDirection")]
 pub enum SortDirectionDTO {
     ASC,
     DESC,
-}
-
-impl Into<Sorting> for SortingDTO {
-    fn into(self) -> Sorting {
-        Sorting {
-            field: self.field,
-            direction: self.direction.into(),
-        }
-    }
 }
 
 impl Into<SortDirection> for SortDirectionDTO {

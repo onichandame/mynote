@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
-use filter::Filter;
+use filter::{Filter, FilterBuilder};
 use merge::Merge;
-use sea_orm::{Condition, QueryFilter};
+use sea_orm::Condition;
 
 #[derive(Default, Clone, Merge)]
 pub struct NoteFilter {
@@ -10,8 +10,8 @@ pub struct NoteFilter {
     pub deleted_at: Option<Filter<NaiveDateTime>>,
 }
 
-impl NoteFilter {
-    pub fn apply_filter<T: QueryFilter>(&self, query: T) -> T {
+impl FilterBuilder for NoteFilter {
+    fn build(&self) -> Condition {
         let mut filter = Condition::all();
         if let Some(id) = &self.id {
             filter = filter.add(id.build(model::note::Column::Id));
@@ -22,6 +22,6 @@ impl NoteFilter {
         if let Some(deleted_at) = &self.deleted_at {
             filter = filter.add(deleted_at.build(model::note::Column::DeletedAt));
         }
-        query.filter(filter)
+        filter
     }
 }

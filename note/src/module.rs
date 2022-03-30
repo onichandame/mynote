@@ -2,18 +2,19 @@ use std::error::Error as StdError;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
+use filter::ApplyFilter;
 use futures::{Stream, StreamExt};
 use model::conversion::IntoActiveValue;
-use pagination::Pagination;
+use pagination::{ApplyPagination, Pagination};
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, NotSet, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, Set,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    Set,
 };
 use serde::{Deserialize, Serialize};
-use sorting::Sorting;
+use sorting::ApplySorting;
 use tokio_graphql_ws::{Client, ClientActor};
 
-use crate::NoteFilter;
+use crate::{NoteFilter, NoteSorting};
 
 type Error = Box<dyn StdError + Send + Sync>;
 
@@ -33,22 +34,22 @@ impl NoteModule {
         &self,
         filter: Option<NoteFilter>,
         pagination: Option<Pagination>,
-        sorting: Option<Vec<Sorting>>,
+        sorting: Option<Vec<NoteSorting>>,
     ) -> Result<Vec<model::note::Model>, Error> {
         let mut query = model::note::Entity::find();
-        query = self.apply_pagination(query, &pagination);
-        query = self.apply_filter(query, &filter);
-        query = self.apply_sorting(query, &sorting);
+        query = pagination.apply_pagination(query);
+        query = filter.apply_filter(query);
+        query = sorting.apply_sorting(query);
         Ok(query.all(&self.db).await?)
     }
     pub async fn count(&self, filter: Option<NoteFilter>) -> Result<usize, Error> {
         let mut query = model::note::Entity::find();
-        query = self.apply_filter(query, &filter);
+        query = filter.apply_filter(query);
         Ok(query.count(&self.db).await?)
     }
     pub async fn get(&self, filter: NoteFilter) -> Result<model::note::Model, Error> {
         let mut query = model::note::Entity::find();
-        query = self.apply_filter(query, &Some(filter));
+        query = filter.apply_filter(query);
         Ok(query
             .one(&self.db)
             .await?
@@ -63,17 +64,11 @@ impl NoteModule {
         lamport_clock: Option<i32>,
     ) -> Result<model::note::Model, Error> {
         Ok(model::note::ActiveModel {
-            user_id: Set(user),
-            title: Set(title.to_owned()),
-            content: Set(content.to_owned()),
-            uuid: match uuid {
-                Some(v) => Set(v),
-                None => NotSet,
-            },
-            lamport_clock: match lamport_clock {
-                Some(v) => Set(v),
-                None => NotSet,
-            },
+            user_id: user.into_active_value(),
+            title: title.to_owned().into_active_value(),
+            content: content.to_owned().into_active_value(),
+            uuid: uuid.into_active_value(),
+            lamport_clock: lamport_clock.into_active_value(),
             ..Default::default()
         }
         .insert(&self.db)
@@ -94,12 +89,12 @@ impl NoteModule {
             ..Default::default()
         };
         let mut query = model::note::Entity::update_many().set(update);
-        query = self.apply_filter(query, &Some(filter));
+        query = filter.apply_filter(query);
         Ok(query.exec(&self.db).await.map(|_| ())?)
     }
     pub async fn delete(&self, filter: NoteFilter) -> Result<(), Error> {
         let mut query = model::note::Entity::delete_many();
-        query = self.apply_filter(query, &Some(filter));
+        query = filter.apply_filter(query);
         Ok(query.exec(&self.db).await.map(|_| ())?)
     }
     pub async fn stream(
@@ -107,7 +102,7 @@ impl NoteModule {
         filter: NoteFilter,
     ) -> Result<impl Stream<Item = model::note::Model> + '_, Error> {
         let mut query = model::note::Entity::find();
-        query = self.apply_filter(query, &Some(filter));
+        query = filter.apply_filter(query);
         Ok(query
             .stream(&self.db)
             .await?
@@ -245,35 +240,6 @@ impl NoteModule {
     }
 }
 
-// private methods
-impl NoteModule {
-    fn apply_pagination<T: QuerySelect>(&self, mut query: T, pagination: &Option<Pagination>) -> T {
-        if let Some(pagination) = pagination {
-            query = pagination.build(query)
-        }
-        query
-    }
-    fn apply_filter<T: QueryFilter>(&self, mut query: T, filter: &Option<NoteFilter>) -> T {
-        if let Some(filter) = filter {
-            query = filter.apply_filter(query);
-        }
-        query
-    }
-    fn apply_sorting<T: QueryOrder>(&self, mut query: T, sorting: &Option<Vec<Sorting>>) -> T {
-        if let Some(sortings) = sorting {
-            for sorting in sortings {
-                match sorting.field.as_str() {
-                    "created_at" => {
-                        query = sorting.build(query, model::note::Column::CreatedAt);
-                    }
-                    _ => {}
-                };
-            }
-        }
-        query
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use config::{new_config_provider, Mode};
@@ -365,8 +331,8 @@ mod tests {
             note.list(
                 None,
                 None,
-                Some(vec!(Sorting {
-                    field: "created_at".to_owned(),
+                Some(vec!(NoteSorting {
+                    field: model::note::Column::CreatedAt,
                     direction: sorting::SortDirection::ASC
                 }))
             )
@@ -380,8 +346,8 @@ mod tests {
             note.list(
                 None,
                 None,
-                Some(vec!(Sorting {
-                    field: "created_at".to_owned(),
+                Some(vec!(NoteSorting {
+                    field: model::note::Column::CreatedAt,
                     direction: sorting::SortDirection::DESC
                 }))
             )

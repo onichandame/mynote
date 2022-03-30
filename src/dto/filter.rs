@@ -2,9 +2,13 @@ use async_graphql::InputObject;
 use chrono::NaiveDateTime;
 use filter::Filter;
 
+pub trait IntoFilter<T> {
+    fn into_filter(&self) -> Filter<T>;
+}
+
 macro_rules! create_filter {
     ($filter:ident, $data:ident) => {
-        #[derive(InputObject)]
+        #[derive(InputObject, Clone)]
         pub struct $filter {
             eq: Option<$data>,
             null: Option<bool>,
@@ -18,18 +22,24 @@ macro_rules! create_filter {
             not: Option<bool>,
         }
 
-        impl Into<Filter<$data>> for $filter {
-            fn into(self) -> Filter<$data> {
+        impl IntoFilter<$data> for $filter {
+            fn into_filter(&self) -> Filter<$data> {
                 Filter {
-                    eq: self.eq,
+                    eq: self.eq.clone(),
                     null: self.null,
-                    lt: self.lt,
-                    lte: self.lte,
-                    gt: self.gt,
-                    gte: self.gte,
-                    like: self.like,
-                    and: self.and.map(|v| v.into_iter().map(|v| v.into()).collect()),
-                    or: self.or.map(|v| v.into_iter().map(|v| v.into()).collect()),
+                    lt: self.lt.clone(),
+                    lte: self.lte.clone(),
+                    gt: self.gt.clone(),
+                    gte: self.gte.clone(),
+                    like: self.like.clone(),
+                    and: self
+                        .and
+                        .clone()
+                        .map(|v| v.into_iter().map(|v| v.into_filter()).collect()),
+                    or: self
+                        .or
+                        .clone()
+                        .map(|v| v.into_iter().map(|v| v.into_filter()).collect()),
                     not: self.not,
                 }
             }

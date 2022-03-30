@@ -1,8 +1,8 @@
-use async_graphql::{InputObject, SimpleObject};
+use async_graphql::{Enum, InputObject, SimpleObject};
 use model;
-use note::NoteFilter;
+use note::{NoteFilter, NoteSorting};
 
-use super::DateTimeFilter;
+use super::{DateTimeFilter, IntoFilter, SortDirectionDTO};
 
 #[derive(SimpleObject)]
 #[graphql(name = "Note")]
@@ -25,6 +25,19 @@ pub struct NoteFilterDTO {
     deleted_at: Option<DateTimeFilter>,
 }
 
+#[derive(Enum, Clone, Copy, Eq, PartialEq)]
+#[graphql(name = "NoteSortingField")]
+pub enum NoteSortingFieldDTO {
+    CreatedAt,
+}
+
+#[derive(InputObject)]
+#[graphql(name = "NoteSorting")]
+pub struct NoteSortingDTO {
+    field: NoteSortingFieldDTO,
+    direction: SortDirectionDTO,
+}
+
 #[derive(InputObject)]
 #[graphql(name = "NoteInput")]
 pub struct NoteInputDTO {
@@ -36,6 +49,10 @@ pub struct NoteInputDTO {
 pub struct NoteUpdateDTO {
     pub title: Option<String>,
     pub content: Option<String>,
+}
+
+pub trait IntoNoteFilter {
+    fn into_note_filter(&self) -> NoteFilter;
 }
 
 impl From<&model::note::Model> for NoteDTO {
@@ -54,11 +71,22 @@ impl From<&model::note::Model> for NoteDTO {
     }
 }
 
-impl Into<NoteFilter> for NoteFilterDTO {
-    fn into(self) -> NoteFilter {
+impl IntoNoteFilter for NoteFilterDTO {
+    fn into_note_filter(&self) -> NoteFilter {
         NoteFilter {
-            deleted_at: self.deleted_at.map(|v| v.into()),
+            deleted_at: self.deleted_at.clone().map(|v| v.into_filter()),
             ..Default::default()
+        }
+    }
+}
+
+impl Into<NoteSorting> for NoteSortingDTO {
+    fn into(self) -> NoteSorting {
+        NoteSorting {
+            field: match self.field {
+                NoteSortingFieldDTO::CreatedAt => model::note::Column::CreatedAt,
+            },
+            direction: self.direction.into(),
         }
     }
 }

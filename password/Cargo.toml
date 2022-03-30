@@ -1,0 +1,22 @@
+[package]
+name = "password"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+model = { path = "../model" }
+filter = { path = "../filter" }
+pagination = { path = "../pagination" }
+sorting = { path = "../sorting" }
+sea-orm = { version = "^0", default-features = false }
+chrono = "^0"
+merge = "^0"
+tokio = { version = "^1", features = ["full"] }
+tokio-graphql-ws = { git = "https://github.com/onichandame/tokio-graphql-ws" }
+serde = "^1"
+serde_json = "^1"
+async-trait = "^0"
+futures = "^0"
+futures-util = "^0"

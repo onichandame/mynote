@@ -1,6 +1,12 @@
 use merge::Merge;
 use sea_orm::{ColumnTrait, Condition, Value};
 
+mod apply_filter;
+mod builder;
+
+pub use apply_filter::*;
+pub use builder::*;
+
 #[derive(Clone, Default)]
 pub struct Filter<TData> {
     pub eq: Option<TData>,

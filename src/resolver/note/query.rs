@@ -9,7 +9,7 @@ use pagination::Pagination;
 
 use crate::{
     cursor::Cursor,
-    dto::{NoteDTO, NoteFilterDTO, SortingDTO},
+    dto::{IntoNoteFilter, NoteDTO, NoteFilterDTO, NoteSortingDTO},
     get_user,
 };
 
@@ -25,7 +25,7 @@ impl NoteQuery {
         first: Option<u64>,
         after: Option<String>,
         filter: Option<NoteFilterDTO>,
-        sorting: Option<Vec<SortingDTO>>,
+        sorting: Option<Vec<NoteSortingDTO>>,
     ) -> Result<Connection<String, NoteDTO>> {
         get_user!(user, ctx);
         let note = ctx.data::<NoteModule>()?;
@@ -38,7 +38,7 @@ impl NoteQuery {
             ..Default::default()
         };
         if let Some(aux) = aux_filter {
-            filter.merge(aux.into());
+            filter.merge(aux.into_note_filter());
         }
         let pagination = Pagination {
             offset: after.and_then(|v| Cursor::parse(&v).ok().map(|v| v.offset)),

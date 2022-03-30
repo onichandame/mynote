@@ -1,7 +1,7 @@
+mod error;
 mod filter;
 mod module;
-mod sorting;
+mod result;
 
 pub use crate::filter::*;
 pub use crate::module::*;
-pub use crate::sorting::*;

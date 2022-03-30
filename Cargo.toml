@@ -42,6 +42,7 @@ members = [
     "db",
     "auth",
     "note",
+    "password",
     "model",
     "user",
     "session",
