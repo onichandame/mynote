@@ -2,14 +2,13 @@ use async_graphql::{
     connection::{Connection, Edge},
     Context, Object, Result,
 };
-use filter::Filter;
-use merge::Merge;
+use crud::{Count, Get, List};
+use crud::{Filter, Private, Undeleted};
 use note::{NoteFilter, NoteModule};
-use pagination::Pagination;
 
 use crate::{
     cursor::Cursor,
-    dto::{IntoNoteFilter, NoteDTO, NoteFilterDTO, NoteSortingDTO},
+    dto::{NoteDTO, NoteFilterDTO, NoteSortingDTO, PagingDTO},
     get_user,
 };
 
@@ -22,33 +21,22 @@ impl NoteQuery {
     async fn list_notes(
         &self,
         ctx: &Context<'_>,
-        first: Option<u64>,
-        after: Option<String>,
+        paging: Option<PagingDTO>,
         filter: Option<NoteFilterDTO>,
         sorting: Option<Vec<NoteSortingDTO>>,
-    ) -> Result<Connection<String, NoteDTO>> {
-        get_user!(user, ctx);
+    ) -> Result<Connection<Cursor, NoteDTO>> {
+        let user = get_user!(ctx)?;
         let note = ctx.data::<NoteModule>()?;
-        let aux_filter = filter;
-        let mut filter = NoteFilter {
-            user_id: Some(Filter {
-                eq: Some(user.id),
-                ..Default::default()
-            }),
-            ..Default::default()
-        };
-        if let Some(aux) = aux_filter {
-            filter.merge(aux.into_note_filter());
-        }
-        let pagination = Pagination {
-            offset: after.and_then(|v| Cursor::parse(&v).ok().map(|v| v.offset)),
-            limit: first,
-        };
-        let sorting = sorting.map(|v| v.into_iter().map(|v| v.into()).collect());
-        let notes = note
-            .list(Some(filter.clone()), Some(pagination.clone()), sorting)
-            .await?;
-        let notes_count = note.count(Some(filter.clone())).await?;
+        let mut filter: NoteFilter = filter.unwrap_or_default().into();
+        filter = filter.private(&user).undeleted();
+        let pagination = paging.unwrap_or_default().try_into()?;
+        let sorting = sorting
+            .unwrap_or_default()
+            .into_iter()
+            .map(Into::into)
+            .collect();
+        let notes = note.list(&filter, &pagination, &sorting).await?;
+        let notes_count = note.count(&filter).await?;
         let mut connection = Connection::new(
             pagination.has_prev(),
             pagination.has_next(notes_count.try_into()?),
@@ -56,35 +44,25 @@ impl NoteQuery {
         connection.append(notes.iter().enumerate().map(|(ind, val)| {
             Edge::new(
                 Cursor {
-                    offset: match pagination.offset {
-                        Some(offset) => offset,
-                        None => 0,
-                    } + ind as u64, // may fail for extremely large ind. need optimization
-                }
-                .to_string(),
-                NoteDTO::from(val),
+                    offset: pagination.offset.unwrap_or_default() + ind as u64, // may fail for extremely large ind. need optimization
+                },
+                val.to_owned().into(),
             )
         }));
         Ok(connection)
     }
     #[graphql("guard=LoginRequired::new()")]
     async fn get_note(&self, ctx: &Context<'_>, id: i32) -> Result<NoteDTO> {
-        get_user!(user, ctx);
+        let user = get_user!(ctx)?;
         let note = ctx.data::<NoteModule>()?;
-        Ok(NoteDTO::from(
-            &note
-                .get(NoteFilter {
-                    id: Some(Filter {
-                        eq: Some(id),
-                        ..Default::default()
-                    }),
-                    user_id: Some(Filter {
-                        eq: Some(user.id),
-                        ..Default::default()
-                    }),
-                    ..Default::default()
-                })
-                .await?,
-        ))
+        let mut filter = NoteFilter {
+            id: Some(Filter {
+                eq: Some(id),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        filter = filter.private(&user).undeleted();
+        Ok(note.get(&filter).await?.into())
     }
 }

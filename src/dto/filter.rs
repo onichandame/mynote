@@ -1,6 +1,6 @@
 use async_graphql::InputObject;
 use chrono::NaiveDateTime;
-use filter::Filter;
+use crud::Filter;
 
 pub trait IntoFilter<T> {
     fn into_filter(&self) -> Filter<T>;

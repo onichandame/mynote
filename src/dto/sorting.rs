@@ -1,5 +1,5 @@
 use async_graphql::Enum;
-use sorting::SortDirection;
+use crud::SortDirection;
 
 #[derive(Enum, Clone, Copy, PartialEq, Eq)]
 #[graphql(name = "SortDirection")]

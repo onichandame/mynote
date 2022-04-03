@@ -7,9 +7,7 @@ edition = "2021"
 
 [dependencies]
 model = { path = "../model" }
-filter = { path = "../filter" }
-pagination = { path = "../pagination" }
-sorting = { path = "../sorting" }
+crud = { path = "../crud" }
 sea-orm = { version = "^0", default-features = false }
 chrono = "^0"
 merge = "^0"

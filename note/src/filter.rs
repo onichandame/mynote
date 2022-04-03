@@ -1,9 +1,8 @@
 use chrono::NaiveDateTime;
-use filter::{Filter, FilterBuilder};
-use merge::Merge;
+use crud::{Filter, FilterBuilder, Private, Undeleted};
 use sea_orm::Condition;
 
-#[derive(Default, Clone, Merge)]
+#[derive(Default, Clone)]
 pub struct NoteFilter {
     pub id: Option<Filter<i32>>,
     pub user_id: Option<Filter<i32>>,
@@ -23,5 +22,29 @@ impl FilterBuilder for NoteFilter {
             filter = filter.add(deleted_at.build(model::note::Column::DeletedAt));
         }
         filter
+    }
+}
+
+impl Private for NoteFilter {
+    type User = model::user::Model;
+    fn private(self, user: &Self::User) -> Self {
+        Self {
+            user_id: Some(Filter {
+                eq: Some(user.id),
+                ..Default::default()
+            }),
+            ..self
+        }
+    }
+}
+
+impl Undeleted for NoteFilter {
+    fn undeleted(self) -> Self {
+        Self {
+            deleted_at: Some(Filter {
+                ..Default::default()
+            }),
+            ..self
+        }
     }
 }

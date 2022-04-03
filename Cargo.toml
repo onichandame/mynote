@@ -12,9 +12,7 @@ auth = { path = "./auth" }
 session = { path = "./session" }
 user = { path = "./user" }
 note = { path = "./note" }
-filter = { path = "./filter" }
-pagination = { path = "./pagination" }
-sorting = { path = "./sorting" }
+crud = { path = "./crud" }
 # async framework
 tokio = { version = "^1", features = ["full"] }
 futures = "^0"
@@ -26,19 +24,17 @@ warp-embed = "^0"
 async-graphql = { version = "^3", features = ["chrono"] }
 async-graphql-warp = "^3"
 # interface definition
+sea-orm = { version = "^0", default-features = false }
 chrono = "^0"
 serde = "^1"
 serde_json = "^1"
 async-trait = "^0"
 base64 = "^0"
-merge = "^0"
 
 [workspace]
 members = [
     "config",
-    "filter",
-    "sorting",
-    "pagination",
+    "crud",
     "db",
     "auth",
     "note",

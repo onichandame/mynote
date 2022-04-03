@@ -1,6 +1,6 @@
 use sea_orm::QueryFilter;
 
-use crate::FilterBuilder;
+use super::FilterBuilder;
 
 pub trait ApplyFilter {
     fn apply_filter<T: QueryFilter>(&self, query: T) -> T;

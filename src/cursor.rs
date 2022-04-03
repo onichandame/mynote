@@ -1,22 +1,21 @@
 use std::{error::Error, str};
 
+use async_graphql::connection::CursorType;
 use base64::{decode, encode};
+use serde::{Deserialize, Serialize};
 
-#[derive(Default)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct Cursor {
     pub offset: u64,
 }
 
-impl Cursor {
-    pub fn parse(string: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        Ok(Self {
-            offset: str::from_utf8(&decode(string)?)?.parse()?,
-        })
-    }
-}
+impl CursorType for Cursor {
+    type Error = Box<dyn Error + Send + Sync>;
 
-impl ToString for Cursor {
-    fn to_string(&self) -> String {
-        encode(self.offset.to_string().as_bytes())
+    fn encode_cursor(&self) -> String {
+        encode(serde_json::to_string(self).unwrap())
+    }
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        Ok(serde_json::from_slice(&decode(s)?)?)
     }
 }

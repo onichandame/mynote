@@ -1,17 +1,9 @@
 use std::error::Error as StdError;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use filter::ApplyFilter;
-use futures::{Stream, StreamExt};
-use model::conversion::IntoActiveValue;
-use pagination::{ApplyPagination, Pagination};
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
-    Set,
-};
+use crud::{Count, Create, Delete, Get, List, Stream, Update, DB};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
-use sorting::ApplySorting;
 use tokio_graphql_ws::{Client, ClientActor};
 
 use crate::{NoteFilter, NoteSorting};
@@ -28,86 +20,27 @@ pub fn new_note_module(db: DatabaseConnection) -> NoteModule {
     NoteModule { db }
 }
 
-/// public api
+impl DB for NoteModule {
+    fn db(&self) -> &DatabaseConnection {
+        &self.db
+    }
+}
+
+impl List<model::note::Entity, NoteFilter, Vec<NoteSorting>> for NoteModule {}
+
+impl Count<model::note::Entity, NoteFilter> for NoteModule {}
+
+impl Get<model::note::Entity, NoteFilter> for NoteModule {}
+
+impl Create<model::note::ActiveModel> for NoteModule {}
+
+impl Update<model::note::ActiveModel, NoteFilter> for NoteModule {}
+
+impl Delete<model::note::Entity, NoteFilter> for NoteModule {}
+
+impl Stream<model::note::Entity, NoteFilter> for NoteModule {}
+
 impl NoteModule {
-    pub async fn list(
-        &self,
-        filter: Option<NoteFilter>,
-        pagination: Option<Pagination>,
-        sorting: Option<Vec<NoteSorting>>,
-    ) -> Result<Vec<model::note::Model>, Error> {
-        let mut query = model::note::Entity::find();
-        query = pagination.apply_pagination(query);
-        query = filter.apply_filter(query);
-        query = sorting.apply_sorting(query);
-        Ok(query.all(&self.db).await?)
-    }
-    pub async fn count(&self, filter: Option<NoteFilter>) -> Result<usize, Error> {
-        let mut query = model::note::Entity::find();
-        query = filter.apply_filter(query);
-        Ok(query.count(&self.db).await?)
-    }
-    pub async fn get(&self, filter: NoteFilter) -> Result<model::note::Model, Error> {
-        let mut query = model::note::Entity::find();
-        query = filter.apply_filter(query);
-        Ok(query
-            .one(&self.db)
-            .await?
-            .ok_or(format!("note not found",))?)
-    }
-    pub async fn create(
-        &self,
-        user: i32,
-        title: &str,
-        content: &str,
-        uuid: Option<String>,
-        lamport_clock: Option<i32>,
-    ) -> Result<model::note::Model, Error> {
-        Ok(model::note::ActiveModel {
-            user_id: user.into_active_value(),
-            title: title.to_owned().into_active_value(),
-            content: content.to_owned().into_active_value(),
-            uuid: uuid.into_active_value(),
-            lamport_clock: lamport_clock.into_active_value(),
-            ..Default::default()
-        }
-        .insert(&self.db)
-        .await?)
-    }
-    pub async fn update(
-        &self,
-        filter: NoteFilter,
-        title: Option<String>,
-        content: Option<String>,
-        deleted_at: Option<Option<NaiveDateTime>>,
-    ) -> Result<(), Error> {
-        let update = model::note::ActiveModel {
-            title: title.into_active_value(),
-            content: content.into_active_value(),
-            deleted_at: deleted_at.into_active_value(),
-            updated_at: Set(Some(chrono::Utc::now().naive_utc())),
-            ..Default::default()
-        };
-        let mut query = model::note::Entity::update_many().set(update);
-        query = filter.apply_filter(query);
-        Ok(query.exec(&self.db).await.map(|_| ())?)
-    }
-    pub async fn delete(&self, filter: NoteFilter) -> Result<(), Error> {
-        let mut query = model::note::Entity::delete_many();
-        query = filter.apply_filter(query);
-        Ok(query.exec(&self.db).await.map(|_| ())?)
-    }
-    pub async fn stream(
-        &self,
-        filter: NoteFilter,
-    ) -> Result<impl Stream<Item = model::note::Model> + '_, Error> {
-        let mut query = model::note::Entity::find();
-        query = filter.apply_filter(query);
-        Ok(query
-            .stream(&self.db)
-            .await?
-            .filter_map(|v| async move { v.ok() }))
-    }
     pub async fn sync_from(
         &self,
         url: &str,
@@ -243,8 +176,9 @@ impl NoteModule {
 #[cfg(test)]
 mod tests {
     use config::{new_config_provider, Mode};
+    use crud::{Filter, Pagination, SortDirection};
     use db::new_db_connection;
-    use filter::Filter;
+    use sea_orm::PaginatorTrait;
 
     use super::*;
 
@@ -262,11 +196,18 @@ mod tests {
         .insert(&note.db)
         .await?;
         assert_eq!(0, count_notes().await?);
-        let created_note = note.create(user.id, "", "", None, None).await?;
+        let created_note = note
+            .create(model::note::Insert {
+                user_id: user.id,
+                title: "".to_owned(),
+                content: "".to_owned(),
+                ..Default::default()
+            })
+            .await?;
         assert_eq!(1, count_notes().await?);
         // get
         let got_note = note
-            .get(NoteFilter {
+            .get(&NoteFilter {
                 id: Some(Filter {
                     eq: Some(created_note.id),
                     ..Default::default()
@@ -276,36 +217,42 @@ mod tests {
             .await?;
         assert_eq!(created_note.id, got_note.id);
         // list
-        let listed_notes = note.list(None, None, None).await?;
+        let listed_notes = note
+            .list(
+                &Default::default(),
+                &Default::default(),
+                &Default::default(),
+            )
+            .await?;
         assert_eq!(1, listed_notes.len());
         assert_eq!(
             created_note.id,
             listed_notes.get(0).ok_or("fatal error")?.id
         );
         // count
-        assert_eq!(1, note.count(None).await?);
+        assert_eq!(1, note.count(&Default::default()).await?);
         // filter
         assert_eq!(
             0,
-            note.count(Some(NoteFilter {
+            note.count(&NoteFilter {
                 id: Some(Filter {
                     lt: Some(0),
                     ..Default::default()
                 }),
                 ..Default::default()
-            }),)
-                .await?
+            })
+            .await?
         );
         // pagination
         assert_eq!(
             0,
             note.list(
-                None,
-                Some(Pagination {
+                &Default::default(),
+                &Pagination {
                     limit: Some(0),
                     ..Default::default()
-                }),
-                None
+                },
+                &Default::default()
             )
             .await?
             .len()
@@ -313,28 +260,35 @@ mod tests {
         assert_eq!(
             0,
             note.list(
-                None,
-                Some(Pagination {
+                &Default::default(),
+                &Pagination {
                     limit: Some(1),
                     offset: Some(1),
                     ..Default::default()
-                }),
-                None
+                },
+                &Default::default()
             )
             .await?
             .len()
         );
         // sorting
-        let second_note = note.create(user.id, "", "", None, None).await?;
+        let second_note = note
+            .create(model::note::Insert {
+                user_id: user.id,
+                title: "".to_owned(),
+                content: "".to_owned(),
+                ..Default::default()
+            })
+            .await?;
         assert_eq!(
             created_note.id,
             note.list(
-                None,
-                None,
-                Some(vec!(NoteSorting {
-                    field: model::note::Column::CreatedAt,
-                    direction: sorting::SortDirection::ASC
-                }))
+                &Default::default(),
+                &Default::default(),
+                &vec!(NoteSorting {
+                    field: model::note::Column::Id,
+                    direction: SortDirection::ASC
+                })
             )
             .await?
             .get(0)
@@ -344,12 +298,12 @@ mod tests {
         assert_eq!(
             second_note.id,
             note.list(
-                None,
-                None,
-                Some(vec!(NoteSorting {
-                    field: model::note::Column::CreatedAt,
-                    direction: sorting::SortDirection::DESC
-                }))
+                &Default::default(),
+                &Default::default(),
+                &vec!(NoteSorting {
+                    field: model::note::Column::Id,
+                    direction: SortDirection::DESC
+                })
             )
             .await?
             .get(0)
@@ -360,16 +314,17 @@ mod tests {
         let title = "asdf".to_owned();
         assert!(note
             .update(
-                NoteFilter {
+                &NoteFilter {
                     id: Some(Filter {
                         eq: Some(created_note.id),
                         ..Default::default()
                     }),
                     ..Default::default()
                 },
-                Some(title.clone()),
-                None,
-                None
+                model::note::Update {
+                    title: Some(title.clone()),
+                    ..Default::default()
+                }
             )
             .await
             .is_ok());
@@ -383,7 +338,7 @@ mod tests {
         );
         // delete
         assert!(note
-            .delete(NoteFilter {
+            .delete(&NoteFilter {
                 id: Some(Filter {
                     eq: Some(created_note.id),
                     ..Default::default()

@@ -19,22 +19,22 @@ pub struct NoteDTO {
     pub content: String,
 }
 
-#[derive(InputObject)]
+#[derive(InputObject, Default)]
 #[graphql(name = "NoteFilter")]
 pub struct NoteFilterDTO {
     deleted_at: Option<DateTimeFilter>,
 }
 
 #[derive(Enum, Clone, Copy, Eq, PartialEq)]
-#[graphql(name = "NoteSortingField")]
-pub enum NoteSortingFieldDTO {
+#[graphql(name = "NoteField")]
+pub enum NoteFieldDTO {
     CreatedAt,
 }
 
 #[derive(InputObject)]
 #[graphql(name = "NoteSorting")]
 pub struct NoteSortingDTO {
-    field: NoteSortingFieldDTO,
+    field: NoteFieldDTO,
     direction: SortDirectionDTO,
 }
 
@@ -51,31 +51,35 @@ pub struct NoteUpdateDTO {
     pub content: Option<String>,
 }
 
-pub trait IntoNoteFilter {
-    fn into_note_filter(&self) -> NoteFilter;
-}
-
-impl From<&model::note::Model> for NoteDTO {
-    fn from(note: &model::note::Model) -> Self {
+impl From<model::note::Model> for NoteDTO {
+    fn from(note: model::note::Model) -> Self {
         Self {
-            created_at: note.created_at.clone(),
-            deleted_at: note.deleted_at.clone(),
-            user_id: note.user_id.clone(),
-            id: note.id.clone(),
-            uuid: note.uuid.clone(),
-            lamport_clock: note.lamport_clock.clone(),
-            title: note.title.clone(),
-            updated_at: note.updated_at.clone(),
-            content: note.content.clone(),
+            created_at: note.created_at,
+            deleted_at: note.deleted_at,
+            user_id: note.user_id,
+            id: note.id,
+            uuid: note.uuid,
+            lamport_clock: note.lamport_clock,
+            title: note.title,
+            updated_at: note.updated_at,
+            content: note.content,
         }
     }
 }
 
-impl IntoNoteFilter for NoteFilterDTO {
-    fn into_note_filter(&self) -> NoteFilter {
+impl Into<NoteFilter> for NoteFilterDTO {
+    fn into(self) -> NoteFilter {
         NoteFilter {
-            deleted_at: self.deleted_at.clone().map(|v| v.into_filter()),
+            deleted_at: self.deleted_at.map(|v| v.into_filter()),
             ..Default::default()
+        }
+    }
+}
+
+impl Into<model::note::Column> for NoteFieldDTO {
+    fn into(self) -> model::note::Column {
+        match self {
+            Self::CreatedAt => model::note::Column::CreatedAt,
         }
     }
 }
@@ -83,10 +87,28 @@ impl IntoNoteFilter for NoteFilterDTO {
 impl Into<NoteSorting> for NoteSortingDTO {
     fn into(self) -> NoteSorting {
         NoteSorting {
-            field: match self.field {
-                NoteSortingFieldDTO::CreatedAt => model::note::Column::CreatedAt,
-            },
+            field: self.field.into(),
             direction: self.direction.into(),
+        }
+    }
+}
+
+impl Into<model::note::Insert> for NoteInputDTO {
+    fn into(self) -> model::note::Insert {
+        model::note::Insert {
+            title: self.title,
+            content: self.content,
+            ..Default::default()
+        }
+    }
+}
+
+impl Into<model::note::Update> for NoteUpdateDTO {
+    fn into(self) -> model::note::Update {
+        model::note::Update {
+            title: self.title,
+            content: self.content,
+            ..Default::default()
         }
     }
 }

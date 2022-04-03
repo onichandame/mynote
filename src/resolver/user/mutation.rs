@@ -14,7 +14,7 @@ pub struct UserMutation;
 impl UserMutation {
     async fn update_user(&self, ctx: &Context<'_>, update: UserUpdateDTO) -> Result<UserDTO> {
         let user_module = ctx.data::<UserModule>()?;
-        get_user!(user, ctx);
+        let user = get_user!(ctx)?;
         Ok(UserDTO::from(
             &user_module
                 .update(

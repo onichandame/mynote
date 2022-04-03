@@ -38,7 +38,7 @@ impl AuthMutation {
     #[graphql(guard = "LoginRequired::new()")]
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
         let session = ctx.data::<SessionModule>()?;
-        get_user!(user, ctx);
+        let user = get_user!(ctx)?;
         Ok(session.serialize(&user).await?)
     }
 
@@ -50,7 +50,7 @@ impl AuthMutation {
         new_password: String,
     ) -> Result<bool> {
         let user_module = ctx.data::<UserModule>()?;
-        get_user!(user, ctx);
+        let user = get_user!(ctx)?;
         if !user.check_password(&old_password)? {
             return Err("password incorrect".into());
         }

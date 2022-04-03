@@ -43,7 +43,7 @@ query listNotes(
   $first: Int
   $after: String
   $filter: NoteFilter
-  $sorting: [Sorting!]
+  $sorting: [NoteSorting!]
 ) {
   listNotes(first: $first, after: $after, filter: $filter, sorting: $sorting) {
     pageInfo {

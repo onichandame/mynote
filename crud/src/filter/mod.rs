@@ -1,13 +1,16 @@
-use merge::Merge;
 use sea_orm::{ColumnTrait, Condition, Value};
 
 mod apply_filter;
 mod builder;
+mod private;
+mod undeleted;
 
 pub use apply_filter::*;
 pub use builder::*;
+pub use private::*;
+pub use undeleted::*;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Filter<TData> {
     pub eq: Option<TData>,
     pub null: Option<bool>,
@@ -20,6 +23,23 @@ pub struct Filter<TData> {
     pub or: Option<Vec<Filter<TData>>>,
     /// if true the current filter is negated
     pub not: Option<bool>,
+}
+
+impl<T> Default for Filter<T> {
+    fn default() -> Self {
+        Self {
+            eq: None,
+            null: None,
+            lt: None,
+            lte: None,
+            gt: None,
+            gte: None,
+            like: None,
+            and: None,
+            or: None,
+            not: None,
+        }
+    }
 }
 
 impl<TData: Clone + Into<Value>> Filter<TData> {
@@ -68,21 +88,6 @@ impl<TData: Clone + Into<Value>> Filter<TData> {
             filter = filter.not();
         }
         filter
-    }
-}
-
-impl<T> Merge for Filter<T> {
-    fn merge(&mut self, other: Self) {
-        self.eq.merge(other.eq);
-        self.null.merge(other.null);
-        self.lt.merge(other.lt);
-        self.lte.merge(other.lte);
-        self.gt.merge(other.gt);
-        self.gte.merge(other.gte);
-        self.like.merge(other.like);
-        self.and.merge(other.and);
-        self.or.merge(other.or);
-        self.not.merge(other.not);
     }
 }
 
