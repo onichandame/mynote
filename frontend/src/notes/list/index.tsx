@@ -13,7 +13,7 @@ export const List: FC = () => {
   const navigate = useNavigate();
   const svc = useService();
   const updateList = useCallback(async () => {
-    const notes = await svc.listNotes();
+    const notes = await svc.listNotes({ deletedAt: { null: true } });
     setNotes(notes.edges.map((v) => v.node));
   }, [svc]);
   useEffect(() => {

@@ -12,9 +12,11 @@ export const Delete: FC = () => {
   useEffect(() => {
     const id = parseInt(params.id || ``);
     if (id && searchParams.get(`delete`)) {
-      svc.deleteNote(id, { notification: true }).then(() => {
-        navigate(`../../`);
-      });
+      svc
+        .updateNotes({ deletedAt: new Date() }, { id: { eq: id } })
+        .then(() => {
+          navigate(`../../`);
+        });
     }
   }, [searchParams]);
   return (

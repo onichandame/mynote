@@ -1,117 +1,85 @@
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { Button, Grid, TextField } from "@mui/material";
-import { useFormik } from "formik";
 import { FC, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import * as yup from "yup";
 
 import { useService, useUser } from "../backend";
+import { CreateUserForm } from "../model";
+
+const resolver = classValidatorResolver(CreateUserForm);
 
 export const Signup: FC = () => {
   const navigate = useNavigate();
   const user = useUser();
   const svc = useService();
-  const schema = yup
-    .object()
-    .shape({
-      name: yup.string().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-      password2: yup
-        .string()
-        .required()
-        .when(`password`, (password, schema) =>
-          schema.oneOf([password], `passwords do not match`)
-        ),
-      email: yup.string().notRequired().email(),
-      avatar: yup.string().notRequired().url(),
-    })
-    .required();
-  const form = useFormik({
-    validationSchema: schema,
-    initialValues: schema.getDefault(),
-    onSubmit: async (vals, helpers) => {
-      helpers.setSubmitting(true);
-      try {
-        await svc.signup(vals, { notification: true });
-        navigate(
-          `/login?name=${vals.name}&password=${vals.password}&autoSubmit=true`
-        );
-      } finally {
-        helpers.setSubmitting(false);
-      }
-    },
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateUserForm>({ resolver });
   useEffect(() => {
     if (user) navigate(`/`);
   }, [user]);
   return (
-    <form onSubmit={form.handleSubmit}>
+    <form
+      onSubmit={handleSubmit(async (vals) => {
+        await svc.createUser({
+          name: vals.name,
+          password: vals.password,
+          email: vals.email,
+          avatar: vals.avatar,
+        });
+        navigate(
+          `/login?identity=${vals.name}&password=${vals.password}&autoSubmit=true`
+        );
+      })}
+    >
       <Grid container direction="column" alignItems="center" spacing={2}>
         <Grid item>
           <TextField
-            required
             label="Username"
-            name="name"
-            value={form.values.name}
-            error={!!form.errors.name}
-            helperText={form.errors.name}
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
+            error={!!errors.name}
+            helperText={errors.name?.message}
+            {...register(`name`)}
           />
         </Grid>
         <Grid item>
           <TextField
-            required
             label="Password"
-            name="password"
             type="password"
-            value={form.values.password}
-            error={!!form.errors.password}
-            helperText={form.errors.password}
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            {...register(`password`)}
           />
         </Grid>
         <Grid item>
           <TextField
-            required
             label="Re-type Password"
-            name="password2"
             type="password"
-            value={form.values.password2}
-            error={!!form.errors.password2}
-            helperText={form.errors.password2}
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
+            error={!!errors.password2}
+            helperText={errors.password2?.message}
+            {...register(`password2`)}
           />
         </Grid>
         <Grid item>
           <TextField
             label="Email"
-            name="email"
-            value={form.values.email}
-            error={!!form.errors.email}
-            helperText={form.errors.email}
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            {...register(`email`)}
           />
         </Grid>
         <Grid item>
           <TextField
             label="Avatar Link"
-            name="avatar"
-            value={form.values.avatar}
-            error={!!form.errors.avatar}
-            helperText={form.errors.avatar}
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
+            error={!!errors.avatar}
+            helperText={errors.avatar?.message}
+            {...register(`avatar`)}
           />
         </Grid>
         <Grid item>
-          <Button
-            variant="contained"
-            type="submit"
-            disabled={form.isSubmitting}
-          >
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
             sign up
           </Button>
         </Grid>

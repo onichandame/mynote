@@ -39,9 +39,13 @@ export const useSessionSetter = () => {
     try {
       const svc = new Service(getSvcUrl(), session);
       if (session) {
-        const user = await svc.self();
-        window.localStorage.setItem(sessionKey, session);
-        setBackend({ svc, session, user });
+        const user = (await svc.listUsers()).edges[0].node;
+        if (user) {
+          window.localStorage.setItem(sessionKey, session);
+          setBackend({ svc, session, user });
+        } else {
+          setBackend({ svc });
+        }
       } else {
         setBackend({ svc });
       }
@@ -63,33 +67,6 @@ export const BackendProvider: FC = ({ children }) => {
         .split(/(?=[A-Z])/)
         .map((v) => v.toLowerCase())
         .join(` `);
-    backendState[0].svc.on(`send`, (chan) => {
-      if (
-        chan.opts?.notification &&
-        !(
-          typeof chan.opts.notification !== `boolean` &&
-          !chan.opts.notification.pending
-        )
-      )
-        enqueueSnackbar(`${formatRequestName(chan.request)} pending...`, {
-          key: getPendingKey(chan.id),
-          variant: `info`,
-        });
-    });
-    backendState[0].svc.on(`close`, (chan, success) => {
-      if (
-        chan.opts?.notification &&
-        !(
-          typeof chan.opts.notification !== `boolean` &&
-          !chan.opts.notification.done
-        )
-      )
-        enqueueSnackbar(
-          `${formatRequestName(chan.request)} ${success ? `done` : `failed`}`,
-          { variant: success ? `success` : `error` }
-        );
-      closeSnackbar(getPendingKey(chan.id));
-    });
     backendState[0].svc.on(`error`, (_, e) => {
       console.log(e);
       enqueueSnackbar(formatError(e), { variant: `error` });
@@ -102,15 +79,17 @@ export const BackendProvider: FC = ({ children }) => {
     const session = window.localStorage.getItem(sessionKey);
     if (session) {
       const svc = new Service(getSvcUrl(), session);
-      svc
-        .self()
-        .then((user) => {
+      (async () => {
+        try {
+          const connection = await svc.listUsers();
+          console.log(connection);
+          const user = connection.edges[0].node;
           backendState[1]({ svc, user, session });
-        })
-        .catch((e) => {
-          console.error(e);
+        } catch (e) {
+          console.log(e);
           window.localStorage.removeItem(sessionKey);
-        });
+        }
+      })();
     }
   }, []);
   return (

@@ -1,6 +1,4 @@
-export interface Sorting {
-  field: string;
+export interface Sorting<T> {
+  field: keyof T;
   direction: `ASC` | `DESC`;
 }
-
-export type Sortings = Sorting[];

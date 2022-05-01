@@ -1,10 +1,13 @@
 use sea_orm::{ActiveValue, NotSet, Set, Value};
 
-pub trait IntoActiveValue<T> {
-    fn into_active_value(&self) -> T;
+pub trait IntoActiveValue<T>
+where
+    T: Into<Value>,
+{
+    fn into_active_value(&self) -> ActiveValue<T>;
 }
 
-impl<T> IntoActiveValue<ActiveValue<T>> for T
+impl<T> IntoActiveValue<T> for T
 where
     T: Into<Value> + ToOwned<Owned = T>,
 {
@@ -13,7 +16,7 @@ where
     }
 }
 
-impl<T> IntoActiveValue<ActiveValue<T>> for Option<T>
+impl<T> IntoActiveValue<T> for Option<T>
 where
     T: Into<Value> + ToOwned<Owned = T>,
 {

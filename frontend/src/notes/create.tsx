@@ -1,66 +1,48 @@
 import { Button, Grid, TextField } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { useNavigate } from "react-router";
-import * as yup from "yup";
 import { FC } from "react";
-import { useFormik } from "formik";
 
 import { useService } from "../backend";
+import { CreateNoteInput } from "../model";
 
+const resolver = classValidatorResolver(CreateNoteInput);
 export const Create: FC = () => {
   const navigate = useNavigate();
   const svc = useService();
-  const schema = yup
-    .object()
-    .shape({
-      title: yup.string().required(),
-      content: yup.string().required(),
-    })
-    .required();
-  const formik = useFormik({
-    validationSchema: schema,
-    initialValues: schema.getDefault(),
-    onSubmit: async (vals, helpers) => {
-      helpers.setSubmitting(true);
-      try {
-        await svc.createNote(vals, { notification: true });
-        navigate(`../`);
-      } finally {
-        helpers.setSubmitting(false);
-      }
-    },
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateNoteInput>({ resolver });
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form
+      onSubmit={handleSubmit(async (vals) => {
+        await svc.createNote(vals);
+        navigate(`../`);
+      })}
+    >
       <Grid container direction="column" spacing={2} alignItems="center">
         <Grid item>
           <TextField
             label="Title"
-            name="title"
-            value={formik.values.title}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={!!formik.errors.title}
-            helperText={formik.errors.title}
+            error={!!errors.title}
+            helperText={errors.title?.message}
+            {...register(`title`)}
           />
         </Grid>
         <Grid item>
           <TextField
             multiline
             label="Content"
-            name="content"
-            value={formik.values.content}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={!!formik.errors.content}
-            helperText={formik.errors.content}
+            error={!!errors.content}
+            helperText={errors.content?.message}
+            {...register(`content`)}
           />
         </Grid>
         <Grid item>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={formik.isSubmitting}
-          >
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
             create
           </Button>
         </Grid>

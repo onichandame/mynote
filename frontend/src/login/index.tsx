@@ -1,10 +1,13 @@
 import { FC, useEffect, useRef } from "react";
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useFormik } from "formik";
-import * as yup from "yup";
 import { Button, Grid, TextField } from "@mui/material";
 
 import { useService, useUser, useSessionSetter } from "../backend";
+import { LoginInput } from "../model";
+import { useForm } from "react-hook-form";
+
+const resolver = classValidatorResolver(LoginInput);
 
 export const Login: FC = () => {
   const setSession = useSessionSetter();
@@ -12,77 +15,51 @@ export const Login: FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const svc = useService();
-  const schema = yup
-    .object()
-    .shape({
-      name: yup.string().defined().required().min(4).max(20),
-      password: yup.string().required().min(6).max(40),
-    })
-    .required();
-  const formik = useFormik({
-    validationSchema: schema,
-    initialValues: schema.getDefault(),
-    onSubmit: async (vals, helpers) => {
-      helpers.setSubmitting(true);
-      try {
-        const session = await svc.login(
-          {
-            nameOrEmail: vals.name,
-            password: vals.password,
-          },
-          { notification: true }
-        );
-        setSession(session);
-      } finally {
-        helpers.setSubmitting(false);
-      }
-    },
-  });
+  const {
+    handleSubmit,
+    register,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({ resolver });
   const form = useRef<null | HTMLFormElement>(null);
   const submitButton = useRef<null | HTMLButtonElement>(null);
   useEffect(() => {
     if (params) {
-      const name = params.get(`name`);
-      if (name) formik.setFieldValue(`name`, name);
+      const identity = params.get(`identity`);
+      if (identity) setValue(`identity`, identity);
       const password = params.get(`password`);
-      if (password) formik.setFieldValue(`password`, password);
-    }
-    if (submitButton) {
-      formik.validateForm().then(() => {
-        const autosubmit = params.get(`autoSubmit`);
-        if (autosubmit) submitButton.current?.click();
-      });
+      if (password) setValue(`password`, password);
+      if (params.get(`autoSubmit`)) submitButton?.current?.click();
     }
   }, [submitButton, params]);
   useEffect(() => {
     if (user) navigate(decodeURIComponent(params.get(`redirect`) || `/`));
   }, [user]);
   return (
-    <form ref={form} onSubmit={formik.handleSubmit}>
+    <form
+      ref={form}
+      onSubmit={handleSubmit(async (vals) => {
+        setSession(await svc.login(vals));
+      })}
+    >
       <Grid container direction="column" spacing={2} alignItems="center">
         <Grid item>
           <TextField
             required
-            label="Username"
-            name="name"
-            value={formik.values.name}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={!!formik.errors.name}
-            helperText={formik.errors.name}
+            label="Username/Email"
+            error={!!errors.identity}
+            helperText={errors.identity?.message}
+            {...register(`identity`)}
           />
         </Grid>
         <Grid item>
           <TextField
             required
             label="Password"
-            name="password"
             type="password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={!!formik.errors.password}
-            helperText={formik.errors.password}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            {...register(`password`)}
           />
         </Grid>
         <Grid item>
@@ -90,7 +67,7 @@ export const Login: FC = () => {
             ref={submitButton}
             variant="contained"
             type="submit"
-            disabled={formik.isSubmitting}
+            disabled={isSubmitting}
           >
             log in
           </Button>

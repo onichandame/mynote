@@ -13,7 +13,7 @@ pub struct Model {
     pub lamport_clock: i32,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
-    pub deleted_at: Option<DateTime>,
+    pub deleted_at: Option<DateTimeUtc>,
     pub user_id: i32,
     pub group_id: Option<i32>,
     pub title: String,

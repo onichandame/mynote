@@ -13,7 +13,7 @@ export class Channel<TData = unknown> extends EventEmitter {
    * @param request - name of the requested function
    * @param opts - options of the channel(request)
    */
-  constructor(public request: string, public opts?: ChannelOptions) {
+  constructor() {
     super();
     this.id = ++Channel.lastChan;
   }
@@ -37,9 +37,4 @@ export class Channel<TData = unknown> extends EventEmitter {
       return res;
     } else return false;
   }
-}
-
-export interface ChannelOptions {
-  /** whether the user should be notified about the progress */
-  notification?: { pending?: boolean; done?: boolean } | boolean;
 }

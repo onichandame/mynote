@@ -1,10 +1,22 @@
 import EventEmitter from "events";
 import { Client, createClient } from "graphql-ws";
 
-import { Connection, Note, NoteFilter, Sortings, User } from "../model";
-import { Channel, ChannelOptions } from "./channel";
+import {
+  Connection,
+  CreateNoteInput,
+  CreateUserInput,
+  LoginInput,
+  Note,
+  NoteFilter,
+  Pagination,
+  Sorting,
+  SyncFromRemoteInput,
+  UpdateNoteInput,
+  UpdateUserInput,
+  User,
+} from "../model";
+import { Channel } from "./channel";
 import { Event } from "./event";
-import Schema from "./schema.graphql?raw";
 
 /** interface to a backend service */
 export class Service extends EventEmitter {
@@ -15,103 +27,137 @@ export class Service extends EventEmitter {
     this.client = createClient({ url, connectionParams: { session } });
   }
 
-  public login(
-    args: { nameOrEmail: string; password: string },
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<string>(`login`, args, opts);
-    return this.waitOnce(chan);
-  }
-
-  public signup(
-    args: {
-      name: string;
-      password: string;
-      email?: string;
-      avatar?: string;
-    },
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<{ id: number }>(`signup`, args, opts);
-    return this.waitOnce(chan);
-  }
-
-  public self(opts?: ChannelOptions) {
-    const chan = this.request<User>(`self`, {}, opts);
-    return this.waitOnce(chan);
-  }
-
-  public updateSelf(
-    args: { name?: string; email?: string; avatar?: string },
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<User>(`updateSelf`, args, opts);
-    return this.waitOnce(chan);
-  }
-
-  public changePassword(
-    oldPass: string,
-    newPass: string,
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<boolean>(
-      `changePassword`,
-      { oldPass, newPass },
-      opts
+  public login(input: LoginInput) {
+    const chan = this.subscribe<string>(
+      `#graphql
+      mutation ($input:LoginInput!) {
+        login(input: $input)
+      }`,
+      {
+        input,
+      }
     );
     return this.waitOnce(chan);
   }
 
-  public createNote(
-    args: { title: string; content: string },
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<Note>(`createNote`, args, opts);
+  public checkPassword(password: string) {
+    const chan = this.subscribe<boolean>(
+      `#graphql
+      mutation ($password:String!){
+        validatePassword(password:$password)
+      }`,
+      { password }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public createUser(input: CreateUserInput) {
+    const chan = this.subscribe<User>(
+      `#graphql
+      mutation ($input:UserInput!){
+        createUser(input: $input){
+          ${User.fields.join(` `)}
+        }
+      }`,
+      { input }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public listUsers() {
+    const chan = this.subscribe<Connection<User>>(
+      `#graphql
+      query{
+        listUsers{
+          edges{
+            node{
+              ${User.fields.join(` `)}
+            }
+          }
+        }
+      }`
+    );
+    return this.waitOnce(chan);
+  }
+
+  public updateUsers(update: UpdateUserInput) {
+    const chan = this.subscribe<number>(
+      `#graphql
+      mutation($update:UserUpdate!){
+        updateUsers(update:$update)
+      }`,
+      { update }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public createNote(input: CreateNoteInput) {
+    const chan = this.subscribe<Note>(
+      `#graphql
+      mutation($input:NoteInput!){
+        createNote(input:$input){
+          ${Note.fields.join(` `)}
+        }
+      }`,
+      { input }
+    );
     return this.waitOnce(chan);
   }
 
   public listNotes(
-    args?: {
-      filter?: NoteFilter;
-      sorting?: Sortings;
-      first?: number;
-      after?: string;
-    },
-    opts?: ChannelOptions
+    filter?: NoteFilter,
+    paging?: Pagination,
+    sorting?: Sorting<Note>[]
   ) {
-    const chan = this.request<Connection<Note>>(`listNotes`, args, opts);
+    const chan = this.subscribe<Connection<Note>>(
+      `#graphql
+      query($filter:NoteFilter,$paging:Pagination,$sorting:[NoteSort]) {
+        listNotes(filter:$filter,paging:$paging,sorting:$sorting){
+          edges{
+            node{
+              ${Note.fields.join(` `)}
+            }
+          }
+        }
+      }`,
+      {
+        filter,
+        sorting,
+        paging,
+      }
+    );
     return this.waitOnce(chan);
   }
 
-  public getNote(id: number, opts?: ChannelOptions) {
-    const chan = this.request<Note>(`getNote`, { id }, opts);
+  public updateNotes(update: UpdateNoteInput, filter?: NoteFilter) {
+    const chan = this.subscribe<number>(
+      `#graphql
+    mutation($filter:NoteFilter,$update:NoteUpdate!){
+      updateNotes(filter:$filter,update:$update)
+    }`,
+      { filter, update }
+    );
     return this.waitOnce(chan);
   }
 
-  public updateNote(
-    id: number,
-    update: { title?: string; content?: string },
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<Note>(`updateNote`, { id, ...update }, opts);
+  public deleteNotes(filter: NoteFilter) {
+    const chan = this.subscribe<boolean>(
+      `#graphql
+    mutation($filter:NoteFilter){
+      deleteNotes(filter:$filter)
+    }`,
+      { filter }
+    );
     return this.waitOnce(chan);
   }
 
-  public deleteNote(id: number, opts?: ChannelOptions) {
-    const chan = this.request<boolean>(`deleteNote`, { id }, opts);
-    return this.waitOnce(chan);
-  }
-
-  public syncNotes(
-    url: string,
-    username: string,
-    password: string,
-    opts?: ChannelOptions
-  ) {
-    const chan = this.request<boolean>(
-      `syncNotes`,
-      { url, username, password },
-      opts
+  public syncFromRemote(input: SyncFromRemoteInput) {
+    const chan = this.subscribe<boolean>(
+      `#graphql
+    mutation($input:SyncFromRemoteInput!) {
+      syncFromRemote(input:$input)
+    }`,
+      { input }
     );
     return this.waitOnce(chan);
   }
@@ -127,7 +173,6 @@ export class Service extends EventEmitter {
   ): this;
   on(ev: `error`, listener: (chan: Channel, error: unknown) => void): this;
   on(ev: `close`, listener: (chan: Channel, success: boolean) => void): this;
-  on(ev: `send`, listener: (chan: Channel) => void): this;
   on(ev: Event, listener: (chan: Channel, payload?: any) => void) {
     return super.on(ev, listener);
   }
@@ -135,36 +180,34 @@ export class Service extends EventEmitter {
   emit<TData = unknown>(ev: `data`, chan: Channel, data: TData): boolean;
   emit(ev: `error`, chan: Channel, error: unknown): boolean;
   emit(ev: `close`, chan: Channel, success: boolean): boolean;
-  emit(ev: `send`, chan: Channel): boolean;
   emit(ev: Event, chan: Channel, payload?: any) {
     return super.emit(ev, chan, payload);
   }
 
-  private request<
+  private subscribe<
     TData = unknown,
     TVariable extends Record<string, unknown> = {}
-  >(operationName: string, variables?: TVariable, opts?: ChannelOptions) {
-    const chan = new Channel<TData>(operationName, opts);
+  >(query: string, variables?: TVariable) {
+    const chan = new Channel<TData>();
     chan.on(`close`, (success) => this.emit(`close`, chan, success));
-    chan.on(`error`, (e) => this.emit(`error`, chan, e));
+    chan.on(`error`, (e) => {
+      this.emit(`error`, chan, e);
+      chan.emit(`close`, false);
+    });
     chan.on(`data`, (data) => this.emit(`data`, chan, data));
-    const cleanup = this.client.subscribe<Record<typeof operationName, TData>>(
-      { query: Schema, variables, operationName },
+    const cleanup = this.client.subscribe<Record<string, TData>>(
+      { query, variables },
       {
         complete: () => chan.emit(`close`, true),
-        error: (e) => {
-          chan.emit(`error`, e);
-          chan.emit(`close`, false);
-        },
+        error: (e) => chan.emit(`error`, e),
         next: (payload) =>
           payload.errors
             ? chan.emit(`error`, payload.errors)
             : payload.data
-            ? chan.emit(`data`, payload.data[operationName])
+            ? chan.emit(`data`, Object.values(payload.data)[0])
             : chan.emit(`error`, new Error(`no data received`)),
       }
     );
-    this.emit(`send`, chan);
     chan.on(`close`, cleanup);
     this.channels.add(chan);
     chan.on(`close`, () => this.channels.delete(chan));

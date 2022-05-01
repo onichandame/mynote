@@ -21,9 +21,11 @@ export const Note: FC = () => {
     const id = parseInt(params.id);
     if (!id) return;
     let active = true;
-    svc.getNote(id).then((note) => {
-      if (active) setNote(note);
-    });
+    svc
+      .listNotes({ id: { eq: id }, deletedAt: { null: true } }, { first: 1 })
+      .then((connections) => {
+        if (active) setNote(connections.edges[0]?.node);
+      });
     return () => {
       active = false;
     };
@@ -67,6 +69,6 @@ export const Note: FC = () => {
       </Actions>
     </>
   ) : (
-    <div>loading or failed to load note</div>
+    <div>loading note</div>
   );
 };

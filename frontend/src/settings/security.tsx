@@ -1,83 +1,69 @@
+import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { Button, Grid, TextField } from "@mui/material";
-import { useFormik } from "formik";
+import { useSnackbar } from "notistack";
 import { FC } from "react";
-import * as yup from "yup";
+import { useForm } from "react-hook-form";
+
 import { useService } from "../backend";
+import { ChangePasswordForm } from "../model";
+
+const resolver = classValidatorResolver(ChangePasswordForm);
 
 export const Security: FC = () => {
   const svc = useService();
-  const schema = yup
-    .object()
-    .shape({
-      oldPassword: yup.string().required(),
-      newPassword: yup.string().required(),
-      newPassword2: yup
-        .string()
-        .required()
-        .when(`newPassword`, (newPassword, schema) =>
-          schema.oneOf([newPassword], `passwords do not match`)
-        ),
-    })
-    .required();
-  const formik = useFormik({
-    validationSchema: schema,
-    initialValues: schema.getDefault(),
-    onSubmit: async (vals, helpers) => {
-      helpers.setSubmitting(true);
-      try {
-        await svc.changePassword(vals.oldPassword, vals.newPassword, {
-          notification: true,
-        });
-      } finally {
-        helpers.setSubmitting(false);
-      }
-    },
-  });
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordForm>({ resolver });
+  const { enqueueSnackbar } = useSnackbar();
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form
+      onSubmit={handleSubmit(async (vals) => {
+        if (!(await svc.checkPassword(vals.oldPassword))) {
+          enqueueSnackbar(`old password incorrect`, { variant: `error` });
+          return;
+        }
+        await svc
+          .updateUsers({ password: vals.newPassword })
+          .then(() => {
+            enqueueSnackbar(`password changed`, { variant: `success` });
+          })
+          .catch((e) => {
+            enqueueSnackbar(`failed to change password`, { variant: `error` });
+          });
+      })}
+    >
       <Grid container direction="column" alignItems="center" spacing={2}>
         <Grid item>
           <TextField
             label="Old Password"
-            name="oldPassword"
             type="password"
-            value={formik.values.oldPassword}
-            error={!!formik.errors.oldPassword}
-            helperText={formik.errors.oldPassword}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
+            error={!!errors.oldPassword}
+            helperText={errors.oldPassword?.message}
+            {...register(`oldPassword`)}
           />
         </Grid>
         <Grid item>
           <TextField
             label="New Password"
-            name="newPassword"
             type="password"
-            value={formik.values.newPassword}
-            error={!!formik.errors.newPassword}
-            helperText={formik.errors.newPassword}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
+            error={!!errors.newPassword}
+            helperText={errors.newPassword?.message}
+            {...register(`newPassword`)}
           />
         </Grid>
         <Grid item>
           <TextField
             label="Re-type New Password"
-            name="newPassword2"
             type="password"
-            value={formik.values.newPassword2}
-            error={!!formik.errors.newPassword2}
-            helperText={formik.errors.newPassword2}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
+            error={!!errors.newPassword2}
+            helperText={errors.newPassword2?.message}
+            {...register(`newPassword2`)}
           />
         </Grid>
         <Grid item>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={formik.isSubmitting}
-          >
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
             submit
           </Button>
         </Grid>
