@@ -14,6 +14,12 @@ jobs:
         with:
           toolchain: stable
           override: true
+      # linux
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: tar -C target/release -zcf linux-amd64.tar.gz mynote
       # android
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
@@ -29,12 +35,6 @@ jobs:
         env:
           RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
       - run: tar -C target/aarch64-linux-android/release -zcf android-arm64.tar.gz mynote
-      # linux
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
-      - run: tar -C target/release -zcf linux-amd64.tar.gz mynote
       # windows
       - run: sudo apt install mingw-w64 -y
       - run: rustup target add x86_64-pc-windows-gnu
