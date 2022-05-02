@@ -12,6 +12,7 @@ import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 
 import noteImg from "./note.png";
+import pwImg from "./pw.png";
 import { Actions } from "../actions";
 
 const cards = [
@@ -20,6 +21,7 @@ const cards = [
     title: `Notes`,
     url: `/notes`,
   },
+  { image: pwImg, title: `Passwords`, url: `/passwords` },
 ] as { url: string; image: string; title: string }[];
 
 export const Home: FC = () => {
@@ -33,7 +35,6 @@ export const Home: FC = () => {
               sx={{
                 maxWidth: 345,
               }}
-              variant="outlined"
             >
               <CardActionArea
                 onClick={() => {
@@ -42,12 +43,17 @@ export const Home: FC = () => {
               >
                 <CardMedia
                   component="img"
-                  height="140"
+                  height="150"
                   image={card.image}
                   alt={card.title}
                 />
                 <CardContent>
-                  <Typography gutterBottom variant="h5" component="div">
+                  <Typography
+                    gutterBottom
+                    variant="h5"
+                    component="div"
+                    style={{ textAlign: `center` }}
+                  >
                     {card.title}
                   </Typography>
                 </CardContent>

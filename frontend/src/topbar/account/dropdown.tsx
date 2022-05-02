@@ -20,35 +20,35 @@ export const Dropdown: FC<{
       onClose={() => setAnchor(null)}
     >
       {user ? (
-        <>
-          <MenuItem
-            onClick={() => {
-              setAnchor(null);
-              navigate(`/logout`);
-            }}
-          >
-            Logout
-          </MenuItem>
-        </>
+        <MenuItem
+          onClick={() => {
+            setAnchor(null);
+            navigate(`/logout`);
+          }}
+        >
+          Logout
+        </MenuItem>
       ) : (
-        <>
+        [
           <MenuItem
+            key="login"
             onClick={() => {
               setAnchor(null);
               navigate(`/login`);
             }}
           >
             Log in
-          </MenuItem>
+          </MenuItem>,
           <MenuItem
+            key="signup"
             onClick={() => {
               setAnchor(null);
               navigate(`/signup`);
             }}
           >
             Sign up
-          </MenuItem>
-        </>
+          </MenuItem>,
+        ]
       )}
     </Menu>
   );

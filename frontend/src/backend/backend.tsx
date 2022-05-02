@@ -56,17 +56,11 @@ export const useSessionSetter = () => {
 };
 
 export const BackendProvider: FC = ({ children }) => {
-  const { closeSnackbar, enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const backendState = useState<Backend>({
     svc: new Service(getSvcUrl()),
   });
   useEffect(() => {
-    const getPendingKey = (chanId: number | string) => `pending:${chanId}`;
-    const formatRequestName = (raw: string) =>
-      raw
-        .split(/(?=[A-Z])/)
-        .map((v) => v.toLowerCase())
-        .join(` `);
     backendState[0].svc.on(`error`, (_, e) => {
       console.log(e);
       enqueueSnackbar(formatError(e), { variant: `error` });
@@ -81,9 +75,7 @@ export const BackendProvider: FC = ({ children }) => {
       const svc = new Service(getSvcUrl(), session);
       (async () => {
         try {
-          const connection = await svc.listUsers();
-          console.log(connection);
-          const user = connection.edges[0].node;
+          const user = (await svc.listUsers()).edges[0].node;
           backendState[1]({ svc, user, session });
         } catch (e) {
           console.log(e);
