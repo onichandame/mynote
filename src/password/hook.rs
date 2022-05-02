@@ -18,6 +18,17 @@ impl crud::Hook for PasswordHook {
     ) -> async_graphql::Result<Self::ActiveModel> {
         let user = get_user_from_ctx(ctx).await?;
         input.user_id = sea_orm::Set(user.id);
+        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
+        Ok(input)
+    }
+    async fn before_update(
+        &self,
+        _ctx: &async_graphql::Context<'_>,
+        _filter: sea_orm::Condition,
+        mut input: Self::ActiveModel,
+        _txn: &sea_orm::DatabaseTransaction,
+    ) -> async_graphql::Result<Self::ActiveModel> {
+        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
         Ok(input)
     }
 }
@@ -33,13 +44,14 @@ impl crud::Hook for PasswordGroupHook {
     ) -> async_graphql::Result<Self::ActiveModel> {
         let user = get_user_from_ctx(ctx).await?;
         input.user_id = sea_orm::Set(user.id);
+        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
         Ok(input)
     }
     async fn before_update(
         &self,
         _ctx: &async_graphql::Context<'_>,
         filter: sea_orm::Condition,
-        input: Self::ActiveModel,
+        mut input: Self::ActiveModel,
         txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
         if let ActiveValue::Set(Some(parent_id)) = &input.parent_id {
@@ -62,6 +74,7 @@ impl crud::Hook for PasswordGroupHook {
                 return Err("update cannot form a loop in password groups".into());
             }
         }
+        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
         Ok(input)
     }
 }

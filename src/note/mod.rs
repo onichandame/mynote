@@ -15,9 +15,8 @@ pub struct Note {
     pub id: i32,
     #[crud(column = "Uuid", filter = "crud::StringFilter")]
     pub uuid: String,
-    pub lamport_clock: i32,
-    pub created_at: chrono::NaiveDateTime,
-    pub updated_at: Option<chrono::NaiveDateTime>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
     #[crud(column = "DeletedAt", filter = "crud::UtcDateTimeFilter", updatable)]
     pub deleted_at: Option<chrono::DateTime<chrono::Utc>>,
 

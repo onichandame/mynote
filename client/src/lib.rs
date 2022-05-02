@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use futures::{Stream, StreamExt};
-use schema::SCEHAM;
+use note::StreamNoteOutput;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use tokio_graphql_ws::{ClientTrait, Request, Subscriber};
 
 mod login;
+mod note;
 
 pub use crate::login::*;
 
@@ -35,8 +36,18 @@ impl Client {
     }
 
     pub async fn login(&self, input: LoginInput) -> Result<String, Error> {
+        #[derive(Serialize, Default)]
+        struct Input {
+            input: LoginInput,
+        }
         Ok(self
-            .request::<LoginOutput, _>(input, "login")
+            .request::<LoginOutput, _>(
+                "
+            mutation($input:LoginInput!){
+                login(input:$input)
+            }",
+                Input { input },
+            )
             .await?
             .next()
             .await
@@ -44,30 +55,60 @@ impl Client {
             .login)
     }
 
-    pub async fn stream_notes(&self) -> Result<impl Stream<Item = model::note::Model> + '_, Error> {
+    pub async fn stream_notes(
+        &self,
+    ) -> Result<impl Stream<Item = Result<model::note::Model, Error>> + '_, Error> {
         self.login_required()?;
         Ok(Box::pin(
-            self.request::<model::note::Model, _>((), "streamNotes")
-                .await?
-                .filter_map(|v| async move { v.ok() }),
+            self.request::<StreamNoteOutput, _>(
+                "
+            subscription{
+                streamNotes{
+                    id
+                    uuid
+                    createdAt
+                    updatedAt
+                    deletedAt
+                    userId
+                    title
+                    content
+                }
+            }
+            ",
+                (),
+            )
+            .await?
+            .map(|v| v.map(|v| v.stream_notes)),
         ))
     }
 
     async fn request<TOut: DeserializeOwned, TIn: Serialize + Sync + Default>(
         &self,
+        query: &str,
         input: TIn,
-        operation_name: &str,
     ) -> Result<impl Stream<Item = Result<TOut, Error>> + '_, Error> {
         Ok(self
             .subscribe(&Request::<TIn, ()> {
-                query: SCEHAM.to_owned(),
-                operation_name: Some(operation_name.to_owned()),
+                query: query.to_owned(),
                 variables: input,
                 ..Default::default()
             })
             .await?
             .map(|v| match v {
-                Ok(v) => Ok(serde_json::from_value::<TOut>(v.data)?),
+                Ok(v) => v.errors.map_or(
+                    match v.data {
+                        Value::Null => Err("no data received".into()),
+                        other => Ok(serde_json::from_value::<TOut>(other)?),
+                    },
+                    |v| {
+                        Err(v
+                            .iter()
+                            .map(|v| v.to_string())
+                            .collect::<Vec<String>>()
+                            .join("; ")
+                            .into())
+                    },
+                ),
                 Err(e) => Err(e.to_string().into()),
             }))
     }

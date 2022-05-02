@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, Result};
+use async_graphql::{Context, InputObject, Object, Result};
 use client::{Client, LoginInput};
 use futures::StreamExt;
 use sea_orm::{
@@ -11,49 +11,38 @@ use crate::helper::get_user_from_ctx;
 #[derive(Default)]
 pub struct SyncMutation {}
 
+#[derive(InputObject)]
+pub struct SyncFromRemoteInput {
+    url: String,
+    identity: String,
+    password: String,
+}
+
 #[Object]
 impl SyncMutation {
     async fn sync_from_remote(
         &self,
         ctx: &Context<'_>,
-        url: String,
-        identity: String,
-        password: String,
+        input: SyncFromRemoteInput,
     ) -> Result<bool> {
         let user = get_user_from_ctx(ctx).await?;
         let db = ctx.data::<DatabaseConnection>()?;
-        let client = Client::new(&url);
+        let client = Client::new(&input.url);
         let session = client
             .login(LoginInput {
-                identity: identity.clone(),
-                password: password.clone(),
+                identity: input.identity.clone(),
+                password: input.password.clone(),
             })
             .await?;
         let client = client.set_session(&session);
         let mut stream = client.stream_notes().await?;
         while let Some(remote_note) = stream.next().await {
+            let remote_note = remote_note?;
             let should_update = model::note::Entity::find()
                 .filter(
                     Condition::all()
                         .add(model::note::Column::Uuid.eq(remote_note.uuid.clone()))
-                        .add(
-                            Condition::any()
-                                .add(
-                                    model::note::Column::LamportClock
-                                        .gt(remote_note.lamport_clock.clone()),
-                                )
-                                .add(
-                                    Condition::all()
-                                        .add(
-                                            model::note::Column::LamportClock
-                                                .eq(remote_note.lamport_clock.clone()),
-                                        )
-                                        .add(
-                                            model::note::Column::UpdatedAt
-                                                .gte(remote_note.updated_at.clone()),
-                                        ),
-                                ),
-                        ),
+                        .add(model::note::Column::UpdatedAt.gt(remote_note.updated_at.clone())),
                 )
                 .offset(0)
                 .limit(1)

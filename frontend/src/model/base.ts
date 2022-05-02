@@ -11,9 +11,8 @@ export class Base {
 
 export class Universal extends Base {
   uuid!: string;
-  lamportClock?: number;
   static get fields(): string[] {
-    return super.fields.concat([`uuid`, `lamportClock`] as (keyof Universal)[]);
+    return super.fields.concat([`uuid`] as (keyof Universal)[]);
   }
 }
 
