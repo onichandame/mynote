@@ -5,6 +5,7 @@ import { Home } from "./home";
 import { useUser } from "./backend";
 import { Notes } from "./notes";
 import { Settings } from "./settings";
+import { Sync } from "./sync";
 
 export const Private: FC = () => {
   const user = useUser();
@@ -13,6 +14,7 @@ export const Private: FC = () => {
     <Routes>
       <Route path="notes/*" element={<Notes />} />
       <Route path="settings/*" element={<Settings />} />
+      <Route path="sync" element={<Sync />} />
       <Route path="/" element={<Home />} />
     </Routes>
   ) : (

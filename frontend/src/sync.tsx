@@ -4,8 +4,8 @@ import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useService } from "../backend";
-import { SyncFromRemoteInput } from "../model";
+import { useService } from "./backend";
+import { SyncFromRemoteInput } from "./model";
 
 const resolver = classValidatorResolver(SyncFromRemoteInput);
 

@@ -10,7 +10,6 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: i32,
     pub uuid: String,
-    pub lamport_clock: i32,
     pub created_at: DateTimeUtc,
     pub updated_at: Option<DateTimeUtc>,
     pub deleted_at: Option<DateTimeUtc>,
