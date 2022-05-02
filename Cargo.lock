@@ -372,7 +372,6 @@ dependencies = [
  "futures",
  "futures-util",
  "model",
- "schema",
  "serde",
  "serde_json",
  "tokio-graphql-ws",
@@ -1874,10 +1873,6 @@ dependencies = [
  "lazy_static",
  "winapi",
 ]
-
-[[package]]
-name = "schema"
-version = "0.1.0"
 
 [[package]]
 name = "scoped-tls"

@@ -5,8 +5,7 @@
   "description": "",
   "main": "index.js",
   "workspaces": [
-    "frontend",
-    "schema"
+    "frontend"
   ],
   "resolutions": {
     "react": "^17",
