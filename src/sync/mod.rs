@@ -2,7 +2,7 @@ use async_graphql::{Context, InputObject, Object, Result};
 use client::{Client, LoginInput};
 use futures::StreamExt;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait,
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait, NotSet,
     PaginatorTrait, QueryFilter, QuerySelect, Set, TransactionTrait,
 };
 
@@ -58,6 +58,7 @@ impl SyncMutation {
                             .await?;
                         let mut active_model = model::note::ActiveModel::from(remote_note);
                         active_model.user_id = Set(user.id);
+                        active_model.id = NotSet;
                         active_model.insert(txn).await?;
                         Ok(())
                     })
