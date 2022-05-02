@@ -42,7 +42,7 @@ impl SyncMutation {
                 .filter(
                     Condition::all()
                         .add(model::note::Column::Uuid.eq(remote_note.uuid.clone()))
-                        .add(model::note::Column::UpdatedAt.gt(remote_note.updated_at.clone())),
+                        .add(model::note::Column::UpdatedAt.gte(remote_note.updated_at.clone())),
                 )
                 .offset(0)
                 .limit(1)
