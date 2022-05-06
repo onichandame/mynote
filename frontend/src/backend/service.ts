@@ -8,12 +8,16 @@ import {
   LoginInput,
   Note,
   NoteFilter,
+  PasswordFilter,
   Pagination,
+  Password,
   Sorting,
   SyncFromRemoteInput,
   UpdateNoteInput,
   UpdateUserInput,
   User,
+  CreatePasswordInput,
+  UpdatePasswordInput,
 } from "../model";
 import { Channel } from "./channel";
 import { Event } from "./event";
@@ -147,6 +151,52 @@ export class Service extends EventEmitter {
       deleteNotes(filter:$filter)
     }`,
       { filter }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public listPasswords(
+    filter?: PasswordFilter,
+    paging?: Pagination,
+    sorting?: Sorting<Password>[]
+  ) {
+    const chan = this.subscribe<Connection<Password>>(
+      `#graphql
+      query($filter:NoteFilter,$paging:Pagination,$sorting:[NoteSort]) {
+        listPasswords(filter:$filter,paging:$paging,sorting:$sorting){
+          edges{
+            node{
+              ${Password.fields.join(` `)}
+            }
+          }
+        }
+      }`,
+      { filter, paging, sorting }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public createPassword(input: CreatePasswordInput) {
+    const chan = this.subscribe<Password>(
+      `#graphql
+    mutation($input:PasswordInput!){
+      createPassword(input:$input){
+        ${Password.fields.join(` `)}
+      }
+    }
+    `,
+      { input }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public updatePasswords(update: UpdatePasswordInput, filter?: PasswordFilter) {
+    const chan = this.subscribe<number>(
+      `#graphql
+    mutation($filter:PasswordFilter,$update:PasswordUpdate!){
+      updatePasswords(filter:$filter,update:$update)
+    }`,
+      { filter, update }
     );
     return this.waitOnce(chan);
   }

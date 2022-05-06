@@ -55,6 +55,7 @@ export const Login: FC = () => {
         <Grid item>
           <TextField
             required
+            autoComplete="current-password"
             label="Password"
             type="password"
             error={!!errors.password}

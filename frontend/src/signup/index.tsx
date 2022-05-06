@@ -48,6 +48,7 @@ export const Signup: FC = () => {
           <TextField
             label="Password"
             type="password"
+            autoComplete="new-password"
             error={!!errors.password}
             helperText={errors.password?.message}
             {...register(`password`)}
@@ -57,6 +58,7 @@ export const Signup: FC = () => {
           <TextField
             label="Re-type Password"
             type="password"
+            autoComplete="new-password"
             error={!!errors.password2}
             helperText={errors.password2?.message}
             {...register(`password2`)}

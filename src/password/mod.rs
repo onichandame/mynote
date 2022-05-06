@@ -28,6 +28,10 @@ pub struct Password {
     #[crud(creatable, updatable)]
     pub password: String,
     #[crud(creatable, updatable)]
+    pub username: Option<String>,
+    #[crud(creatable, updatable)]
+    pub email: Option<String>,
+    #[crud(creatable, updatable)]
     pub url: Option<String>,
 }
 

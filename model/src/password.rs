@@ -18,6 +18,8 @@ pub struct Model {
     pub title: String,
     pub password: String,
     pub url: Option<String>,
+    pub username: Option<String>,
+    pub email: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

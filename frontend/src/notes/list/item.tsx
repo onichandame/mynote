@@ -20,24 +20,15 @@ export const Item: FC<{ item: Note }> = ({ item }) => {
   return (
     <>
       <Card sx={{ minWidth: 275 }} variant="outlined">
-        <CardHeader
-          action={
-            <IconButton
-              onClick={(e) => {
-                setMenuAnchor(e.currentTarget);
-              }}
-            >
-              <MoreVert />
-            </IconButton>
-          }
-          title={item.title}
-          subheader={new Date(item.createdAt).toLocaleDateString}
-        />
         <CardActionArea
           onClick={() => {
             navigate(item.id.toString());
           }}
         >
+          <CardHeader
+            title={item.title}
+            subheader={new Date(item.createdAt).toLocaleDateString()}
+          />
           <CardContent>
             <Typography>
               {item.content.length < 10

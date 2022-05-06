@@ -39,6 +39,7 @@ export const Security: FC = () => {
           <TextField
             label="Old Password"
             type="password"
+            autoComplete="current-password"
             error={!!errors.oldPassword}
             helperText={errors.oldPassword?.message}
             {...register(`oldPassword`)}
@@ -48,6 +49,7 @@ export const Security: FC = () => {
           <TextField
             label="New Password"
             type="password"
+            autoComplete="new-password"
             error={!!errors.newPassword}
             helperText={errors.newPassword?.message}
             {...register(`newPassword`)}
@@ -57,6 +59,7 @@ export const Security: FC = () => {
           <TextField
             label="Re-type New Password"
             type="password"
+            autoComplete="new-password"
             error={!!errors.newPassword2}
             helperText={errors.newPassword2?.message}
             {...register(`newPassword2`)}

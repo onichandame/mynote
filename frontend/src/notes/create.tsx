@@ -23,9 +23,10 @@ export const Create: FC = () => {
         navigate(`../`);
       })}
     >
-      <Grid container direction="column" spacing={2} alignItems="center">
+      <Grid container direction="column" spacing={2} alignItems="stretch">
         <Grid item>
           <TextField
+            fullWidth
             label="Title"
             error={!!errors.title}
             helperText={errors.title?.message}
@@ -35,6 +36,7 @@ export const Create: FC = () => {
         <Grid item>
           <TextField
             multiline
+            fullWidth
             label="Content"
             error={!!errors.content}
             helperText={errors.content?.message}
