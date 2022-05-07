@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { useService } from "../../backend";
 import { Note, UpdateNoteInput } from "../../model";
 import ReactMarkdown from "react-markdown";
+import { Delete } from "./delete";
 
 const resolver = classValidatorResolver(UpdateNoteInput);
 
@@ -100,14 +101,21 @@ export const Detail: FC = () => {
                 <Typography variant="h3">{note.title}</Typography>
               </Grid>
               <Grid item>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setEditing(true);
-                  }}
-                >
-                  edit
-                </Button>
+                <Grid container direction="row" spacing={2}>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setEditing(true);
+                      }}
+                    >
+                      edit
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Delete note={note} />
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
           )}
