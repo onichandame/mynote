@@ -47,7 +47,7 @@ export class CreatePasswordInput {
   @IsString()
   password!: string;
   @ValidateIfNotEmpty()
-  @IsUrl()
+  @IsUrl({ protocols: [`ws`, `wss`, `http`, `https`, `ftp`] })
   url?: string;
   @ValidateIfNotEmpty()
   @UsernameValidator()
