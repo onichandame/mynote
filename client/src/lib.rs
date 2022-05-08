@@ -1,14 +1,17 @@
 use async_trait::async_trait;
 use futures::{Stream, StreamExt};
 use note::StreamNoteOutput;
+use password::StreamPasswordOutput;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use tokio_graphql_ws::{ClientTrait, Request, Subscriber};
 
 mod login;
 mod note;
+mod password;
 
 pub use crate::login::*;
+pub use crate::password::*;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
@@ -79,6 +82,43 @@ impl Client {
             )
             .await?
             .map(|v| v.map(|v| v.stream_notes)),
+        ))
+    }
+
+    pub async fn stream_passwords(
+        &self,
+        filter: Option<PasswordFilter>,
+    ) -> Result<impl Stream<Item = Result<model::password::Model, Error>> + '_, Error> {
+        #[derive(Serialize, Default)]
+        pub struct Input {
+            pub filter: Option<PasswordFilter>,
+        }
+        self.login_required()?;
+        Ok(Box::pin(
+            self.request::<StreamPasswordOutput, _>(
+                "
+            subscription($filter:PasswordFilter){
+                streamPasswords(filter:$filter){
+                    id
+                    uuid
+                    createdAt
+                    updatedAt
+                    deletedAt
+                    isLocal
+                    userId
+                    groupId
+                    title
+                    password
+                    url
+                    username
+                    email
+                }
+            }
+            ",
+                Input { filter },
+            )
+            .await?
+            .map(|v| v.map(|v| v.stream_passwords)),
         ))
     }
 

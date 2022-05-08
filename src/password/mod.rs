@@ -21,6 +21,13 @@ pub struct Password {
     pub deleted_at: Option<chrono::DateTime<chrono::Utc>>,
 
     pub user_id: i32,
+    #[crud(
+        column = "IsLocal",
+        filter = "crud::BooleanFilter",
+        creatable,
+        updatable
+    )]
+    pub is_local: bool,
     #[crud(creatable, updatable)]
     pub group_id: Option<i32>,
     #[crud(creatable, updatable)]

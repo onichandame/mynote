@@ -1,14 +1,21 @@
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
+import { Cloud, CloudOff } from "@mui/icons-material";
 import {
+  Badge,
   Button,
   Divider,
+  FormControl,
+  FormControlLabel,
   Grid,
+  Radio,
+  RadioGroup,
   Skeleton,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { FC, useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
 import { useService } from "../../backend";
@@ -36,6 +43,7 @@ export const Detail: FC = () => {
     }
   }, [svc, params]);
   const {
+    control,
     register,
     handleSubmit,
     getValues,
@@ -51,6 +59,7 @@ export const Detail: FC = () => {
       username: pwd?.username,
       email: pwd?.email,
       url: pwd?.url,
+      isLocal: pwd?.isLocal,
     });
   }, [reset, pwd]);
   useEffect(() => {
@@ -96,7 +105,28 @@ export const Detail: FC = () => {
               })}
             />
           )}
-          {!editing && <Typography variant="h3">{pwd.title}</Typography>}
+          {!editing && (
+            <Badge
+              badgeContent={
+                <Tooltip
+                  title={
+                    pwd.isLocal
+                      ? `Ignored in sync`
+                      : `Will sync to other devices`
+                  }
+                >
+                  {pwd.isLocal ? (
+                    <CloudOff color="disabled" />
+                  ) : (
+                    <Cloud color="info" />
+                  )}
+                </Tooltip>
+              }
+              anchorOrigin={{ horizontal: `left`, vertical: `top` }}
+            >
+              <Typography variant="h3">{pwd.title}</Typography>
+            </Badge>
+          )}
         </Grid>
         <Grid item>
           <Grid
@@ -256,6 +286,42 @@ export const Detail: FC = () => {
           )}
           {!editing && <TextDisplay label="Website" value={pwd.url} />}
         </Grid>
+        {editing && (
+          <Grid item>
+            <FormControl error={!!errors.isLocal}>
+              <Controller<UpdatePasswordInput>
+                control={control}
+                name="isLocal"
+                render={({ field }) => (
+                  <RadioGroup
+                    row
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.currentTarget.value === `true`;
+                      field.onChange(value);
+                      cacheKey &&
+                        window.localStorage.setItem(
+                          cacheKey,
+                          JSON.stringify(getValues())
+                        );
+                    }}
+                  >
+                    <FormControlLabel
+                      label="Local Only"
+                      value={true}
+                      control={<Radio />}
+                    />
+                    <FormControlLabel
+                      label="Syncable"
+                      value={false}
+                      control={<Radio />}
+                    />
+                  </RadioGroup>
+                )}
+              />
+            </FormControl>
+          </Grid>
+        )}
       </Grid>
     </form>
   ) : (

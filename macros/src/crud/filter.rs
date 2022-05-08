@@ -58,7 +58,7 @@ pub fn filter_expand(input: &DeriveInput) -> TokenStream {
         })
         .collect();
     quote! {
-        #[derive(async_graphql::InputObject, Default)]
+        #[derive(async_graphql::InputObject, Default, Debug)]
         pub struct #name {
             #(#filter_body),*
         }

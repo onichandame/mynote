@@ -1,10 +1,17 @@
-import { IsEmail, IsOptional, IsString, IsUrl } from "class-validator";
+import {
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from "class-validator";
 import { DateFilter, IntFilter, StringFilter } from ".";
 import { UsernameValidator, ValidateIfNotEmpty } from "../common";
 import { Owned } from "./base";
 
 export class Password extends Owned {
-  group_id?: number;
+  isLocal!: boolean;
+  groupId?: number;
   title!: string;
   password!: string;
   url?: string;
@@ -13,6 +20,7 @@ export class Password extends Owned {
 
   static get fields(): string[] {
     return super.fields.concat([
+      `isLocal`,
       `groupId`,
       `title`,
       `password`,
@@ -42,6 +50,8 @@ export class PasswordFilter {
 }
 
 export class CreatePasswordInput {
+  @IsBoolean()
+  isLocal!: boolean;
   @IsString()
   title!: string;
   @IsString()
@@ -58,6 +68,8 @@ export class CreatePasswordInput {
 }
 
 export class UpdatePasswordInput {
+  @IsBoolean()
+  isLocal?: boolean;
   @ValidateIfNotEmpty()
   @IsString()
   title?: string;

@@ -1,7 +1,16 @@
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
-import { Button, Grid, TextField } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Grid,
+  Radio,
+  RadioGroup,
+  TextField,
+} from "@mui/material";
 import { FC } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import { useService } from "../backend";
@@ -13,8 +22,12 @@ export const Create: FC = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
-  } = useForm<CreatePasswordInput>({ resolver });
+  } = useForm<CreatePasswordInput>({
+    resolver,
+    defaultValues: { isLocal: false },
+  });
   const navigate = useNavigate();
   const svc = useService();
   return (
@@ -66,6 +79,35 @@ export const Create: FC = () => {
             helperText={errors.url?.message}
             {...register(`url`)}
           />
+        </Grid>
+        <Grid item>
+          <FormControl error={!!errors.isLocal}>
+            <Controller<CreatePasswordInput>
+              control={control}
+              name="isLocal"
+              render={({ field }) => (
+                <RadioGroup
+                  row
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.currentTarget.value === `true`);
+                  }}
+                >
+                  <FormControlLabel
+                    label="Local Only"
+                    value={true}
+                    control={<Radio />}
+                  />
+                  <FormControlLabel
+                    label="Syncable"
+                    value={false}
+                    control={<Radio />}
+                  />
+                </RadioGroup>
+              )}
+            />
+            <FormHelperText>{errors.isLocal?.message}</FormHelperText>
+          </FormControl>
         </Grid>
         <Grid item>
           <Button type="submit" variant="contained" disabled={isSubmitting}>

@@ -1,20 +1,21 @@
 use async_graphql::InputObject;
 use chrono::{DateTime, NaiveDateTime, Utc};
+use serde::Serialize;
 
 macro_rules! create_filter {
     ($filter:ident, $data:ident) => {
-        #[derive(InputObject, Clone, Default)]
+        #[derive(InputObject, Clone, Default, Serialize, Debug)]
         pub struct $filter {
-            eq: Option<$data>,
-            null: Option<bool>,
-            lt: Option<$data>,
-            lte: Option<$data>,
-            gt: Option<$data>,
-            gte: Option<$data>,
-            like: Option<String>,
-            and: Option<Vec<$filter>>,
-            or: Option<Vec<$filter>>,
-            not: Option<bool>,
+            pub eq: Option<$data>,
+            pub null: Option<bool>,
+            pub lt: Option<$data>,
+            pub lte: Option<$data>,
+            pub gt: Option<$data>,
+            pub gte: Option<$data>,
+            pub like: Option<String>,
+            pub and: Option<Vec<$filter>>,
+            pub or: Option<Vec<$filter>>,
+            pub not: Option<bool>,
         }
 
         impl $filter {

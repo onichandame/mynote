@@ -13,6 +13,7 @@ pub struct Model {
     pub created_at: DateTimeUtc,
     pub updated_at: Option<DateTimeUtc>,
     pub deleted_at: Option<DateTimeUtc>,
+    pub is_local: bool,
     pub user_id: i32,
     pub group_id: Option<i32>,
     pub title: String,

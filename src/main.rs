@@ -25,6 +25,8 @@ mod user;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+    #[cfg(debug_assertions)]
+    tracing_subscriber::fmt::init();
     // build schema
     let config = new_config_provider(Mode::Production)?;
     let db = new_db_connection(config.clone()).await?;

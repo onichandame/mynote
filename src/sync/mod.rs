@@ -1,5 +1,6 @@
 use async_graphql::{Context, InputObject, Object, Result};
-use client::{Client, LoginInput};
+use client::{Client, LoginInput, PasswordFilter};
+use crud::BooleanFilter;
 use futures::StreamExt;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait, NotSet,
@@ -57,6 +58,45 @@ impl SyncMutation {
                             .exec(txn)
                             .await?;
                         let mut active_model = model::note::ActiveModel::from(remote_note);
+                        active_model.user_id = Set(user.id);
+                        active_model.id = NotSet;
+                        active_model.insert(txn).await?;
+                        Ok(())
+                    })
+                })
+                .await?;
+            }
+        }
+        let mut stream = client
+            .stream_passwords(Some(PasswordFilter {
+                is_local: Some(BooleanFilter {
+                    eq: Some(false),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }))
+            .await?;
+        while let Some(remote_pw) = stream.next().await {
+            let remote_pw = remote_pw?;
+            let should_update = model::password::Entity::find()
+                .filter(
+                    Condition::all()
+                        .add(model::password::Column::Uuid.eq(remote_pw.uuid.clone()))
+                        .add(model::password::Column::UpdatedAt.gte(remote_pw.updated_at.clone())),
+                )
+                .offset(0)
+                .limit(1)
+                .count(db)
+                .await?
+                == 0;
+            if should_update {
+                db.transaction::<_, (), DbErr>(|txn| {
+                    Box::pin(async move {
+                        model::password::Entity::delete_many()
+                            .filter(model::password::Column::Uuid.eq(remote_pw.uuid.clone()))
+                            .exec(txn)
+                            .await?;
+                        let mut active_model = model::password::ActiveModel::from(remote_pw);
                         active_model.user_id = Set(user.id);
                         active_model.id = NotSet;
                         active_model.insert(txn).await?;
