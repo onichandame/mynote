@@ -38,6 +38,7 @@ export const Signup: FC = () => {
       <Grid container direction="column" alignItems="center" spacing={2}>
         <Grid item>
           <TextField
+            required
             label="Username"
             error={!!errors.name}
             helperText={errors.name?.message}
@@ -46,6 +47,7 @@ export const Signup: FC = () => {
         </Grid>
         <Grid item>
           <TextField
+            required
             label="Password"
             type="password"
             autoComplete="new-password"
@@ -56,6 +58,7 @@ export const Signup: FC = () => {
         </Grid>
         <Grid item>
           <TextField
+            required
             label="Re-type Password"
             type="password"
             autoComplete="new-password"

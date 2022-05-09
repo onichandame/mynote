@@ -8,6 +8,7 @@ import { useService } from "../../backend";
 import { Note, UpdateNoteInput } from "../../model";
 import ReactMarkdown from "react-markdown";
 import { Delete } from "./delete";
+import { Loading } from "../../common";
 
 const resolver = classValidatorResolver(UpdateNoteInput);
 
@@ -183,6 +184,6 @@ export const Detail: FC = () => {
       </Grid>
     </form>
   ) : (
-    <div>loading note</div>
+    <Loading />
   );
 };

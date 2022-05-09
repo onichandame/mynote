@@ -9,7 +9,6 @@ import {
   Grid,
   Radio,
   RadioGroup,
-  Skeleton,
   TextField,
   Tooltip,
   Typography,
@@ -19,6 +18,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
 import { useService } from "../../backend";
+import { Loading } from "../../common";
 import { Password, UpdatePasswordInput } from "../../model";
 import { Delete } from "./delete";
 import { TextDisplay } from "./textDisplay";
@@ -325,14 +325,6 @@ export const Detail: FC = () => {
       </Grid>
     </form>
   ) : (
-    <div>
-      {
-        // TODO: refine loading animation
-        <Skeleton
-          sx={{ bgcolor: (theme) => theme.palette.grey[300] }}
-          variant="rectangular"
-        />
-      }
-    </div>
+    <Loading />
   );
 };
