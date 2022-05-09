@@ -44,6 +44,14 @@ export class Service extends EventEmitter {
     return this.waitOnce(chan);
   }
 
+  public renewSession() {
+    const chan = this.subscribe<string>(`#graphql
+    mutation {
+      renewSession
+    }`);
+    return this.waitOnce(chan);
+  }
+
   public checkPassword(password: string) {
     const chan = this.subscribe<boolean>(
       `#graphql

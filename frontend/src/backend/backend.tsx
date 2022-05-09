@@ -70,13 +70,16 @@ export const BackendProvider: FC = ({ children }) => {
     };
   }, [backendState[0]]);
   useEffect(() => {
-    const session = window.localStorage.getItem(sessionKey);
+    let session = window.localStorage.getItem(sessionKey);
     if (session) {
-      const svc = new Service(getSvcUrl(), session);
+      let svc = new Service(getSvcUrl(), session);
       (async () => {
         try {
+          session = await svc.renewSession();
+          svc = new Service(getSvcUrl(), session);
           const user = (await svc.listUsers()).edges[0].node;
           backendState[1]({ svc, user, session });
+          window.localStorage.setItem(sessionKey, session);
         } catch (e) {
           console.log(e);
           window.localStorage.removeItem(sessionKey);
