@@ -69,10 +69,9 @@ export const Create: FC = () => {
                   error={!!errors.passwordId}
                   helperText={errors.passwordId?.message}
                   onChange={(e) => {
-                    field.onChange(e.target.value || undefined);
+                    field.onChange(e.target.value);
                   }}
                 >
-                  <MenuItem value={0}>[No Credential]</MenuItem>
                   {pwds.map((pwd) => (
                     <MenuItem key={pwd.id} value={pwd.id}>
                       {pwd.title}

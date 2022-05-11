@@ -6,6 +6,7 @@ import {
   FormControl,
   FormControlLabel,
   Grid,
+  MenuItem,
   TextField,
   Typography,
 } from "@mui/material";
@@ -15,8 +16,8 @@ import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
 import { useService } from "../../backend";
-import { Loading } from "../../common";
-import { Peer, UpdatePeerInput } from "../../model";
+import { Form, Loading } from "../../common";
+import { Password, Peer, UpdatePeerInput } from "../../model";
 import { Delete } from "./delete";
 
 const resolver = classValidatorResolver(UpdatePeerInput);
@@ -25,6 +26,7 @@ export const Detail: FC = () => {
   const [peer, setPeer] = useState<Peer | null>(null);
   const [editing, setEditing] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const [pwds, setPwds] = useState<Password[]>([]);
   const svc = useService();
   const {
     register,
@@ -55,6 +57,12 @@ export const Detail: FC = () => {
         autoSync: peer.autoSync,
       });
   }, [peer]);
+  useEffect(() => {
+    svc
+      .listPasswords()
+      .then((conns) => conns.edges.map((v) => v.node))
+      .then((pwds) => setPwds(pwds));
+  }, [svc]);
   return peer ? (
     <form
       onSubmit={handleSubmit(async (vals) => {
@@ -63,118 +71,157 @@ export const Detail: FC = () => {
         await updatePeer();
       })}
     >
-      <Grid container direction="column" alignItems="center" spacing={2}>
-        <Grid item>
-          {editing && (
-            <TextField
-              label="Title"
-              error={!!errors.title}
-              helperText={errors.title?.message}
-              {...register(`title`)}
-            />
-          )}
-          {!editing && <Typography variant="h3">{peer.title}</Typography>}
-        </Grid>
-        <Grid item>
-          {editing && (
-            <FormControl error={!!errors.autoSync}>
-              <FormControlLabel
-                label="Auto Sync"
-                control={
-                  <Controller<UpdatePeerInput>
-                    control={control}
-                    name="autoSync"
-                    render={({ field }) => (
-                      <Checkbox
-                        {...field}
-                        defaultChecked={!!peer.autoSync}
-                        onChange={(e) => {
-                          field.onChange(e.currentTarget.checked);
-                        }}
-                      />
-                    )}
-                  />
-                }
-              />
-            </FormControl>
-          )}
-          {!editing && (
-            <Grid container direction="row" spacing={2}>
-              <Grid item>
-                {peer.autoSync ? (
-                  <Cloud color="info" />
-                ) : (
-                  <CloudOff color="disabled" />
-                )}
-              </Grid>
-              <Grid item>
-                {peer.autoSync ? `Auto Sync on` : `Auto Sync off`}
-              </Grid>
-            </Grid>
-          )}
-        </Grid>
-        <Grid item>
-          <Grid
-            container
-            direction="row"
-            justifyContent="space-between"
-            spacing={2}
-          >
+      <Form>
+        <Grid container direction="column" alignItems="stretch" spacing={2}>
+          <Grid item>
             {editing && (
-              <>
-                <Grid item>
-                  <Button color="primary" variant="contained" type="submit">
-                    Save & Exit
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => {
-                      setEditing(false);
-                    }}
-                  >
-                    cancel
-                  </Button>
-                </Grid>
-              </>
+              <TextField
+                label="Title"
+                error={!!errors.title}
+                helperText={errors.title?.message}
+                {...register(`title`)}
+              />
             )}
             {!editing && (
-              <>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => {
-                      setEditing(true);
-                    }}
-                  >
-                    edit
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={async () => {
-                      await svc.syncFromPeer(peer.id);
-                      enqueueSnackbar(`sync successful`, {
-                        variant: `success`,
-                      });
-                    }}
-                  >
-                    sync
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Delete peer={peer} />
-                </Grid>
-              </>
+              <Typography variant="h3" textAlign="center">
+                {peer.title}
+              </Typography>
             )}
           </Grid>
+          {editing && (
+            <Grid item>
+              <Controller<UpdatePeerInput>
+                control={control}
+                name="passwordId"
+                render={({ field }) => (
+                  <TextField
+                    select
+                    fullWidth
+                    label="Credential"
+                    defaultValue={peer.passwordId}
+                    error={!!errors.passwordId}
+                    helperText={errors.passwordId?.message}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                  >
+                    {pwds.map((pwd) => (
+                      <MenuItem key={pwd.id} value={pwd.id}>
+                        {pwd.title}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
+            </Grid>
+          )}
+          <Grid item>
+            {editing && (
+              <FormControl error={!!errors.autoSync}>
+                <FormControlLabel
+                  label="Auto Sync"
+                  control={
+                    <Controller<UpdatePeerInput>
+                      control={control}
+                      name="autoSync"
+                      render={({ field }) => (
+                        <Checkbox
+                          {...field}
+                          defaultChecked={!!peer.autoSync}
+                          onChange={(e) => {
+                            field.onChange(e.currentTarget.checked);
+                          }}
+                        />
+                      )}
+                    />
+                  }
+                />
+              </FormControl>
+            )}
+
+            {!editing && (
+              <Grid
+                container
+                direction="row"
+                spacing={2}
+                justifyContent="center"
+              >
+                <Grid item>
+                  {peer.autoSync ? (
+                    <Cloud color="info" />
+                  ) : (
+                    <CloudOff color="disabled" />
+                  )}
+                </Grid>
+                <Grid item>
+                  {peer.autoSync ? `Auto Sync on` : `Auto Sync off`}
+                </Grid>
+              </Grid>
+            )}
+          </Grid>
+          <Grid item>
+            <Grid
+              container
+              direction="row"
+              justifyContent="space-between"
+              spacing={2}
+            >
+              {editing && (
+                <>
+                  <Grid item>
+                    <Button color="primary" variant="contained" type="submit">
+                      Save & Exit
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => {
+                        setEditing(false);
+                      }}
+                    >
+                      cancel
+                    </Button>
+                  </Grid>
+                </>
+              )}
+              {!editing && (
+                <>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => {
+                        setEditing(true);
+                      }}
+                    >
+                      edit
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={async () => {
+                        await svc.syncFromPeer(peer.id);
+                        enqueueSnackbar(`sync successful`, {
+                          variant: `success`,
+                        });
+                      }}
+                    >
+                      sync
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Delete peer={peer} />
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </Grid>
         </Grid>
-      </Grid>
+      </Form>
     </form>
   ) : (
     <Loading />

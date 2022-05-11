@@ -59,7 +59,7 @@ impl SessionModule {
         let key_doc = model::session_key::Entity::find_by_id(kid.parse()?)
             .one(&self.db)
             .await?
-            .ok_or("session key not found")?;
+            .ok_or(format!("session key {} not found", &kid))?;
         let claim = jsonwebtoken::decode::<Claims>(
             session,
             &DecodingKey::from_secret(&key_doc.key.as_ref()),
@@ -70,7 +70,7 @@ impl SessionModule {
         Ok(model::user::Entity::find_by_id(uid.parse()?)
             .one(&self.db)
             .await?
-            .ok_or("user not found")?)
+            .ok_or(format!("user {} not found", &uid))?)
     }
 }
 
