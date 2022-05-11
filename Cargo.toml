@@ -31,6 +31,7 @@ async-trait = "^0"
 base64 = "^0"
 # debug
 tracing-subscriber = "^0"
+tracing = "^0"
 
 [workspace]
 members = ["config", "crud", "db", "model", "macros", "session", "client"]

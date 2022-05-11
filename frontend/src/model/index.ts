@@ -7,3 +7,4 @@ export * from "./sync";
 export * from "./user";
 export * from "./note";
 export * from "./password";
+export * from "./peer";

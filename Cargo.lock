@@ -1281,6 +1281,7 @@ dependencies = [
  "serde_json",
  "session",
  "tokio",
+ "tracing",
  "tracing-subscriber",
  "warp",
  "warp-embed",

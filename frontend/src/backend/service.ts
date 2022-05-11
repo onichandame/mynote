@@ -18,6 +18,10 @@ import {
   User,
   CreatePasswordInput,
   UpdatePasswordInput,
+  CreatePeerInput,
+  Peer,
+  UpdatePeerInput,
+  PeerFilter,
 } from "../model";
 import { Channel } from "./channel";
 import { Event } from "./event";
@@ -170,7 +174,7 @@ export class Service extends EventEmitter {
   ) {
     const chan = this.subscribe<Connection<Password>>(
       `#graphql
-      query($filter:NoteFilter,$paging:Pagination,$sorting:[NoteSort]) {
+      query($filter:PasswordFilter,$paging:Pagination,$sorting:[PasswordSort]) {
         listPasswords(filter:$filter,paging:$paging,sorting:$sorting){
           edges{
             node{
@@ -209,6 +213,51 @@ export class Service extends EventEmitter {
     return this.waitOnce(chan);
   }
 
+  public createPeer(input: CreatePeerInput) {
+    const chan = this.subscribe<Peer>(
+      `#graphql
+      mutation ($input:PeerInput!){
+        createPeer(input: $input){
+          ${Peer.fields.join(` `)}
+        }
+      }`,
+      { input }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public updatePeers(update: UpdatePeerInput, filter?: PeerFilter) {
+    const chan = this.subscribe<number>(
+      `#graphql
+    mutation($filter:PeerFilter,$update:PeerUpdate!){
+      updatePeers(filter:$filter,update:$update)
+    }`,
+      { filter, update }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public listPeers(
+    filter?: PeerFilter,
+    paging?: Pagination,
+    sorting?: Sorting<Peer>[]
+  ) {
+    const chan = this.subscribe<Connection<Peer>>(
+      `#graphql
+      query($filter:PeerFilter,$paging:Pagination,$sorting:[PeerSort]) {
+        listPeers(filter:$filter,paging:$paging,sorting:$sorting){
+          edges{
+            node{
+              ${Peer.fields.join(` `)}
+            }
+          }
+        }
+      }`,
+      { filter, paging, sorting }
+    );
+    return this.waitOnce(chan);
+  }
+
   public syncFromRemote(input: SyncFromRemoteInput) {
     const chan = this.subscribe<boolean>(
       `#graphql
@@ -216,6 +265,17 @@ export class Service extends EventEmitter {
       syncFromRemote(input:$input)
     }`,
       { input }
+    );
+    return this.waitOnce(chan);
+  }
+
+  public syncFromPeer(peerId: number) {
+    const chan = this.subscribe<boolean>(
+      `#graphql
+    mutation($peerId:Int!){
+      syncFromPeer(peerId:$peerId)
+    }`,
+      { peerId }
     );
     return this.waitOnce(chan);
   }

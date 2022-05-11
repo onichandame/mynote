@@ -16,7 +16,7 @@ export const Private: FC = () => {
       <Route path="notes/*" element={<Notes />} />
       <Route path="passwords/*" element={<Password />} />
       <Route path="settings/*" element={<Settings />} />
-      <Route path="sync" element={<Sync />} />
+      <Route path="sync/*" element={<Sync />} />
       <Route path="/" element={<Home />} />
     </Routes>
   ) : (

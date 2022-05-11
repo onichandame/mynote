@@ -7,5 +7,6 @@ pub mod prelude;
 pub mod note;
 pub mod password;
 pub mod password_group;
+pub mod peer;
 pub mod session_key;
 pub mod user;

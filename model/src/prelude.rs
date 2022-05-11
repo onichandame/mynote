@@ -3,5 +3,6 @@
 pub use super::note::Entity as Notes;
 pub use super::password::Entity as Passwords;
 pub use super::password_group::Entity as PasswordGroups;
+pub use super::peer::Entity as Peers;
 pub use super::session_key::Entity as SessionKeys;
 pub use super::user::Entity as Users;

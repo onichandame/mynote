@@ -68,6 +68,7 @@ export class CreatePasswordInput {
 }
 
 export class UpdatePasswordInput {
+  @ValidateIfNotEmpty()
   @IsBoolean()
   isLocal?: boolean;
   @ValidateIfNotEmpty()

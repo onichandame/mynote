@@ -1,5 +1,5 @@
 import { Add } from "@mui/icons-material";
-import { Grid, SpeedDialAction } from "@mui/material";
+import { Grid, SpeedDialAction, Typography } from "@mui/material";
 import { FC, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -47,9 +47,9 @@ export const List: FC = () => {
         </Actions>
       </>
     ) : (
-      <div>
+      <Typography variant="h5">
         you don't have any notes here, <Link to="create">create one now</Link>!
-      </div>
+      </Typography>
     )
   ) : (
     <Loading />

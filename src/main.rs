@@ -7,6 +7,7 @@ use frontend::Frontend;
 use resolver::{Mutation, Query, Subscription};
 use serde::Deserialize;
 use std::{error::Error, net::SocketAddr};
+use sync::SyncDaemon;
 use tokio;
 use warp::{ws::Ws, Filter};
 use warp_embed;
@@ -18,6 +19,7 @@ mod frontend;
 mod helper;
 mod note;
 mod password;
+mod peer;
 mod resolver;
 mod session;
 mod sync;
@@ -40,6 +42,11 @@ pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .data(session.clone())
     .data(db.clone())
     .finish();
+    #[cfg(debug_assertions)]
+    tracing::info!("{}", &schema.sdl());
+    // automatically sync from remote peers
+    let sync_daemon = SyncDaemon::new(db.clone());
+    tokio::spawn(sync_daemon.start());
 
     // api route
     let apis = warp::path!("graphql")
