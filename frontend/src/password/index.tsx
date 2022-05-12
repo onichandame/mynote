@@ -1,9 +1,9 @@
 import { FC } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { Form } from "../common";
+import { CenterRow } from "../common";
 import { Create } from "./create";
-import { Detail } from "./detail";
+import { Item } from "./item";
 import { List } from "./list";
 
 export const Password: FC = () => {
@@ -11,13 +11,13 @@ export const Password: FC = () => {
     <>
       <Routes>
         <Route path="/" element={<List />} />
-        <Route path="/:id/" element={<Detail />} />
+        <Route path="/:id/*" element={<Item />} />
         <Route
           path="create"
           element={
-            <Form>
+            <CenterRow>
               <Create />
-            </Form>
+            </CenterRow>
           }
         />
       </Routes>

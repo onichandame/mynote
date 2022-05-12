@@ -16,7 +16,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 
 import { useService } from "../../backend";
-import { Form, Loading } from "../../common";
+import { CenterRow, Loading } from "../../common";
 import { Password, Peer, UpdatePeerInput } from "../../model";
 import { Delete } from "./delete";
 
@@ -71,7 +71,7 @@ export const Detail: FC = () => {
         await updatePeer();
       })}
     >
-      <Form>
+      <CenterRow>
         <Grid container direction="column" alignItems="stretch" spacing={2}>
           <Grid item>
             {editing && (
@@ -117,26 +117,30 @@ export const Detail: FC = () => {
           )}
           <Grid item>
             {editing && (
-              <FormControl error={!!errors.autoSync}>
-                <FormControlLabel
-                  label="Auto Sync"
-                  control={
-                    <Controller<UpdatePeerInput>
-                      control={control}
-                      name="autoSync"
-                      render={({ field }) => (
-                        <Checkbox
-                          {...field}
-                          defaultChecked={!!peer.autoSync}
-                          onChange={(e) => {
-                            field.onChange(e.currentTarget.checked);
-                          }}
+              <Grid container direction="row" justifyContent="center">
+                <Grid item>
+                  <FormControl error={!!errors.autoSync}>
+                    <FormControlLabel
+                      label="Auto Sync"
+                      control={
+                        <Controller<UpdatePeerInput>
+                          control={control}
+                          name="autoSync"
+                          render={({ field }) => (
+                            <Checkbox
+                              {...field}
+                              defaultChecked={!!peer.autoSync}
+                              onChange={(e) => {
+                                field.onChange(e.currentTarget.checked);
+                              }}
+                            />
+                          )}
                         />
-                      )}
+                      }
                     />
-                  }
-                />
-              </FormControl>
+                  </FormControl>
+                </Grid>
+              </Grid>
             )}
 
             {!editing && (
@@ -221,7 +225,7 @@ export const Detail: FC = () => {
             </Grid>
           </Grid>
         </Grid>
-      </Form>
+      </CenterRow>
     </form>
   ) : (
     <Loading />

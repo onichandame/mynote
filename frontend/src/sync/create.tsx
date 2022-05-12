@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useService } from "../backend";
 
-import { Form } from "../common";
+import { CenterRow } from "../common";
 import { CreatePeerInput, Password } from "../model";
 
 const resolver = classValidatorResolver(CreatePeerInput);
@@ -39,7 +39,7 @@ export const Create: FC = () => {
       .then((pwds) => setPwds(pwds));
   }, [svc]);
   return (
-    <Form>
+    <CenterRow>
       <form
         onSubmit={handleSubmit(async (vals) => {
           await svc.createPeer(vals);
@@ -110,6 +110,6 @@ export const Create: FC = () => {
           </Grid>
         </Grid>
       </form>
-    </Form>
+    </CenterRow>
   );
 };

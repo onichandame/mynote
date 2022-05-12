@@ -7,7 +7,7 @@ import { Login } from "./login";
 import { Signup } from "./signup";
 import { Private } from "./private";
 import { Logout } from "./logout";
-import { Form } from "./common";
+import { CenterRow } from "./common";
 
 export const App: FC = () => {
   return (
@@ -21,25 +21,25 @@ export const App: FC = () => {
             <Route
               path="login"
               element={
-                <Form>
+                <CenterRow>
                   <Login />
-                </Form>
+                </CenterRow>
               }
             />
             <Route
               path="logout"
               element={
-                <Form>
+                <CenterRow>
                   <Logout />
-                </Form>
+                </CenterRow>
               }
             />
             <Route
               path="signup"
               element={
-                <Form>
+                <CenterRow>
                   <Signup />
-                </Form>
+                </CenterRow>
               }
             />
             {/** private routes */}

@@ -42,7 +42,7 @@ export const List: FC = () => {
         >
           {pwds.map((pwd) => (
             <Grid item key={pwd.id}>
-              <Card sx={{ minWidth: 275 }}>
+              <Card sx={{ minWidth: 180 }}>
                 <CardActionArea
                   onClick={() => {
                     navigate(pwd.id.toString());
@@ -51,7 +51,10 @@ export const List: FC = () => {
                   <CardMedia
                     component="img"
                     height="150"
-                    image="https://media.wired.com/photos/5926e34f8d4ebc5ab806bd1c/master/pass/GettyImages-528338761.jpg"
+                    image={
+                      pwd.icon ||
+                      "https://media.wired.com/photos/5926e34f8d4ebc5ab806bd1c/master/pass/GettyImages-528338761.jpg"
+                    }
                     alt={pwd.title}
                   />
                   <CardContent>

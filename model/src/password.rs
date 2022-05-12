@@ -17,6 +17,7 @@ pub struct Model {
     pub user_id: i32,
     pub group_id: Option<i32>,
     pub title: String,
+    pub icon: Option<String>,
     pub password: String,
     pub url: Option<String>,
     pub username: Option<String>,

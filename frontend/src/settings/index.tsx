@@ -1,7 +1,7 @@
 import { Box, Tab, Tabs } from "@mui/material";
 import { FC, useState } from "react";
 
-import { Form } from "../common";
+import { CenterRow } from "../common";
 import { Profile } from "./profile";
 import { Security } from "./security";
 
@@ -43,14 +43,14 @@ export const Settings: FC = () => {
         </Tabs>
       </Box>
       <TabPanel index={0} currentIndex={currentTab}>
-        <Form>
+        <CenterRow>
           <Profile />
-        </Form>
+        </CenterRow>
       </TabPanel>
       <TabPanel index={1} currentIndex={currentTab}>
-        <Form>
+        <CenterRow>
           <Security />
-        </Form>
+        </CenterRow>
       </TabPanel>
     </Box>
   );

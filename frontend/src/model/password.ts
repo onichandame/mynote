@@ -13,6 +13,7 @@ export class Password extends Owned {
   isLocal!: boolean;
   groupId?: number;
   title!: string;
+  icon?: string;
   password!: string;
   url?: string;
   username?: string;
@@ -23,6 +24,7 @@ export class Password extends Owned {
       `isLocal`,
       `groupId`,
       `title`,
+      `icon`,
       `password`,
       `url`,
       `username`,
@@ -54,6 +56,9 @@ export class CreatePasswordInput {
   isLocal!: boolean;
   @IsString()
   title!: string;
+  @ValidateIfNotEmpty()
+  @IsString()
+  icon?: string;
   @IsString()
   password!: string;
   @ValidateIfNotEmpty()
@@ -74,6 +79,9 @@ export class UpdatePasswordInput {
   @ValidateIfNotEmpty()
   @IsString()
   title?: string;
+  @IsOptional()
+  @IsString()
+  icon?: string | null;
   @ValidateIfNotEmpty()
   @IsString()
   password?: string;

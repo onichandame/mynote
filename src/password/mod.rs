@@ -33,6 +33,8 @@ pub struct Password {
     #[crud(creatable, updatable)]
     pub title: String,
     #[crud(creatable, updatable)]
+    pub icon: Option<String>,
+    #[crud(creatable, updatable)]
     pub password: String,
     #[crud(creatable, updatable)]
     pub username: Option<String>,

@@ -81,6 +81,15 @@ export const Create: FC = () => {
           />
         </Grid>
         <Grid item>
+          <TextField
+            label="Icon"
+            type="url"
+            error={!!errors.icon}
+            helperText={errors.icon?.message}
+            {...register(`icon`)}
+          />
+        </Grid>
+        <Grid item>
           <FormControl error={!!errors.isLocal}>
             <Controller<CreatePasswordInput>
               control={control}
