@@ -29,7 +29,8 @@ export const Profile: FC = () => {
     <form
       onSubmit={handleSubmit(async (vals) => {
         await svc.updateUsers(vals);
-        setUser((await svc.listUsers()).edges[0].node);
+        const user = (await svc.listUsers()).edges[0]?.node;
+        if (user) setUser(user);
       })}
     >
       <Grid container direction="column" alignItems="center" spacing={2}>

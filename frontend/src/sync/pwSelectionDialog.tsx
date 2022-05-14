@@ -62,7 +62,7 @@ export const PwSelectionDialog: FC<
             selected &&
               setValues({
                 url: selected.url || ``,
-                identity: selected.email || selected.username || ``,
+                identity: selected.username || ``,
                 password: selected.password,
               });
             props.onClose && props.onClose({}, `escapeKeyDown`);

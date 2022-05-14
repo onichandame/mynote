@@ -18,4 +18,12 @@ pub trait Hook {
     ) -> async_graphql::Result<Self::ActiveModel> {
         Ok(input)
     }
+    async fn before_delete(
+        &self,
+        _ctx: &async_graphql::Context<'_>,
+        _filter: sea_orm::Condition,
+        _txn: &sea_orm::DatabaseTransaction,
+    ) -> async_graphql::Result<()> {
+        Ok(())
+    }
 }

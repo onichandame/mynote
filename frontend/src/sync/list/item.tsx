@@ -13,7 +13,7 @@ import { Peer } from "../../model";
 export const Item: FC<{ peer: Peer }> = ({ peer }) => {
   const navigate = useNavigate();
   return (
-    <Card sx={{ minWidth: 275 }}>
+    <Card sx={{ minWidth: 180 }}>
       <CardActionArea
         onClick={() => {
           navigate(peer.id.toString());

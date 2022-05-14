@@ -1,5 +1,4 @@
 import {
-  IconButton,
   CardHeader,
   Card,
   Menu,
@@ -19,7 +18,7 @@ export const Item: FC<{ item: Note }> = ({ item }) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   return (
     <>
-      <Card sx={{ minWidth: 275 }} variant="outlined">
+      <Card sx={{ minWidth: 180 }} variant="outlined">
         <CardActionArea
           onClick={() => {
             navigate(item.id.toString());

@@ -9,8 +9,8 @@ import {
 import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useService } from "../../backend";
-import { Password } from "../../model";
+import { useService } from "../../../backend";
+import { Password } from "../../../model";
 
 export const Delete: FC<{ pwd: Password }> = ({ pwd }) => {
   const [deleting, setDeleting] = useState(false);
@@ -43,7 +43,7 @@ export const Delete: FC<{ pwd: Password }> = ({ pwd }) => {
                 { deletedAt: new Date() },
                 { id: { eq: pwd.id } }
               );
-              navigate(`../`);
+              navigate(-1);
             }}
           >
             yes

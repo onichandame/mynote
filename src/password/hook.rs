@@ -1,5 +1,5 @@
 use futures::StreamExt;
-use sea_orm::{ActiveValue, EntityTrait, QueryFilter};
+use sea_orm::{ActiveValue, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect};
 
 use crate::helper::get_user_from_ctx;
 
@@ -26,9 +26,22 @@ impl crud::Hook for PasswordHook {
         _ctx: &async_graphql::Context<'_>,
         _filter: sea_orm::Condition,
         mut input: Self::ActiveModel,
-        _txn: &sea_orm::DatabaseTransaction,
+        txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
         input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
+        let soft_deleting = input.deleted_at.clone().into_value().is_some();
+        if soft_deleting {
+            let referenced_by_peer = model::peer::Entity::find()
+                .filter(model::peer::Column::DeletedAt.is_null())
+                .offset(0)
+                .limit(1)
+                .count(txn)
+                .await?
+                > 0;
+            if referenced_by_peer {
+                return Err("cannot soft delete password as it is referenced by peers".into());
+            }
+        }
         Ok(input)
     }
 }

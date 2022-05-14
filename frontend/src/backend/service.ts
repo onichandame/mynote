@@ -318,12 +318,14 @@ export class Service extends EventEmitter {
       {
         complete: () => chan.emit(`close`, true),
         error: (e) => chan.emit(`error`, e),
-        next: (payload) =>
-          payload.errors
-            ? chan.emit(`error`, payload.errors)
-            : payload.data
-            ? chan.emit(`data`, Object.values(payload.data)[0])
-            : chan.emit(`error`, new Error(`no data received`)),
+        next: (payload) => {
+          if (payload.errors) chan.emit(`error`, payload.errors);
+          else if (payload.data) {
+            const responses = Object.values(payload.data);
+            if (responses[0]) chan.emit(`data`, responses[0]);
+            else chan.emit(`error`, new Error(`no data received`));
+          } else chan.emit(`error`, new Error(`no data received`));
+        },
       }
     );
     chan.on(`close`, cleanup);

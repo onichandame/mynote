@@ -14,6 +14,7 @@ export class Peer extends Owned {
   autoSync!: boolean;
   passwordId!: number;
   title!: string;
+  icon?: string;
 
   password?: Password;
 
@@ -22,6 +23,7 @@ export class Peer extends Owned {
       `autoSync`,
       `passwordId`,
       `title`,
+      `icon`,
       `password{${Password.fields.join(` `)}}`,
     ] as (keyof Peer)[]);
   }
@@ -39,6 +41,9 @@ export class CreatePeerInput {
   autoSync?: boolean;
   @IsString()
   title!: string;
+  @IsOptional()
+  @IsString()
+  icon?: string;
   @IsPositive()
   @IsInt()
   passwordId!: number;
@@ -51,6 +56,9 @@ export class UpdatePeerInput {
   @ValidateIfNotEmpty()
   @IsString()
   title?: string;
+  @IsOptional()
+  @IsString()
+  icon?: string;
   @ValidateIfNotEmpty()
   @IsPositive()
   @IsInt()

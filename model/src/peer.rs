@@ -15,6 +15,7 @@ pub struct Model {
     pub user_id: i32,
     pub password_id: i32,
     pub title: String,
+    pub icon: Option<String>,
     pub auto_sync: bool,
 }
 

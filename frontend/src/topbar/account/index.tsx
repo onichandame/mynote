@@ -20,7 +20,7 @@ export const Account: FC = () => {
                 .split(` `)
                 .filter((v) => !!v)
                 .slice(0, 2)
-                .map((v) => v[0].toUpperCase())}
+                .map((v) => v[0]?.toUpperCase())}
             </Avatar>
           )
         ) : (

@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useService } from "../backend";
 
-import { CenterRow } from "../common";
+import { CenterRow, IconField } from "../common";
 import { CreatePeerInput, Password } from "../model";
 
 const resolver = classValidatorResolver(CreatePeerInput);
@@ -34,7 +34,7 @@ export const Create: FC = () => {
   });
   useEffect(() => {
     svc
-      .listPasswords()
+      .listPasswords({ deletedAt: { null: true } })
       .then((conn) => conn.edges.map((v) => v.node))
       .then((pwds) => setPwds(pwds));
   }, [svc]);
@@ -43,18 +43,36 @@ export const Create: FC = () => {
       <form
         onSubmit={handleSubmit(async (vals) => {
           await svc.createPeer(vals);
-          navigate(`../`);
+          navigate(-1);
         })}
       >
         <Grid container direction="column" spacing={2} alignItems="center">
           <Grid item>
-            <TextField
-              required
-              label="Name"
-              error={!!errors.title}
-              helperText={errors.title?.message}
-              {...register(`title`)}
-            />
+            <Grid container direction="row" alignItems="center" spacing={2}>
+              <Grid item>
+                <Controller<CreatePeerInput>
+                  control={control}
+                  name="icon"
+                  render={({ field }) => (
+                    <IconField
+                      value={
+                        typeof field.value === `string` ? field.value : null
+                      }
+                      onConfirm={(val) => field.onChange(val)}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  required
+                  label="Name"
+                  error={!!errors.title}
+                  helperText={errors.title?.message}
+                  {...register(`title`)}
+                />
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item width="100%">
             <Controller<CreatePeerInput>

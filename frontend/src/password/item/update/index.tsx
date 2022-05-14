@@ -1,12 +1,11 @@
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import {
   Button,
+  Checkbox,
   Divider,
   FormControl,
   FormControlLabel,
   Grid,
-  Radio,
-  RadioGroup,
   TextField,
 } from "@mui/material";
 import { FC, useCallback, useEffect, useState } from "react";
@@ -14,9 +13,8 @@ import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useService } from "../../../backend";
-import { CenterRow } from "../../../common";
+import { CenterRow, IconField } from "../../../common";
 import { Password, UpdatePasswordInput } from "../../../model";
-import { Icon } from "./icon";
 
 const resolver = classValidatorResolver(UpdatePasswordInput);
 
@@ -29,7 +27,6 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
     register,
     handleSubmit,
     getValues,
-    setValue,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<UpdatePasswordInput>({
@@ -41,7 +38,6 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
       title: pwd?.title,
       password: pwd?.password,
       username: pwd?.username,
-      email: pwd?.email,
       url: pwd?.url,
       icon: pwd?.icon,
       isLocal: pwd?.isLocal,
@@ -62,51 +58,69 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
         onSubmit={handleSubmit(async (vals) => {
           await svc.updatePasswords(vals, { id: { eq: pwd.id } });
           cacheKey && window.localStorage.removeItem(cacheKey);
-          navigate(`../`);
+          navigate(-1);
         })}
       >
         <Grid container direction="column" spacing={4} alignItems="stretch">
           <Grid item>
             <CenterRow>
-              <Icon
-                onConfirm={(icon) => {
-                  setValue(`icon`, icon);
-                }}
-                alt={pwd.title}
-                src={pwd.icon}
-              />
+              <Grid container direction="row" spacing={2} alignItems="center">
+                <Grid item>
+                  <Controller<UpdatePasswordInput>
+                    control={control}
+                    name="icon"
+                    render={({ field }) => (
+                      <IconField
+                        onConfirm={(val) => {
+                          field.onChange(val);
+                          cacheKey &&
+                            window.localStorage.setItem(
+                              cacheKey,
+                              JSON.stringify(getValues())
+                            );
+                        }}
+                        value={
+                          typeof field.value === `string` ? field.value : null
+                        }
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item>
+                  <CenterRow>
+                    <TextField
+                      label="title"
+                      error={!!errors.title}
+                      helperText={errors.title?.message}
+                      InputProps={{
+                        sx: {
+                          fontSize: (theme) => theme.typography.h5.fontSize,
+                        },
+                      }}
+                      {...register(`title`, {
+                        onChange: () => {
+                          cacheKey &&
+                            window.localStorage.setItem(
+                              cacheKey,
+                              JSON.stringify(getValues())
+                            );
+                        },
+                      })}
+                    />
+                  </CenterRow>
+                </Grid>
+              </Grid>
             </CenterRow>
           </Grid>
           <Grid item>
-            <CenterRow>
-              <TextField
-                label="title"
-                error={!!errors.title}
-                helperText={errors.title?.message}
-                InputProps={{
-                  sx: { fontSize: (theme) => theme.typography.h4.fontSize },
-                }}
-                {...register(`title`, {
-                  onChange: () => {
-                    cacheKey &&
-                      window.localStorage.setItem(
-                        cacheKey,
-                        JSON.stringify(getValues())
-                      );
-                  },
-                })}
-              />
-            </CenterRow>
-          </Grid>
-          <Grid item>
-            <Grid
-              container
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-            >
+            <Grid container direction="row" spacing={3}>
               <Grid item>
-                <Grid container direction="row" spacing={1}>
+                <Grid
+                  container
+                  direction="column"
+                  alignItems="center"
+                  spacing={1}
+                >
                   <Grid item>
                     <TextField
                       label="Username"
@@ -124,6 +138,7 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
                       })}
                     />
                   </Grid>
+                  <Divider />
                   <Grid item>
                     <TextField
                       required
@@ -143,63 +158,54 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
                   </Grid>
                 </Grid>
               </Grid>
+              <Grid item>
+                <Grid container direction="column">
+                  <Grid item>
+                    <TextField
+                      label="Website"
+                      InputLabelProps={{ shrink: true }}
+                      error={!!errors.url}
+                      helperText={errors.url?.message}
+                      {...register(`url`, {
+                        onChange: () => {
+                          cacheKey &&
+                            window.localStorage.setItem(
+                              cacheKey,
+                              JSON.stringify(getValues())
+                            );
+                        },
+                      })}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
           <Grid item>
-            <Grid item>
-              <TextField
-                label="Website"
-                InputLabelProps={{ shrink: true }}
-                error={!!errors.url}
-                helperText={errors.url?.message}
-                {...register(`url`, {
-                  onChange: () => {
-                    cacheKey &&
-                      window.localStorage.setItem(
-                        cacheKey,
-                        JSON.stringify(getValues())
-                      );
-                  },
-                })}
-              />
-            </Grid>
+            <CenterRow>
+              <FormControl error={!!errors.isLocal}>
+                <FormControlLabel
+                  label="Sync to other machines"
+                  control={
+                    <Controller<UpdatePasswordInput>
+                      control={control}
+                      name="isLocal"
+                      render={({ field }) => (
+                        <Checkbox
+                          defaultChecked={!pwd.isLocal}
+                          onChange={(e) => {
+                            field.onChange(!e.currentTarget.checked);
+                          }}
+                        />
+                      )}
+                    />
+                  }
+                />
+              </FormControl>
+            </CenterRow>
           </Grid>
           <Grid item>
-            <FormControl error={!!errors.isLocal}>
-              <Controller<UpdatePasswordInput>
-                control={control}
-                name="isLocal"
-                render={({ field }) => (
-                  <RadioGroup
-                    row
-                    {...field}
-                    onChange={(e) => {
-                      const value = e.currentTarget.value === `true`;
-                      field.onChange(value);
-                      cacheKey &&
-                        window.localStorage.setItem(
-                          cacheKey,
-                          JSON.stringify(getValues())
-                        );
-                    }}
-                  >
-                    <FormControlLabel
-                      label="Local Only"
-                      value={true}
-                      control={<Radio />}
-                    />
-                    <FormControlLabel
-                      label="Syncable"
-                      value={false}
-                      control={<Radio />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-            </FormControl>
-          </Grid>
-          <Grid item>
-            <Grid container direction="column" spacing={2} alignItems="stretch">
+            <Grid container direction="row" spacing={2} justifyContent="center">
               <>
                 <Grid item>
                   <Button
@@ -229,8 +235,9 @@ export const Update: FC<{ pwd: Password }> = ({ pwd }) => {
                     fullWidth
                     color="secondary"
                     variant="contained"
-                    onClick={() => {
-                      navigate(`../`);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(-1);
                     }}
                     disabled={isSubmitting}
                   >

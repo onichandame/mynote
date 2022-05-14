@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  IsUrl,
-} from "class-validator";
+import { IsBoolean, IsOptional, IsString, IsUrl } from "class-validator";
 import { DateFilter, IntFilter, StringFilter } from ".";
 import { UsernameValidator, ValidateIfNotEmpty } from "../common";
 import { Owned } from "./base";
@@ -17,7 +11,6 @@ export class Password extends Owned {
   password!: string;
   url?: string;
   username?: string;
-  email?: string;
 
   static get fields(): string[] {
     return super.fields.concat([
@@ -28,7 +21,6 @@ export class Password extends Owned {
       `password`,
       `url`,
       `username`,
-      `email`,
     ] as (keyof Password)[]);
   }
 }
@@ -67,9 +59,6 @@ export class CreatePasswordInput {
   @ValidateIfNotEmpty()
   @UsernameValidator()
   username?: string;
-  @ValidateIfNotEmpty()
-  @IsEmail()
-  email?: string;
 }
 
 export class UpdatePasswordInput {
@@ -91,9 +80,6 @@ export class UpdatePasswordInput {
   @ValidateIfNotEmpty()
   @UsernameValidator()
   username?: string;
-  @ValidateIfNotEmpty()
-  @IsEmail()
-  email?: string;
   @IsOptional()
   @IsString()
   deletedAt?: Date;

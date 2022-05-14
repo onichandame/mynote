@@ -369,14 +369,18 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
                 let authorizer=#authorizer_constructor;
                 let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
                 let condition = sea_orm::Condition::add(authorize_condition,filter.build());
+                let hooks=#hook_constructor;
+                let txn=sea_orm::TransactionTrait::begin(db).await?;
+                crud::Hook::before_delete(&hooks,ctx,condition.clone(),&txn).await?;
                 let result=sea_orm::DeleteMany::exec(
                     <sea_orm::DeleteMany<#model::Entity> as sea_orm::QueryFilter>::filter(
                         sea_orm::EntityTrait::delete_many(),
                         condition.clone(),
                     ),
-                    db,
+                    &txn,
                 )
                 .await?;
+                txn.commit().await?;
                 Ok(result.rows_affected)
             }
         }

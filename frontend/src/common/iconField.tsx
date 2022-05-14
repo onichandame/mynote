@@ -9,17 +9,22 @@ import {
   IconButton,
   TextField,
 } from "@mui/material";
-import { ComponentProps, FC, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { ValidateIfNotEmpty } from "../../../common";
+import { FC, useEffect, useState } from "react";
 
-type Props = ComponentProps<typeof Avatar> & {
-  onConfirm: (url: string | null) => void;
+type Value = string | null;
+type Props = {
+  /** callback to change the value in form */
+  onConfirm: (value: Value) => void;
+  /** the value saved in form */
+  value: Value;
 };
 
-export const Icon: FC<Props> = ({ onConfirm, ...props }) => {
+export const IconField: FC<Props> = ({ onConfirm, value }) => {
   const [open, setOpen] = useState(false);
-  const [icon, setIcon] = useState<null | string>(props.src || null);
+  const [icon, setIcon] = useState<Value>(value);
+  useEffect(() => {
+    setIcon(value);
+  }, [value]);
   return (
     <>
       <IconButton
@@ -27,10 +32,7 @@ export const Icon: FC<Props> = ({ onConfirm, ...props }) => {
           setOpen(true);
         }}
       >
-        {
-          // TODO: 展示confirm后的icon
-        }
-        <Avatar {...props} src={icon || undefined} />
+        <Avatar src={value || undefined} />
       </IconButton>
       <Dialog
         open={open}
@@ -42,7 +44,7 @@ export const Icon: FC<Props> = ({ onConfirm, ...props }) => {
         <DialogContent>
           <Grid container direction="column" alignItems="center" spacing={2}>
             <Grid item>
-              <Avatar {...props} src={icon || undefined} />
+              <Avatar src={icon || undefined} />
             </Grid>
             <Grid item>
               <TextField

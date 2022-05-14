@@ -43,7 +43,7 @@ export const Delete: FC<{ peer: Peer }> = ({ peer }) => {
               svc
                 .updatePeers({ deletedAt: new Date() }, { id: { eq: peer.id } })
                 .finally(() => {
-                  navigate(`../`);
+                  navigate(-1);
                 });
             }}
           >

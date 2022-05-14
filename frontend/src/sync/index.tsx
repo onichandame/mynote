@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { Create } from "./create";
-import { Detail } from "./detail";
+import { Detail } from "./item";
 import { List } from "./list";
 
 export const Sync: FC = () => {

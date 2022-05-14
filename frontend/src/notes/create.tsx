@@ -6,6 +6,7 @@ import { FC } from "react";
 
 import { useService } from "../backend";
 import { CreateNoteInput } from "../model";
+import { CenterRow } from "../common";
 
 const resolver = classValidatorResolver(CreateNoteInput);
 export const Create: FC = () => {
@@ -20,7 +21,7 @@ export const Create: FC = () => {
     <form
       onSubmit={handleSubmit(async (vals) => {
         await svc.createNote(vals);
-        navigate(`../`);
+        navigate(-1);
       })}
     >
       <Grid container direction="column" spacing={2} alignItems="stretch">
@@ -44,9 +45,11 @@ export const Create: FC = () => {
           />
         </Grid>
         <Grid item>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            create
-          </Button>
+          <CenterRow>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              create
+            </Button>
+          </CenterRow>
         </Grid>
       </Grid>
     </form>

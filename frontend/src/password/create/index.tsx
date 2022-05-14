@@ -1,20 +1,20 @@
 import { classValidatorResolver } from "@hookform/resolvers/class-validator";
 import {
   Button,
+  Checkbox,
   FormControl,
   FormControlLabel,
   FormHelperText,
   Grid,
-  Radio,
-  RadioGroup,
   TextField,
 } from "@mui/material";
 import { FC } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import { useService } from "../backend";
-import { CreatePasswordInput } from "../model";
+import { useService } from "../../backend";
+import { IconField } from "../../common";
+import { CreatePasswordInput } from "../../model";
 
 const resolver = classValidatorResolver(CreatePasswordInput);
 
@@ -34,17 +34,41 @@ export const Create: FC = () => {
     <form
       onSubmit={handleSubmit(async (vals) => {
         await svc.createPassword(vals);
-        navigate(`../`);
+        navigate(-1);
       })}
     >
       <Grid container direction="column" spacing={2} alignItems="center">
         <Grid item>
+          <Grid container direction="row" spacing={2} justifyContent="center">
+            <Grid item>
+              <Controller<CreatePasswordInput>
+                control={control}
+                name="icon"
+                render={({ field }) => (
+                  <IconField
+                    value={typeof field.value === `string` ? field.value : null}
+                    onConfirm={(val) => field.onChange(val)}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item>
+              <TextField
+                required
+                label="Title"
+                error={!!errors.title}
+                helperText={errors.title?.message}
+                {...register(`title`)}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item>
           <TextField
-            required
-            label="Title"
-            error={!!errors.title}
-            helperText={errors.title?.message}
-            {...register(`title`)}
+            label="Username"
+            error={!!errors.username}
+            helperText={errors.username?.message}
+            {...register(`username`)}
           />
         </Grid>
         <Grid item>
@@ -58,35 +82,10 @@ export const Create: FC = () => {
         </Grid>
         <Grid item>
           <TextField
-            label="Username"
-            error={!!errors.username}
-            helperText={errors.username?.message}
-            {...register(`username`)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="Email"
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            {...register(`email`)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="URL"
+            label="Website"
             error={!!errors.url}
             helperText={errors.url?.message}
             {...register(`url`)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="Icon"
-            type="url"
-            error={!!errors.icon}
-            helperText={errors.icon?.message}
-            {...register(`icon`)}
           />
         </Grid>
         <Grid item>
@@ -95,24 +94,25 @@ export const Create: FC = () => {
               control={control}
               name="isLocal"
               render={({ field }) => (
-                <RadioGroup
-                  row
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e.currentTarget.value === `true`);
-                  }}
-                >
+                <FormControl error={!!errors.isLocal}>
                   <FormControlLabel
-                    label="Local Only"
-                    value={true}
-                    control={<Radio />}
+                    label="Sync to other peers"
+                    control={
+                      <Controller<CreatePasswordInput>
+                        control={control}
+                        name="isLocal"
+                        render={({ field }) => (
+                          <Checkbox
+                            defaultChecked={true}
+                            onChange={(e) => {
+                              field.onChange(!e.currentTarget.checked);
+                            }}
+                          />
+                        )}
+                      />
+                    }
                   />
-                  <FormControlLabel
-                    label="Syncable"
-                    value={false}
-                    control={<Radio />}
-                  />
-                </RadioGroup>
+                </FormControl>
               )}
             />
             <FormHelperText>{errors.isLocal?.message}</FormHelperText>

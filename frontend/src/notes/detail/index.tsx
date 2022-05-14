@@ -44,7 +44,7 @@ export const Detail: FC = () => {
         { first: 1 }
       )
     ).edges[0]?.node;
-    setNote(note);
+    setNote(note || null);
   }, [svc, params]);
   useEffect(() => {
     updateNote();

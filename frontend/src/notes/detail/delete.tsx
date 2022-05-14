@@ -53,7 +53,7 @@ export const Delete: FC<{ note: Note }> = ({ note }) => {
                 { id: { eq: note.id } }
               );
               setDeleting(false);
-              navigate(`../`);
+              navigate(-1);
             }}
           >
             yes

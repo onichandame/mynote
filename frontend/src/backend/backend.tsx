@@ -39,7 +39,7 @@ export const useSessionSetter = () => {
     try {
       const svc = new Service(getSvcUrl(), session);
       if (session) {
-        const user = (await svc.listUsers()).edges[0].node;
+        const user = (await svc.listUsers()).edges[0]?.node;
         if (user) {
           window.localStorage.setItem(sessionKey, session);
           setBackend({ svc, session, user });
@@ -77,7 +77,8 @@ export const BackendProvider: FC = ({ children }) => {
         try {
           session = await svc.renewSession();
           svc = new Service(getSvcUrl(), session);
-          const user = (await svc.listUsers()).edges[0].node;
+          const user = (await svc.listUsers()).edges[0]?.node;
+          if (!user) throw new Error(`obtained session is not valid`);
           backendState[1]({ svc, user, session });
           window.localStorage.setItem(sessionKey, session);
         } catch (e) {

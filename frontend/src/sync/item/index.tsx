@@ -42,7 +42,7 @@ export const Detail: FC = () => {
       await svc
         .listPeers({ deletedAt: { null: true }, id: { eq: id } })
         .then((conns) => {
-          setPeer(conns.edges[0].node);
+          setPeer(conns.edges[0]?.node || null);
         });
     }
   }, [svc, params]);

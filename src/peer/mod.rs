@@ -34,6 +34,8 @@ pub struct Peer {
     pub password_id: i32,
     #[crud(creatable, updatable)]
     pub title: String,
+    #[crud(creatable, updatable)]
+    pub icon: Option<String>,
 }
 
 #[ComplexObject]

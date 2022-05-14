@@ -108,7 +108,7 @@ pub async fn try_sync_from_peer(peer_id: i32, db: &DatabaseConnection) -> Result
             ..
         } = &pw
         {
-            let identity = vec![pw.email.as_ref(), pw.username.as_ref()]
+            let identity = vec![pw.username.as_ref()]
                 .into_iter()
                 .find_map(|v| match v {
                     Some(v) => {
