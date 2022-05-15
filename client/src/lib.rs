@@ -108,10 +108,10 @@ impl Client {
                     userId
                     groupId
                     title
+                    icon
                     password
                     url
                     username
-                    email
                 }
             }
             ",
