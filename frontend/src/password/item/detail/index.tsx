@@ -78,7 +78,6 @@ export const Detail: FC<{ pwd: Password }> = ({ pwd }) => {
                     variant="standard"
                     label="Password"
                     value={pwd.password}
-                    type="password"
                     InputLabelProps={{ shrink: true }}
                     InputProps={{
                       readOnly: true,
