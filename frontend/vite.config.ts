@@ -9,6 +9,7 @@ export default defineConfig({
       // for decorator
       { babel: { parserOpts: { plugins: ["decorators-legacy"] } } }
     ),
+    vitepwa
   ],
   build: {
     rollupOptions: { output: { manualChunks: undefined } },
