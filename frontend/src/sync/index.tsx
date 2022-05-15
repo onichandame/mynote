@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { Create } from "./create";
-import { Detail } from "./item";
+import { Item } from "./item";
 import { List } from "./list";
 
 export const Sync: FC = () => {
@@ -10,7 +10,7 @@ export const Sync: FC = () => {
     <Routes>
       <Route path="/" element={<List />} />
       <Route path="/create" element={<Create />} />
-      <Route path="/:id" element={<Detail />} />
+      <Route path="/:id/*" element={<Item />} />
     </Routes>
   );
 };

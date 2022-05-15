@@ -9,8 +9,8 @@ import {
 import { FC, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useService } from "../../backend";
-import { Peer } from "../../model";
+import { useService } from "../../../backend";
+import { Peer } from "../../../model";
 
 export const Delete: FC<{ peer: Peer }> = ({ peer }) => {
   const [open, setOpen] = useState(false);

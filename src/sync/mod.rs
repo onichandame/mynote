@@ -27,17 +27,6 @@ pub struct SyncFromRemoteInput {
 
 #[Object]
 impl SyncMutation {
-    async fn sync_from_remote(
-        &self,
-        ctx: &Context<'_>,
-        input: SyncFromRemoteInput,
-    ) -> Result<bool> {
-        let user = get_user_from_ctx(ctx).await?;
-        let db = ctx.data::<DatabaseConnection>()?;
-        service::sync(user.id, &input.url, &input.identity, &input.password, db).await?;
-        Ok(true)
-    }
-
     async fn sync_from_peer(&self, ctx: &Context<'_>, peer_id: i32) -> Result<bool> {
         let db = ctx.data::<DatabaseConnection>()?;
         let user = get_user_from_ctx(ctx).await?;

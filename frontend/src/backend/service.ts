@@ -12,7 +12,6 @@ import {
   Pagination,
   Password,
   Sorting,
-  SyncFromRemoteInput,
   UpdateNoteInput,
   UpdateUserInput,
   User,
@@ -254,17 +253,6 @@ export class Service extends EventEmitter {
         }
       }`,
       { filter, paging, sorting }
-    );
-    return this.waitOnce(chan);
-  }
-
-  public syncFromRemote(input: SyncFromRemoteInput) {
-    const chan = this.subscribe<boolean>(
-      `#graphql
-    mutation($input:SyncFromRemoteInput!) {
-      syncFromRemote(input:$input)
-    }`,
-      { input }
     );
     return this.waitOnce(chan);
   }

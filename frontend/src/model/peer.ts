@@ -58,7 +58,7 @@ export class UpdatePeerInput {
   title?: string;
   @IsOptional()
   @IsString()
-  icon?: string;
+  icon?: string | null;
   @ValidateIfNotEmpty()
   @IsPositive()
   @IsInt()

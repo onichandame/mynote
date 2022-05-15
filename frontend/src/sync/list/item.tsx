@@ -23,7 +23,10 @@ export const Item: FC<{ peer: Peer }> = ({ peer }) => {
           component="img"
           height="150"
           width="50%"
-          image="https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/icons/icon-hp-multi-cloud.svg"
+          image={
+            peer.icon ||
+            "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/icons/icon-hp-multi-cloud.svg"
+          }
           alt={peer.title}
         />
         <CardContent>
