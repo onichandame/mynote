@@ -5,7 +5,7 @@ on:
       - "v*"
 jobs:
   release:
-    name: Release binary
+    name: Release library
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
           args: --release --target aarch64-linux-android
         env:
           RUSTFLAGS: -Clinker=aarch64-linux-android30-clang
-      - run: tar -C target/aarch64-linux-android/release -zcf android-arm64.tar.gz mynote
+      - run: tar -C target/aarch64-linux-android/release -zcf android-arm64.tar.gz libmynote.so
       # windows
       - run: sudo apt install mingw-w64 -y
       - run: rustup target add x86_64-pc-windows-gnu
@@ -36,15 +36,15 @@ jobs:
         with:
           command: build
           args: --release --target x86_64-pc-windows-gnu
-      - run: tar -C target/x86_64-pc-windows-gnu/release -zcf windows-amd64.tar.gz mynote.exe
-      # linux
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
-      - run: tar -C target/release -zcf linux-amd64.tar.gz mynote
+      - run: tar -C target/x86_64-pc-windows-gnu/release -zcf windows-amd64.tar.gz mynote.dll
+      ## linux
+      #- uses: actions-rs/cargo@v1
+      #  with:
+      #    command: build
+      #    args: --release
+      #- run: tar -C target/release -zcf linux-amd64.tar.gz mynote
       # release
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "android-arm64.tar.gz,linux-amd64.tar.gz,windows-amd64.tar.gz"
+          artifacts: "android-arm64.tar.gz,windows-amd64.tar.gz"
           token: ${{ secrets.GITHUB_TOKEN }}

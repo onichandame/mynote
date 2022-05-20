@@ -3,19 +3,16 @@ use async_graphql::Schema;
 use async_graphql_warp::{graphql_protocol, GraphQLWebSocket};
 use config::{new_config_provider, Mode};
 use db::new_db_connection;
-use frontend::Frontend;
 use resolver::{Mutation, Query, Subscription};
 use serde::Deserialize;
 use std::{error::Error, net::SocketAddr};
 use sync::SyncDaemon;
-use tokio;
+use tokio::{main, spawn};
 use warp::{ws::Ws, Filter};
-use warp_embed;
 
 use crate::session::Session;
 
 mod auth;
-mod frontend;
 mod helper;
 mod note;
 mod password;
@@ -25,8 +22,13 @@ mod session;
 mod sync;
 mod user;
 
-#[tokio::main]
-pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+#[no_mangle]
+pub extern "C" fn start_server() {
+    main().ok();
+}
+
+#[main]
+async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     #[cfg(debug_assertions)]
     tracing_subscriber::fmt::init();
     // build schema
@@ -46,10 +48,10 @@ pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing::info!("{}", &schema.sdl());
     // automatically sync from remote peers
     let sync_daemon = SyncDaemon::new(db.clone());
-    tokio::spawn(sync_daemon.start());
+    spawn(sync_daemon.start());
 
     // api route
-    let apis = warp::path!("graphql")
+    let app = warp::path!("graphql")
         .and(warp::ws())
         .and(warp::any().map(move || schema.clone()))
         .and(graphql_protocol())
@@ -75,10 +77,6 @@ pub async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 protocol.sec_websocket_protocol(),
             )
         });
-    // webpages
-    let pages = warp::get().and(warp_embed::embed(&Frontend));
-
-    let app = apis.or(pages);
 
     warp::serve(app)
         .run(config.server_addr.parse::<SocketAddr>()?)
