@@ -1,0 +1,23 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+migration = { path = "../migration" }
+entity = { path = "../entity" }
+tokio = { version = "^1", features = ["full"] }
+clap = { version = "^3", features = ["derive"] }
+sea-orm = { version = "^0", features = [
+    "sqlx-sqlite",
+    "runtime-tokio-native-tls",
+] }
+async-graphql = { version = "^4", features = ["chrono", "tracing"] }
+tracing = "^0"
+tracing-subscriber = { version = "^0", features = ["env-filter"] }
+tracing-opentelemetry = "^0"
+opentelemetry = "^0"
+warp = "^0"
+async-graphql-warp = "^4"

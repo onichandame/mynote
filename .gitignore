@@ -17,3 +17,6 @@ dist-ssr
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+*.db
+*-shm
+*-wal

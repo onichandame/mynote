@@ -5,10 +5,9 @@ edition = "2021"
 
 [dependencies]
 # local
-model = { path = "./model" }
+entity = { path = "./entity" }
 client = { path = "./client" }
 config = { path = "./config" }
-db = { path = "./db" }
 session = { path = "./session" }
 crud = { path = "./crud" }
 # async framework
@@ -18,8 +17,8 @@ futures = "^0"
 warp = "^0"
 rust-embed = { version = "^6", features = ["compression", "debug-embed"] }
 warp-embed = "^0"
-async-graphql = { version = "^3", features = ["chrono"] }
-async-graphql-warp = "^3"
+async-graphql = { version = "^4", features = ["chrono"] }
+async-graphql-warp = "^4"
 # interface definition
 sea-orm = { version = "^0", default-features = false, features = [
     "debug-print",
@@ -34,4 +33,16 @@ tracing-subscriber = "^0"
 tracing = "^0"
 
 [workspace]
-members = ["config", "crud", "db", "model", "macros", "session", "client"]
+members = [
+    "config",
+    "crud",
+    "entity",
+    "macros",
+    "session",
+    "client",
+    "migration",
+    "server",
+]
+
+[patch.crates-io]
+sea-query = { git = "https://github.com/onichandame/sea-query", branch = "0.24.x" }

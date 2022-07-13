@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-model = { path = "../model" }
 crud = { path = "../crud" }
 tokio-graphql-ws = { git = "https://github.com/onichandame/tokio-graphql-ws" }
 futures = "^0"
