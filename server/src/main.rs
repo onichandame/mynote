@@ -12,6 +12,7 @@ use warp::Filter;
 use crate::tracing::setup_trace;
 
 mod args;
+mod auth;
 mod resolver;
 mod routes;
 mod schema;

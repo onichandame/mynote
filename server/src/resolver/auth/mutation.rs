@@ -1,4 +1,7 @@
 use async_graphql::{Context, InputObject, Object, Result};
+use sea_orm::DatabaseConnection;
+
+use crate::auth::{login_by_password, signup, Session};
 
 #[derive(Default)]
 pub struct AuthMutation {}
@@ -9,13 +12,34 @@ struct LoginInput {
     pub password: String,
 }
 
+#[derive(InputObject)]
+struct SignupInput {
+    pub name: String,
+    pub password: String,
+    pub email: Option<String>,
+}
+
 #[Object]
 impl AuthMutation {
     #[graphql(guard = "super::super::guards::NotLoggedIn::default()")]
-    async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
-        todo!()
+    async fn signup(&self, ctx: &Context<'_>, input: SignupInput) -> Result<String> {
+        let db = ctx.data::<DatabaseConnection>()?;
+        let user = signup(&input.name, &input.password, input.email.as_deref(), db).await?;
+        Ok(Session::encode(&user, db).await?.0)
     }
+
+    #[graphql(guard = "super::super::guards::NotLoggedIn::default()")]
+    async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
+        let db = ctx.data::<DatabaseConnection>()?;
+        let session = login_by_password(&input.identity, &input.password, db).await?;
+        Ok(session.0)
+    }
+
+    #[graphql(guard = "super::super::guards::LoggedIn::default()")]
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
-        todo!()
+        let db = ctx.data::<DatabaseConnection>()?;
+        let session = ctx.data::<Session>()?;
+        let user = session.decode(db).await?;
+        Ok(Session::encode(&user, &db).await?.0)
     }
 }

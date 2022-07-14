@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
                     .table(Credential::Table)
                     .col(Credential::UserId)
                     .col(Credential::DeletedAt)
-                    .col(Credential::CreatedAt)
+                    .col((Credential::CreatedAt, IndexOrder::Desc))
                     .to_owned(),
             )
             .await?;

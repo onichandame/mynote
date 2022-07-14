@@ -49,3 +49,13 @@ pub enum Password {
     Url,
     UserName,
 }
+
+#[derive(Iden)]
+pub enum SessionKey {
+    Table,
+    Id,
+    CreatedAt,
+    UpdatedAt,
+    DeletedAt,
+    Key,
+}
