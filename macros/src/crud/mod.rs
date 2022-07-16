@@ -14,6 +14,8 @@ pub fn crud_expand(input: DeriveInput) -> TokenStream {
     let sort = sort_expand(&input);
     let resolver = resolver_expand(&input);
     quote! {
+        use crud::futures::prelude::*;
+
         #filter
 
         #sort

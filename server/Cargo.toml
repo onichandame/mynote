@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 migration = { path = "../migration" }
 entity = { path = "../entity" }
+crud = { path = "../crud" }
 tokio = { version = "^1", features = ["full"] }
 clap = { version = "^3", features = ["derive"] }
 sea-orm = { version = "^0", features = [

@@ -21,21 +21,21 @@ struct SignupInput {
 
 #[Object]
 impl AuthMutation {
-    #[graphql(guard = "super::super::guards::NotLoggedIn::default()")]
     async fn signup(&self, ctx: &Context<'_>, input: SignupInput) -> Result<String> {
+        ctx.data::<Session>()
+            .err()
+            .ok_or("logged in user cannot signup again")?;
         let db = ctx.data::<DatabaseConnection>()?;
         let user = signup(&input.name, &input.password, input.email.as_deref(), db).await?;
         Ok(Session::encode(&user, db).await?.0)
     }
 
-    #[graphql(guard = "super::super::guards::NotLoggedIn::default()")]
     async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
         let db = ctx.data::<DatabaseConnection>()?;
         let session = login_by_password(&input.identity, &input.password, db).await?;
         Ok(session.0)
     }
 
-    #[graphql(guard = "super::super::guards::LoggedIn::default()")]
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
         let db = ctx.data::<DatabaseConnection>()?;
         let session = ctx.data::<Session>()?;

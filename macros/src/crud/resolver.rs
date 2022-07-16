@@ -85,6 +85,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     let hook_constructor = get_object_name(input.attrs.clone(), "hook")
         .map_or(default_hook_constructor.clone(), |v| v);
     let model = get_meta_field(&get_metas(&input.attrs).unwrap(), "model").unwrap();
+    let deletable = has_meta(&get_metas(&input.attrs).unwrap(), "deletable");
     let fields = get_struct_fields(&input.data).unwrap();
     let impl_from: Vec<TokenStream> = fields
         .clone()
@@ -111,6 +112,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
             }
         })
         .collect();
+    let creatable = create_input_fields.len() > 0;
     let create_input_transform_fields: Vec<TokenStream> = fields
         .clone()
         .into_iter()
@@ -130,7 +132,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     let create_input_name: TokenStream = format!("{}Input", &input.ident.to_string())
         .parse()
         .unwrap();
-    let create_input = if create_input_fields.len() > 0 {
+    let create_input = if creatable {
         quote! {
             #[derive(async_graphql::InputObject)]
             pub struct #create_input_name {
@@ -140,7 +142,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
-    let create_input_transform = if create_input_fields.len() > 0 {
+    let create_input_transform = if creatable {
         quote! {
             impl #create_input_name {
                 fn into_active_model(&self) -> #model::ActiveModel {
@@ -154,7 +156,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
-    let create_fn: TokenStream = if create_input_fields.len() > 0 {
+    let create_fn: TokenStream = if creatable {
         quote! {
             async fn #create_name(&self, ctx: &async_graphql::Context<'_>, input: #create_input_name) -> async_graphql::Result<#name> {
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
@@ -207,6 +209,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
             }
         })
         .collect();
+    let updatable = update_input_fields.len() > 0;
     let update_input_transform_fields: Vec<TokenStream> = fields
         .clone()
         .into_iter()
@@ -226,7 +229,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     let update_input_name: TokenStream = format!("{}Update", &input.ident.to_string())
         .parse()
         .unwrap();
-    let update_input = if update_input_fields.len() > 0 {
+    let update_input = if updatable {
         quote! {
             #[derive(async_graphql::InputObject)]
             pub struct #update_input_name {
@@ -236,7 +239,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
-    let update_input_transform = if update_input_fields.len() > 0 {
+    let update_input_transform = if updatable {
         quote! {
             impl #update_input_name {
                 fn into_active_model(&self) -> #model::ActiveModel {
@@ -250,7 +253,7 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
-    let update_fn: TokenStream = if update_input_fields.len() > 0 {
+    let update_fn: TokenStream = if updatable {
         quote! {
             async fn #update_name(&self, ctx: &async_graphql::Context<'_>,filter:Option<#filter_name>, update: #update_input_name) -> async_graphql::Result<u64> {
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
@@ -279,11 +282,61 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
+    let delete_fn = if deletable {
+        quote! {
+        async fn #delete_name(
+                &self,
+                ctx: &async_graphql::Context<'_>,
+                filter: #filter_name,
+            ) -> async_graphql::Result<u64> {
+                let db = ctx.data::<sea_orm::DatabaseConnection>()?;
+                let authorizer=#authorizer_constructor;
+                let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
+                let condition = sea_orm::Condition::add(authorize_condition,filter.build());
+                let hooks=#hook_constructor;
+                let txn=sea_orm::TransactionTrait::begin(db).await?;
+                crud::Hook::before_delete(&hooks,ctx,condition.clone(),&txn).await?;
+                let result=sea_orm::DeleteMany::exec(
+                    <sea_orm::DeleteMany<#model::Entity> as sea_orm::QueryFilter>::filter(
+                        sea_orm::EntityTrait::delete_many(),
+                        condition.clone(),
+                    ),
+                    &txn,
+                )
+                .await?;
+                txn.commit().await?;
+                Ok(result.rows_affected)
+            }
+        }
+    } else {
+        quote! {}
+    };
+    let mutable = creatable || updatable || deletable;
+    let mutation_struct = if mutable {
+        quote! {
+        #[derive(Default)]
+        pub struct #mutation_name;
+        }
+    } else {
+        quote! {}
+    };
+    let mutation_impl = if mutable {
+        quote! {
+            #[async_graphql::Object]
+            impl #mutation_name {
+                #create_fn
+                #update_fn
+                #delete_fn
+            }
+
+        }
+    } else {
+        quote! {}
+    };
     quote! {
         #[derive(Default)]
         pub struct #query_name;
-        #[derive(Default)]
-        pub struct #mutation_name;
+        #mutation_struct
         #[derive(Default)]
         pub struct #subscription_name;
 
@@ -332,15 +385,14 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
                         .map_or(Ok(0), |v| <crud::Cursor as async_graphql::connection::CursorType>::decode_cursor(v).map(|v| v.offset))
                 })? + 1;
                 connection
-                    .try_append_stream(
-                        <futures::stream::Enumerate<std::pin::Pin<std::boxed::Box<dyn futures::Stream<Item = Result<#model::Model, sea_orm::DbErr>> + std::marker::Send>>>as futures::StreamExt>::map(
-                        <std::pin::Pin<Box<dyn futures::Stream<Item = Result<#model::Model, sea_orm::DbErr>> + '_ + Send>> as futures::StreamExt>::enumerate(
+                    .edges
+                    .extend(
                         Box::pin(query
                             .clone()
                             .stream(db)
                             .await?)
-                            )
-                            ,|(ind, val)| {
+                            .enumerate()
+                            .map(|(ind, val)| {
                                 val.map(|v| {
                                     async_graphql::connection::Edge::new(
                                         crud::Cursor {
@@ -350,47 +402,21 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
                                     )
                                 })
                                 .map_err(|v| v.to_string())
-                            }),
-                    )
-                    .await?;
+                            })
+                            .try_collect::<Vec<_>>()
+                            .await?,
+                    );
                 Ok(connection)
             }
         }
-        #[async_graphql::Object]
-        impl #mutation_name {
-            #create_fn
-            #update_fn
-            async fn #delete_name(
-                &self,
-                ctx: &async_graphql::Context<'_>,
-                filter: #filter_name,
-            ) -> async_graphql::Result<u64> {
-                let db = ctx.data::<sea_orm::DatabaseConnection>()?;
-                let authorizer=#authorizer_constructor;
-                let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
-                let condition = sea_orm::Condition::add(authorize_condition,filter.build());
-                let hooks=#hook_constructor;
-                let txn=sea_orm::TransactionTrait::begin(db).await?;
-                crud::Hook::before_delete(&hooks,ctx,condition.clone(),&txn).await?;
-                let result=sea_orm::DeleteMany::exec(
-                    <sea_orm::DeleteMany<#model::Entity> as sea_orm::QueryFilter>::filter(
-                        sea_orm::EntityTrait::delete_many(),
-                        condition.clone(),
-                    ),
-                    &txn,
-                )
-                .await?;
-                txn.commit().await?;
-                Ok(result.rows_affected)
-            }
-        }
+        #mutation_impl
         #[async_graphql::Subscription]
         impl #subscription_name {
             async fn #stream_name<'ctx>(
                 &self,
                 ctx: &async_graphql::Context<'ctx>,
                 filter: Option<#filter_name>
-            ) -> async_graphql::Result<impl futures::Stream<Item=#name>+'ctx>{
+            ) -> async_graphql::Result<impl Stream<Item=#name>+'ctx>{
                 let db = ctx.data::<sea_orm::DatabaseConnection>()?;
                 let authorizer=#authorizer_constructor;
                 let authorize_condition=crud::Authorizer::authorize(&authorizer,ctx).await?;
@@ -398,11 +424,12 @@ pub fn resolver_expand(input: &DeriveInput) -> TokenStream {
                 let f = filter.map_or(f.clone(), |v| f.add(v.build()));
                 let query = <sea_orm::Select<#model::Entity> as sea_orm::QueryFilter>::filter(<#model::Entity as sea_orm::EntityTrait>::find(), f);
                 Ok(
-                    <std::pin::Pin<Box<dyn futures::Stream<Item = Result<#model::Model, sea_orm::DbErr>> + '_ + Send>> as futures::StreamExt>::filter_map(
                     Box::pin(query
                    .clone()
                    .stream(db)
-                   .await?),|v|async move {v.ok().map(|v|v.into())}))
+                   .await?)
+                   .filter_map(|v|async move {v.ok().map(|v|v.into())})
+                    )
             }
         }
 

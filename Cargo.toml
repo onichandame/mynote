@@ -1,48 +1,5 @@
-[package]
-name = "mynote"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-# local
-entity = { path = "./entity" }
-client = { path = "./client" }
-config = { path = "./config" }
-session = { path = "./session" }
-crud = { path = "./crud" }
-# async framework
-tokio = { version = "^1", features = ["full"] }
-futures = "^0"
-# web framework
-warp = "^0"
-rust-embed = { version = "^6", features = ["compression", "debug-embed"] }
-warp-embed = "^0"
-async-graphql = { version = "^4", features = ["chrono"] }
-async-graphql-warp = "^4"
-# interface definition
-sea-orm = { version = "^0", default-features = false, features = [
-    "debug-print",
-] }
-chrono = "^0"
-serde = "^1"
-serde_json = "^1"
-async-trait = "^0"
-base64 = "^0"
-# debug
-tracing-subscriber = "^0"
-tracing = "^0"
-
 [workspace]
-members = [
-    "config",
-    "crud",
-    "entity",
-    "macros",
-    "session",
-    "client",
-    "migration",
-    "server",
-]
+members = ["crud", "entity", "macros", "migration", "server"]
 
 [patch.crates-io]
-sea-query = { git = "https://github.com/onichandame/sea-query", branch = "0.24.x" }
+sea-query = { git = "https://github.com/onichandame/sea-query" }

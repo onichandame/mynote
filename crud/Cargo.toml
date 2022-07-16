@@ -7,13 +7,17 @@ edition = "2021"
 
 [dependencies]
 macros = { path = "../macros" }
-async-graphql = { version = "^3", features = ["chrono"] }
-chrono = "^0"
+async-graphql = { version = "^4", features = ["chrono"] }
+chrono = { version = "^0", features = ["serde"] }
 base64 = "^0"
 serde = "^1"
 serde_json = "^1"
 
+sea-orm = { version = "^0" }
 async-trait = "^0"
-sea-orm = { version = "^0", default-features = false }
 futures = "^0"
 futures-util = "^0"
+
+[features]
+default = ["macros"]
+macros = []

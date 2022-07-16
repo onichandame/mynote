@@ -1,19 +1,24 @@
-use crate::helper::get_user_from_ctx;
+use async_graphql::async_trait::async_trait;
+use sea_orm::DatabaseConnection;
+
+use crate::auth::Session;
 
 pub struct NoteHook {}
 
-#[async_trait::async_trait]
+#[async_trait]
 impl crud::Hook for NoteHook {
-    type ActiveModel = model::note::ActiveModel;
+    type ActiveModel = entity::note::ActiveModel;
     async fn before_create(
         &self,
         ctx: &async_graphql::Context<'_>,
         mut input: Self::ActiveModel,
         _txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
-        let user = get_user_from_ctx(ctx).await?;
+        let db = ctx.data::<DatabaseConnection>()?;
+        let session = ctx.data::<Session>()?;
+        let user = session.decode(db).await?;
         input.user_id = sea_orm::Set(user.id);
-        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
+        input.created_at = sea_orm::Set(chrono::Utc::now().naive_utc());
         Ok(input)
     }
     async fn before_update(
@@ -23,7 +28,7 @@ impl crud::Hook for NoteHook {
         mut input: Self::ActiveModel,
         _txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
-        input.updated_at = sea_orm::Set(Some(chrono::Utc::now()));
+        input.updated_at = sea_orm::Set(Some(chrono::Utc::now().naive_utc()));
         Ok(input)
     }
 }

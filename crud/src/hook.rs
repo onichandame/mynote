@@ -1,6 +1,8 @@
+use sea_orm::ActiveModelTrait;
+
 #[async_trait::async_trait]
 pub trait Hook {
-    type ActiveModel: Send;
+    type ActiveModel: ActiveModelTrait + Send;
     async fn before_create(
         &self,
         _ctx: &async_graphql::Context<'_>,
