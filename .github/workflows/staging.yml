@@ -36,12 +36,12 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/auth@v0
         with:
-          workload_identity_provider: "projects/102805684282/locations/global/workloadIdentityPools/github/providers/github"
-          service_account: "gke-main@cluster-277014.iam.gserviceaccount.com"
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDIER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
       - name: Setup kubectl
         uses: google-github-actions/get-gke-credentials@v0
         with:
-          cluster_name: main
-          location: us-west1-a
+          cluster_name: ${{ secrets.CLUSTER_NAME }}
+          location: ${{ secrets.LOCATION }}
       - name: Test
         run: kubectl get node
