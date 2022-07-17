@@ -4,21 +4,44 @@ on:
     branches:
       - "master"
 jobs:
-  build:
-    name: Build Image
+  #build:
+  #  name: Build Image
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Setup QEMU
+  #      uses: docker/setup-qemu-action@v2
+  #    - name: Set up Docker Buildx
+  #      uses: docker/setup-buildx-action@v2
+  #    - name: Login to DockerHub
+  #      uses: docker/login-action@v2
+  #      with:
+  #        username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #    - name: Build and push
+  #      uses: docker/build-push-action@v3
+  #      with:
+  #        push: true
+  #        tags: ${{ secrets.DOCKERHUB_USERNAME }}/notebook:staging
+  deploy:
+    name: Deploy
+    #needs:
+    #  - build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup gcloud
+        uses: google-github-actions/auth@v0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
-        uses: docker/build-push-action@v3
+          workload_identity_provider: "projects/cluster-277014/locations/us-west1-a/workloadIdentityPools/my-pool/providers/my-provider"
+          service_account: "my-service-account@my-project.iam.gserviceaccount.com"
+      - name: Setup kubectl
+        uses: google-github-actions/get-gke-credentials@v0
         with:
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/notebook:staging
+          cluster_name: main
+          location: us-west1-a
+      - name: Test
+        run: kubectl get node
