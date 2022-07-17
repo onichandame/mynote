@@ -3,7 +3,7 @@ ARG OS_VERSION=3.16
 ARG RUST_VERSION=1.62
 
 FROM rust:${RUST_VERSION}-${OS}${OS_VERSION} as builder
-RUN apk update && apk add musl-dev
+RUN apk update && apk add musl-dev openssl-dev
 ADD . /builder
 WORKDIR /builder
 RUN cargo build --release
