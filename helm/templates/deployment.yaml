@@ -34,9 +34,9 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           args: 
             - '--addr'
-            - {{ .Values.args.addr }}
+            - {{ .Values.args.addr | quote }}
             - '--database-url'
-            - {{ .Values.args.databaseUrl }}
+            - {{ .Values.args.databaseUrl | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
