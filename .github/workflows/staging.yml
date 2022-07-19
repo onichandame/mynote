@@ -4,13 +4,14 @@ on:
     branches:
       - "master"
     paths-ignore:
-      - frontend
+      - frontend/**
       - .pnp*
       - .prettier*
       - .yarn*
+      - .yarn/**
       - package.json
       - yarn.lock
-      - .vscode
+      - .vscode/**
 jobs:
   build:
     name: Build Image
