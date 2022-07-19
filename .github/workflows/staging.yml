@@ -3,6 +3,14 @@ on:
   push:
     branches:
       - "master"
+    paths-ignore:
+      - frontend
+      - .pnp*
+      - .prettier*
+      - .yarn*
+      - package.json
+      - yarn.lock
+      - .vscode
 jobs:
   build:
     name: Build Image
