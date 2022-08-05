@@ -9,8 +9,7 @@ pub struct Model {
     pub id: i32,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
-    pub deleted_at: Option<DateTime>,
-    pub user_id: i32,
+    pub author_id: i32,
     pub title: String,
     pub content: String,
 }
@@ -19,7 +18,7 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::user::Entity",
-        from = "Column::UserId",
+        from = "Column::AuthorId",
         to = "super::user::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"

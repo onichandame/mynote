@@ -26,8 +26,6 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Credential::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(Credential::UpdatedAt).date_time())
-                    .col(ColumnDef::new(Credential::DeletedAt).date_time())
                     .col(ColumnDef::new(Credential::UserId).integer().not_null())
                     .col(ColumnDef::new(Credential::Password).text().not_null())
                     .foreign_key(
@@ -41,10 +39,9 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 sea_query::Index::create()
-                    .name("credential-userId_deletedAt_createdAt")
+                    .name("credential-userId_createdAt")
                     .table(Credential::Table)
                     .col(Credential::UserId)
-                    .col(Credential::DeletedAt)
                     .col((Credential::CreatedAt, IndexOrder::Desc))
                     .to_owned(),
             )

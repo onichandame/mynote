@@ -15,8 +15,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 args:
-  addr: "0.0.0.0:80"
+  port: 80
   databaseUrl: "sqlite::memory:"
+  allowOrigins: []
 
 serviceAccount:
   # Specifies whether a service account should be created

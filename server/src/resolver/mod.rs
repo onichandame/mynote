@@ -3,7 +3,7 @@ use async_graphql::{MergedObject, MergedSubscription};
 use self::{
     auth::AuthMutation,
     note::{NoteMutation, NoteQuery, NoteSubscription},
-    user::{UserMutation, UserQuery, UserSubscription},
+    user::{UserMutation, UserQuery},
 };
 
 mod auth;
@@ -17,4 +17,4 @@ pub struct Query(UserQuery, NoteQuery);
 pub struct Mutation(AuthMutation, UserMutation, NoteMutation);
 
 #[derive(MergedSubscription, Default)]
-pub struct Subscription(UserSubscription, NoteSubscription);
+pub struct Subscription(NoteSubscription);

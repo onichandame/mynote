@@ -8,23 +8,23 @@ edition = "2021"
 [dependencies]
 migration = { path = "../migration" }
 entity = { path = "../entity" }
-crud = { path = "../crud" }
+crud = { git = "https://github.com/onichandame/crud-rs", version = "^0.1" }
 tokio = { version = "^1", features = ["full"] }
 clap = { version = "^3", features = ["derive"] }
-sea-orm = { version = "^0", features = [
+sea-orm = { version = "^0.9", features = [
     "sqlx-sqlite",
     "runtime-tokio-native-tls",
 ] }
 async-graphql = { version = "^4", features = ["chrono", "tracing"] }
-tracing = "^0"
-tracing-subscriber = { version = "^0", features = ["env-filter"] }
-tracing-opentelemetry = "^0"
-opentelemetry = "^0"
-warp = "^0"
+tracing = "^0.1"
+tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
+tracing-opentelemetry = "^0.17"
+opentelemetry = "^0.17"
+warp = "^0.3"
 async-graphql-warp = "^4"
 serde = "^1"
 serde_json = "^1"
 jsonwebtoken = "^8"
-rand = "^0"
-chrono = "^0"
-bcrypt = "^0"
+rand = "^0.8"
+chrono = "^0.4"
+bcrypt = "^0.13"

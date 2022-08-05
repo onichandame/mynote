@@ -27,13 +27,12 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Note::CreatedAt).date_time().not_null())
                     .col(ColumnDef::new(Note::UpdatedAt).date_time())
-                    .col(ColumnDef::new(Note::DeletedAt).date_time())
-                    .col(ColumnDef::new(Note::UserId).integer().not_null())
+                    .col(ColumnDef::new(Note::AuthorId).integer().not_null())
                     .col(ColumnDef::new(Note::Title).text().not_null())
                     .col(ColumnDef::new(Note::Content).text().not_null())
                     .foreign_key(
                         sea_query::ForeignKey::create()
-                            .from(Note::Table, Note::UserId)
+                            .from(Note::Table, Note::AuthorId)
                             .to(User::Table, User::Id),
                     )
                     .to_owned(),
@@ -42,10 +41,9 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 sea_query::Index::create()
-                    .name("note-userId_deletedAt_updatedAt")
+                    .name("note-authorId_updatedAt")
                     .table(Note::Table)
-                    .col(Note::UserId)
-                    .col(Note::DeletedAt)
+                    .col(Note::AuthorId)
                     .col(Note::UpdatedAt)
                     .to_owned(),
             )

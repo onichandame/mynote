@@ -6,8 +6,8 @@ use std::{convert::Infallible, str::FromStr};
 
 use async_graphql::Result;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait,
-    IntoActiveModel, QueryFilter, QueryOrder, Set, TransactionTrait,
+    ActiveModelTrait, ConnectionTrait, DatabaseConnection, EntityTrait, QueryOrder, Set,
+    TransactionTrait,
 };
 
 pub struct Session(pub String);
@@ -89,7 +89,6 @@ async fn get_active_key(db: &DatabaseConnection) -> Result<entity::session_key::
         .await?)
     }
     let key_doc = SessionKey::find()
-        .filter(entity::session_key::Column::DeletedAt.is_null())
         .order_by_desc(entity::session_key::Column::CreatedAt)
         .one(db)
         .await?;
@@ -99,10 +98,6 @@ async fn get_active_key(db: &DatabaseConnection) -> Result<entity::session_key::
                 > key_doc.created_at + chrono::Duration::days(31)
             {
                 let txn = db.begin().await?;
-                let mut key_doc_active_model = key_doc.into_active_model();
-                key_doc_active_model.deleted_at = Set(Some(chrono::Utc::now().naive_utc()));
-                key_doc_active_model.updated_at = key_doc_active_model.deleted_at.clone();
-                key_doc_active_model.update(&txn).await?;
                 let key_doc = create_key(&txn).await?;
                 txn.commit().await?;
                 key_doc

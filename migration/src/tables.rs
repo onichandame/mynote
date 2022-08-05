@@ -6,7 +6,6 @@ pub enum User {
     Id,
     CreatedAt,
     UpdatedAt,
-    DeletedAt,
     Name,
     Email,
     Avatar,
@@ -17,8 +16,6 @@ pub enum Credential {
     Table,
     Id,
     CreatedAt,
-    UpdatedAt,
-    DeletedAt,
     UserId,
     Password,
 }
@@ -29,8 +26,7 @@ pub enum Note {
     Id,
     CreatedAt,
     UpdatedAt,
-    DeletedAt,
-    UserId,
+    AuthorId,
     Title,
     Content,
 }
@@ -41,7 +37,6 @@ pub enum Password {
     Id,
     CreatedAt,
     UpdatedAt,
-    DeletedAt,
     UserId,
     Title,
     Password,
@@ -55,7 +50,5 @@ pub enum SessionKey {
     Table,
     Id,
     CreatedAt,
-    UpdatedAt,
-    DeletedAt,
     Key,
 }

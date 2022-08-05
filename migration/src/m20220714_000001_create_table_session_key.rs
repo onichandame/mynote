@@ -26,8 +26,6 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(SessionKey::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(SessionKey::UpdatedAt).date_time())
-                    .col(ColumnDef::new(SessionKey::DeletedAt).date_time())
                     .col(ColumnDef::new(SessionKey::Key).text().not_null())
                     .to_owned(),
             )
@@ -35,9 +33,8 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 sea_query::Index::create()
-                    .name("")
+                    .name("session_key-created_at")
                     .table(SessionKey::Table)
-                    .col(SessionKey::DeletedAt)
                     .col((SessionKey::CreatedAt, IndexOrder::Desc))
                     .to_owned(),
             )

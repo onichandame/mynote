@@ -1,4 +1,4 @@
-use std::{error::Error, net::SocketAddr};
+use std::error::Error;
 
 use ::tracing::{debug, trace};
 use args::Args;
@@ -35,9 +35,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     .finish();
     debug!(schema = schema.sdl(), "graphql schema built");
 
-    warp::serve(routes::routes(schema.clone()).with(warp::trace::request()))
-        .run(args.addr.parse::<SocketAddr>()?)
-        .await;
+    let app = routes::routes(schema.clone());
+    let app = app.with(warp::trace::request());
+    let cors = warp::cors();
+    let cors = if args.allow_origins.len() > 0 {
+        cors.allow_origins(args.allow_origins.iter().map(AsRef::as_ref))
+    } else {
+        cors.allow_any_origin()
+    };
+    let app = app.with(cors);
+    warp::serve(app).run(([0, 0, 0, 0], args.port)).await;
 
     trace!("server shutting down");
     Ok(())
