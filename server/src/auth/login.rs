@@ -22,7 +22,6 @@ pub async fn login_by_password(
         .ok_or("user not found")?;
     let credential = user
         .find_related(Credential)
-        .filter(entity::credential::Column::DeletedAt.is_null())
         .order_by_desc(entity::credential::Column::CreatedAt)
         .one(db)
         .await?;

@@ -1,5 +1,5 @@
 [workspace]
-members = ["crud", "entity", "macros", "migration", "server"]
+members = ["entity", "migration", "server"]
 
 [patch.crates-io]
 sea-query = { git = "https://github.com/onichandame/sea-query" }

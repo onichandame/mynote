@@ -27,7 +27,6 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Password::CreatedAt).date_time().not_null())
                     .col(ColumnDef::new(Password::UpdatedAt).date_time())
-                    .col(ColumnDef::new(Password::DeletedAt).date_time())
                     .col(ColumnDef::new(Password::UserId).integer().not_null())
                     .col(ColumnDef::new(Password::Title).text().not_null())
                     .col(ColumnDef::new(Password::Password).text().not_null())
