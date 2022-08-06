@@ -40,7 +40,7 @@ spec:
             {{- range .Values.args.allowOrigins }}
             - '--allow-origins'
             - {{ . | quote }}
-            {{ end -}}
+            {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
