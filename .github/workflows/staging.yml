@@ -64,7 +64,7 @@ jobs:
           --set image.tag=staging
           --set image.pullPolicy=Always
           --set args.port=80
-          --set args.databaseUrl=sqlite::memory:
+          --set "args.databaseUrl=sqlite::memory:"
           --set service.port=80
           --set ingress.enabled=true
           --set ingress.className=nginx
