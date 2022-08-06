@@ -33,10 +33,14 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           args: 
-            - '--addr'
-            - {{ .Values.args.addr | quote }}
+            - '--port'
+            - {{ .Values.args.port }}
             - '--database-url'
             - {{ .Values.args.databaseUrl | quote }}
+            {{- range .Values.args.allowOrigins }}
+            - '--allow-origins'
+            - {{ . | quote }}
+            {{ end -}}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
