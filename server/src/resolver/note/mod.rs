@@ -1,6 +1,6 @@
 use async_graphql::{async_trait::async_trait, SimpleObject};
 use crud::{Authorizer, Hook, CRUD};
-use sea_orm::Set;
+use sea_orm::{DatabaseConnection, Set};
 
 use crate::auth::Session;
 
@@ -22,11 +22,15 @@ pub struct Note {
 impl Hook for Note {
     type ActiveModel = entity::note::ActiveModel;
     async fn before_create(
-        _ctx: &async_graphql::Context<'_>,
+        ctx: &async_graphql::Context<'_>,
         mut input: Self::ActiveModel,
         _txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
+        let db = ctx.data::<DatabaseConnection>()?;
+        let session = ctx.data::<Session>()?;
+        let user = session.decode(db).await?;
         input.created_at = Set(chrono::Utc::now().naive_utc());
+        input.author_id = Set(user.id);
         Ok(input)
     }
     async fn before_update(
