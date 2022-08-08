@@ -1,7 +1,9 @@
-use dioxus::prelude::*;
+use stylist::yew::styled_component;
+use yew::prelude::*;
 
-pub fn loading(cx: Scope) -> Element {
-    rsx!(cx,div{
-        border_style:"solid",
-        "loading"})
+#[styled_component(Loading)]
+pub fn loading() -> Html {
+    html! {
+        <div class={classes!(css!("border: solid;border-radius: 5px;"))}>{"loading"}</div>
+    }
 }

@@ -1,20 +1,27 @@
-use dioxus::prelude::*;
-use dioxus_router::{Redirect, Route, Router};
+use pages::Loading;
+use yew::prelude::*;
+use yew_router::prelude::*;
 
-use pages::loading as Loading;
-
-use crate::components::layout as Layout;
+use crate::{components::Layout, routes::Route};
 
 mod components;
-mod contexts;
 mod pages;
+mod routes;
 
-pub fn app(cx: Scope) -> Element {
-    rsx!(cx,Layout{
-            Router {
-                Route{to:"/loading",Loading{}},
-                Redirect{from:"/",to:"/loading"},
-            }
-        }
-    )
+#[function_component(App)]
+pub fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Layout>
+                <Switch<Route> render={Switch::render(switch)}/>
+            </Layout>
+        </BrowserRouter>
+    }
+}
+
+fn switch(route: &Route) -> Html {
+    match route {
+        Route::Home => html! {<Redirect<Route> to={Route::Loading}/>},
+        Route::Loading => html! {<Loading/>},
+    }
 }

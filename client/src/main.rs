@@ -1,3 +1,3 @@
 fn main() {
-    dioxus::web::launch(client::app);
+    yew::start_app::<client::App>();
 }

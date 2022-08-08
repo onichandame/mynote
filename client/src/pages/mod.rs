@@ -1,3 +1,3 @@
 mod loading;
 
-pub use loading::loading;
+pub use loading::Loading;
