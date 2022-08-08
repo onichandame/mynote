@@ -1,12 +1,12 @@
 use sea_orm_migration::prelude::*;
 
-use crate::tables::{Credential, User};
+use super::tables::SessionKey;
 
 pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20220711_000002_create_table_credential"
+        "m20220714_000001_create_table_session_key"
     }
 }
 
@@ -16,33 +16,26 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 sea_query::Table::create()
-                    .table(Credential::Table)
+                    .table(SessionKey::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Credential::Id)
+                        ColumnDef::new(SessionKey::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Credential::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(Credential::UserId).integer().not_null())
-                    .col(ColumnDef::new(Credential::Password).text().not_null())
-                    .foreign_key(
-                        sea_query::ForeignKey::create()
-                            .from(Credential::Table, Credential::UserId)
-                            .to(User::Table, User::Id),
-                    )
+                    .col(ColumnDef::new(SessionKey::CreatedAt).date_time().not_null())
+                    .col(ColumnDef::new(SessionKey::Key).text().not_null())
                     .to_owned(),
             )
             .await?;
         manager
             .create_index(
                 sea_query::Index::create()
-                    .name("credential-userId_createdAt")
-                    .table(Credential::Table)
-                    .col(Credential::UserId)
-                    .col((Credential::CreatedAt, IndexOrder::Desc))
+                    .name("session_key-created_at")
+                    .table(SessionKey::Table)
+                    .col((SessionKey::CreatedAt, IndexOrder::Desc))
                     .to_owned(),
             )
             .await?;
@@ -53,7 +46,7 @@ impl MigrationTrait for Migration {
         manager
             .drop_table(
                 sea_query::Table::drop()
-                    .table(Credential::Table)
+                    .table(SessionKey::Table)
                     .if_exists()
                     .to_owned(),
             )

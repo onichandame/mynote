@@ -2,7 +2,7 @@ use async_graphql::{async_trait::async_trait, SimpleObject};
 use crud::{Authorizer, Hook, CRUD};
 use sea_orm::{DatabaseConnection, Set};
 
-use crate::auth::Session;
+use crate::{auth::Session, entity};
 
 #[derive(SimpleObject, CRUD)]
 #[crud(model = "entity::note", deletable, subscribable)]

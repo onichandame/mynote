@@ -1,8 +1,9 @@
 use async_graphql::Result;
-use entity::prelude::*;
 use sea_orm::{
     ColumnTrait, Condition, DatabaseConnection, EntityTrait, ModelTrait, QueryFilter, QueryOrder,
 };
+
+use crate::entity::{self, prelude::*};
 
 use super::Session;
 

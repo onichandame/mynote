@@ -1,7 +1,10 @@
 use async_graphql::{Context, InputObject, Object, Result};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
 
-use crate::auth::{login_by_password, signup, Session};
+use crate::{
+    auth::{login_by_password, signup, Session},
+    entity,
+};
 
 #[derive(Default)]
 pub struct AuthMutation {}

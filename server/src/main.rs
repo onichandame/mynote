@@ -13,6 +13,8 @@ use crate::tracing::setup_trace;
 
 mod args;
 mod auth;
+mod entity;
+mod migration;
 mod resolver;
 mod routes;
 mod schema;

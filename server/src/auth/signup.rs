@@ -1,6 +1,8 @@
 use async_graphql::Result;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
 
+use crate::entity;
+
 pub async fn signup(
     name: &str,
     password: &str,

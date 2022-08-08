@@ -1,12 +1,12 @@
 use sea_orm_migration::prelude::*;
 
-use crate::tables::{Note, User};
+use super::tables::{Credential, User};
 
 pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20220711_000003_create_table_note"
+        "m20220711_000002_create_table_credential"
     }
 }
 
@@ -16,23 +16,21 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 sea_query::Table::create()
-                    .table(Note::Table)
+                    .table(Credential::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Note::Id)
+                        ColumnDef::new(Credential::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Note::CreatedAt).date_time().not_null())
-                    .col(ColumnDef::new(Note::UpdatedAt).date_time())
-                    .col(ColumnDef::new(Note::AuthorId).integer().not_null())
-                    .col(ColumnDef::new(Note::Title).text().not_null())
-                    .col(ColumnDef::new(Note::Content).text().not_null())
+                    .col(ColumnDef::new(Credential::CreatedAt).date_time().not_null())
+                    .col(ColumnDef::new(Credential::UserId).integer().not_null())
+                    .col(ColumnDef::new(Credential::Password).text().not_null())
                     .foreign_key(
                         sea_query::ForeignKey::create()
-                            .from(Note::Table, Note::AuthorId)
+                            .from(Credential::Table, Credential::UserId)
                             .to(User::Table, User::Id),
                     )
                     .to_owned(),
@@ -41,10 +39,10 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 sea_query::Index::create()
-                    .name("note-authorId_updatedAt")
-                    .table(Note::Table)
-                    .col(Note::AuthorId)
-                    .col(Note::UpdatedAt)
+                    .name("credential-userId_createdAt")
+                    .table(Credential::Table)
+                    .col(Credential::UserId)
+                    .col((Credential::CreatedAt, IndexOrder::Desc))
                     .to_owned(),
             )
             .await?;
@@ -55,7 +53,7 @@ impl MigrationTrait for Migration {
         manager
             .drop_table(
                 sea_query::Table::drop()
-                    .table(Note::Table)
+                    .table(Credential::Table)
                     .if_exists()
                     .to_owned(),
             )

@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::tables::User;
+use super::tables::User;
 
 pub struct Migration;
 

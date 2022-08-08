@@ -32,20 +32,6 @@ pub enum Note {
 }
 
 #[derive(Iden)]
-pub enum Password {
-    Table,
-    Id,
-    CreatedAt,
-    UpdatedAt,
-    UserId,
-    Title,
-    Password,
-    Icon,
-    Url,
-    UserName,
-}
-
-#[derive(Iden)]
 pub enum SessionKey {
     Table,
     Id,
