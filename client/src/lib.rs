@@ -2,9 +2,10 @@ use pages::Loading;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{components::Layout, routes::Route};
+use crate::{components::Layout, contexts::ClientProvider, routes::Route};
 
 mod components;
+mod contexts;
 mod pages;
 mod routes;
 
@@ -12,9 +13,11 @@ mod routes;
 pub fn app() -> Html {
     html! {
         <BrowserRouter>
-            <Layout>
-                <Switch<Route> render={Switch::render(switch)}/>
-            </Layout>
+            <ClientProvider>
+                <Layout>
+                    <Switch<Route> render={Switch::render(switch)}/>
+                </Layout>
+            </ClientProvider>
         </BrowserRouter>
     }
 }

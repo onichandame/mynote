@@ -11,7 +11,7 @@ pub fn layout(props: &Props) -> Html {
         <div>
             <Navbar/>
             <div class={"mui--appbar-height"} />
-            <div class={classes!(css!("margin-top: 1rem;"),"mui-container-fluid")}>
+            <div class={classes!(css!("margin-top: .5rem;"),"mui-container-fluid")}>
                 {props.children.clone()}
             </div>
         </div>

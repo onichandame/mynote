@@ -4,6 +4,8 @@ use yew::prelude::*;
 #[styled_component(Loading)]
 pub fn loading() -> Html {
     html! {
-        <div class={classes!(css!("border: solid;border-radius: 5px;"))}>{"loading"}</div>
+        <div class={classes!(css!(""),"mui--text-center")}>
+            {"loading"}
+        </div>
     }
 }
