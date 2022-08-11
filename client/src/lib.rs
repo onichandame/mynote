@@ -1,8 +1,12 @@
-use pages::Loading;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{components::Layout, contexts::ClientProvider, routes::Route};
+use crate::{
+    components::Layout,
+    contexts::Global,
+    pages::{Home, Loading, NotFound},
+    routes::Route,
+};
 
 mod components;
 mod contexts;
@@ -12,19 +16,20 @@ mod routes;
 #[function_component(App)]
 pub fn app() -> Html {
     html! {
-        <BrowserRouter>
-            <ClientProvider>
+        <Global>
+            <BrowserRouter>
                 <Layout>
                     <Switch<Route> render={Switch::render(switch)}/>
                 </Layout>
-            </ClientProvider>
-        </BrowserRouter>
+            </BrowserRouter>
+        </Global>
     }
 }
 
 fn switch(route: &Route) -> Html {
     match route {
-        Route::Home => html! {<Redirect<Route> to={Route::Loading}/>},
+        Route::Home => html! {<Home />},
         Route::Loading => html! {<Loading/>},
+        Route::NotFound => html! {<NotFound/>},
     }
 }

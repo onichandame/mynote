@@ -6,4 +6,7 @@ pub enum Route {
     Home,
     #[at("/loading")]
     Loading,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
