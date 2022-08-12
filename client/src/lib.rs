@@ -5,7 +5,7 @@ use crate::{
     components::Layout,
     contexts::Global,
     pages::{Home, Loading, NotFound},
-    routes::Route,
+    routes::RootRoute,
 };
 
 mod components;
@@ -19,17 +19,17 @@ pub fn app() -> Html {
         <Global>
             <BrowserRouter>
                 <Layout>
-                    <Switch<Route> render={Switch::render(switch)}/>
+                    <Switch<RootRoute> render={Switch::render(switch)}/>
                 </Layout>
             </BrowserRouter>
         </Global>
     }
 }
 
-fn switch(route: &Route) -> Html {
+fn switch(route: &RootRoute) -> Html {
     match route {
-        Route::Home => html! {<Home />},
-        Route::Loading => html! {<Loading/>},
-        Route::NotFound => html! {<NotFound/>},
+        RootRoute::Home => html! {<Home />},
+        RootRoute::Loading => html! {<Loading/>},
+        RootRoute::NotFound => html! {<NotFound/>},
     }
 }
