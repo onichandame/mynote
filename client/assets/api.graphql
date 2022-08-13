@@ -1,0 +1,14 @@
+query users {
+  users {
+    edges {
+      node {
+        id
+        name
+        email
+        avatar
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}
