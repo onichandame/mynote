@@ -1,5 +1,7 @@
 #[cynic::schema_for_derives(file = r#"schema.graphql"#, module = "schema")]
 pub mod queries {
+    use yew::Properties;
+
     use super::schema;
 
     #[derive(cynic::FragmentArguments, Debug)]
@@ -32,7 +34,7 @@ pub mod queries {
         pub nodes: Vec<User>,
     }
 
-    #[derive(cynic::QueryFragment, Debug)]
+    #[derive(cynic::QueryFragment, Debug, Clone, PartialEq, Properties)]
     pub struct User {
         pub id: i32,
         pub name: String,
@@ -42,7 +44,7 @@ pub mod queries {
         pub avatar: Option<String>,
     }
 
-    #[derive(cynic::Scalar, Debug, Clone)]
+    #[derive(cynic::Scalar, Debug, Clone, PartialEq)]
     pub struct NaiveDateTime(pub String);
 }
 

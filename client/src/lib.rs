@@ -1,12 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{
-    components::Layout,
-    contexts::Global,
-    pages::{Home, Loading, NotFound},
-    routes::RootRoute,
-};
+use crate::{components::Layout, contexts::Global, routes::RootRoute};
 
 mod components;
 mod contexts;
@@ -19,17 +14,9 @@ pub fn app() -> Html {
         <Global>
             <BrowserRouter>
                 <Layout>
-                    <Switch<RootRoute> render={Switch::render(switch)}/>
+                    <Switch<RootRoute> render={Switch::render(RootRoute::switch)}/>
                 </Layout>
             </BrowserRouter>
         </Global>
-    }
-}
-
-fn switch(route: &RootRoute) -> Html {
-    match route {
-        RootRoute::Home => html! {<Home />},
-        RootRoute::Loading => html! {<Loading/>},
-        RootRoute::NotFound => html! {<NotFound/>},
     }
 }

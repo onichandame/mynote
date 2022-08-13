@@ -1,15 +1,9 @@
-use std::{
-    error::Error,
-    sync::{
-        atomic::{AtomicU8, Ordering},
-        Arc,
-    },
-};
+use std::error::Error;
 
 use cynic::{http::SurfExt, MutationBuilder, QueryBuilder};
 use yew::prelude::*;
 
-use self::schema::queries::{Login, LoginArguments, User, Users};
+pub use self::schema::queries::{Login, LoginArguments, User, Users};
 
 use super::local_storage::get_local_storage;
 
@@ -73,38 +67,25 @@ impl Client {
 #[function_component(ClientProvider)]
 pub fn client_provider(props: &ClientProviderProps) -> Html {
     let client = use_state(|| Client::default());
-    use_effect_with_deps(
-        move |client| {
-            let local_storage = get_local_storage();
-            let mut session: Option<String> = None;
-            if let Some(saved_session) = local_storage.get_item(SESSION_KEY).unwrap() {
-                session = Some(saved_session.to_owned());
-            }
-            client.set(Client {
-                session,
-                loaded: true,
-            });
-            || ()
-        },
-        client.clone(),
-    );
-    use_effect_with_deps(
-        move |client| {
-            let mut dropped = Arc::new(AtomicU8::new(0));
-            {
-                wasm_bindgen_futures::spawn_local(async move {
-                    if client.session.is_some() {
-                        let user = client.get_user().await.unwrap();
-                    }
+    {
+        let client = client.clone();
+        use_effect_with_deps(
+            move |_| {
+                let local_storage = get_local_storage();
+                let mut session: Option<String> = None;
+                if let Some(saved_session) = local_storage.get_item(SESSION_KEY).unwrap() {
+                    session = Some(saved_session.to_owned());
+                }
+                client.set(Client {
+                    session,
+                    loaded: true,
+                    ..Default::default()
                 });
-            };
-            let mut dropped = dropped.clone();
-            move || {
-                dropped.fetch_add(1, Ordering::SeqCst);
-            }
-        },
-        (*client).clone(),
-    );
+                || ()
+            },
+            (),
+        );
+    }
     html! {
         <ContextProvider<UseStateHandle<Client>> context={client.clone()}>
             {props.children.clone()}
@@ -125,7 +106,7 @@ pub fn use_session_setter() -> Box<dyn Fn(Option<String>)> {
         let local_storage = get_local_storage();
         state.set(Client {
             session: sess.clone(),
-            ..(*state).clone()
+            loaded: true,
         });
         if let Some(sess) = sess {
             local_storage.set_item(SESSION_KEY, &sess).unwrap();

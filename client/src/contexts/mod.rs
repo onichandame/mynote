@@ -2,6 +2,7 @@ use yew::prelude::*;
 
 mod client;
 mod local_storage;
+mod user;
 
 pub use client::*;
 
