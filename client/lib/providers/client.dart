@@ -1,25 +1,26 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:graphql/client.dart';
 import 'package:notebook/models/user.dart';
-import 'package:notebook/providers/api_schema.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Client extends ChangeNotifier {
   final SharedPreferences? sharedPrefs;
-  final ApiSchema? apiSchema;
 
+  static final Future<String> _schemaState =
+      rootBundle.loadString('assets/api.graphql');
   static const String _sessionKey = "auth";
   static const url =
       String.fromEnvironment('API_URL', defaultValue: 'http://localhost');
   String? _session;
-  late GraphQLClient _client;
 
-  Client(this.sharedPrefs, this.apiSchema) {
+  Client(
+    this.sharedPrefs,
+  ) {
     _session = sharedPrefs?.getString(_sessionKey);
-    _client = _getClient();
   }
 
-  GraphQLClient _getClient() {
+  GraphQLClient get client {
     final httpLink = HttpLink(url);
     final wsLink = WebSocketLink(url);
     final transportLink =
@@ -30,15 +31,12 @@ class Client extends ChangeNotifier {
     return GraphQLClient(link: link, cache: GraphQLCache());
   }
 
-  GraphQLClient get client => _client;
-
   String? get session => _session;
 
   set session(String? sess) {
     bool changed = sess == _session;
     _session = sess;
     if (changed) {
-      _client = _getClient();
       notifyListeners();
     }
   }
@@ -48,19 +46,39 @@ class Client extends ChangeNotifier {
     return User.fromJson((await _request(operationName: 'users'))?['edges'][0]);
   }
 
-  String get _schema {
-    return apiSchema?.schema ?? '';
+  Future<String> signup(
+      {required String name, required String password, String? email}) async {
+    Map<String, dynamic> vars = {};
+    vars['name'] = name;
+    vars['password'] = password;
+    vars['email'] = email;
+    return await _request(operationName: 'signup', variables: vars);
+  }
+
+  Future<String> login(
+      {required String identity, required String password}) async {
+    return await _request(
+        operationName: 'login',
+        variables: {identity: identity, password: password});
+  }
+
+  Future<String> renewSession() async {
+    return await _request(operationName: 'renewSession');
   }
 
   Future<dynamic> _request(
-      {required String operationName, String? resultName}) async {
-    final res = await client.query(
-        QueryOptions(document: gql(_schema), operationName: operationName));
-    final error = res.exception;
+      {required String operationName,
+      Map<String, dynamic> variables = const {},
+      String? resultName}) async {
+    final response = await client.query(QueryOptions(
+        document: gql(await _schemaState),
+        operationName: operationName,
+        variables: variables));
+    final error = response.exception;
     if (error != null) throw error;
-    final rn = resultName ?? operationName;
-    final data = res.data?[rn];
-    if (data == null) throw Exception('$rn not found');
-    return data;
+    final key = resultName ?? operationName;
+    final result = response.data?[key];
+    if (result == null) throw Exception('$key not found');
+    return result;
   }
 }

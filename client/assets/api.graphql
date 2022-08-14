@@ -13,6 +13,14 @@ query users {
   }
 }
 
+mutation signup($name: String!, $password: String!, $email: String) {
+  signup(input: { name: $name, password: $password, email: $email })
+}
+
 mutation login($identity: String!, $password: String!) {
   login(input: { identity: $identity, password: $password })
+}
+
+mutation renewSession {
+  renewSession
 }
