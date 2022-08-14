@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql/client.dart';
 import 'package:notebook/models/user.dart';
@@ -13,6 +16,7 @@ class Client extends ChangeNotifier {
   static const url =
       String.fromEnvironment('API_URL', defaultValue: 'http://localhost');
   String? _session;
+  Future<User?>? _userState;
 
   Client(
     this.sharedPrefs,
@@ -32,18 +36,31 @@ class Client extends ChangeNotifier {
   }
 
   String? get session => _session;
+  Future<User?>? get userState => _userState;
 
   set session(String? sess) {
-    bool changed = sess == _session;
+    bool changed = sess != _session;
     _session = sess;
     if (changed) {
+      if (session == null) {
+        _userState = null;
+      } else {
+        _userState = getUser();
+        _userState?.then((_) {
+          notifyListeners();
+        }).catchError((e) {
+          _session = null;
+          log(e);
+        });
+      }
       notifyListeners();
     }
   }
 
   Future<User?> getUser() async {
     if (session == null) return null;
-    return User.fromJson((await _request(operationName: 'users'))?['edges'][0]);
+    return User.fromJson(
+        (await _request(operationName: 'users'))?['edges']?[0]?['node']);
   }
 
   Future<String> signup(

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:notebook/providers/client.dart';
 import 'package:provider/provider.dart';
@@ -72,8 +74,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                       .signup(
                                           name: _name!, password: _password!)
                                       .then((value) {
+                                    client.session = value;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(value)));
+                                        const SnackBar(
+                                            content: Text('signed up')));
                                   }).catchError((e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text(e.toString())));
@@ -82,9 +86,6 @@ class _SignupScreenState extends State<SignupScreen> {
                                       _busy = false;
                                     });
                                   });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(_password ?? 'empty')));
                                 }
                               },
                         child: const Text("SIGN UP")))

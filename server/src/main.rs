@@ -39,7 +39,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let app = routes::routes(schema.clone());
     let app = app.with(warp::trace::request());
-    let cors = warp::cors();
+    let cors = warp::cors()
+        .allow_methods(vec!["POST", "GET"])
+        .allow_headers(["Cache-Control", "Content-Type", "Pragma", "Authorization"]);
     let cors = if args.allow_origins.len() > 0 {
         cors.allow_origins(args.allow_origins.iter().map(AsRef::as_ref))
     } else {

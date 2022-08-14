@@ -21,22 +21,6 @@ class Global extends StatelessWidget {
             Provider.of<SharedPreferences?>(context, listen: false),
           ),
         ),
-        FutureProvider(
-            create: (context) async {
-              final client = Provider.of<Client>(context, listen: false);
-              if (client.session == null) {
-                return null;
-              } else {
-                try {
-                  return await client.getUser();
-                } catch (e) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(e.toString())));
-                  client.session = null;
-                }
-              }
-            },
-            initialData: null)
       ],
       child: child,
     );

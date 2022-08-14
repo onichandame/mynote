@@ -9,7 +9,12 @@ class User {
       this.updatedAt);
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User._(json['id'], json['name'], json['email'], json['avatar'],
-        json['createdAt'], json['updatedAt']);
+    return User._(
+        json['id'],
+        json['name'],
+        json['email'],
+        json['avatar'],
+        DateTime.parse(json['createdAt']),
+        json['updatedAt'] == null ? null : DateTime.parse(json['updatedAt']));
   }
 }

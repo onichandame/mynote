@@ -27,7 +27,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(User::CreatedAt).date_time().not_null())
                     .col(ColumnDef::new(User::UpdatedAt).date_time())
-                    .col(ColumnDef::new(User::Name).text().not_null())
+                    .col(ColumnDef::new(User::Name).text().unique_key().not_null())
                     .col(ColumnDef::new(User::Email).text())
                     .col(ColumnDef::new(User::Avatar).text())
                     .to_owned(),

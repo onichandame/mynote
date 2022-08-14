@@ -14,7 +14,9 @@ pub fn query_mutation(
         .and(graphql(schema.clone()))
         .and_then(
             |token, (schema, mut request): (Schema, Request)| async move {
-                request = request.data(token);
+                if let Some(session) = token {
+                    request = request.data(session);
+                }
                 Ok::<_, Rejection>(GraphQLResponse::from(schema.execute(request).await))
             },
         )
