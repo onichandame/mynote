@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 class ApiSchema {
-  late String _schema;
+  late final String _schema;
 
   ApiSchema._(this._schema);
 

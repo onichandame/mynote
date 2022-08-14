@@ -13,8 +13,6 @@ class Client extends ChangeNotifier {
       String.fromEnvironment('API_URL', defaultValue: 'http://localhost');
   String? _session;
   late GraphQLClient _client;
-  User? _user;
-  bool _loading = false;
 
   Client(this.sharedPrefs, this.apiSchema) {
     _session = sharedPrefs?.getString(_sessionKey);
@@ -36,24 +34,11 @@ class Client extends ChangeNotifier {
 
   String? get session => _session;
 
-  User? get user => _user;
-
-  bool get loading => _loading;
-
   set session(String? sess) {
     bool changed = sess == _session;
     _session = sess;
     if (changed) {
       _client = _getClient();
-      if (session != null) {
-        _loading = true;
-        getUser().then((v) {
-          _user = v;
-        }).whenComplete(() {
-          _loading = false;
-          notifyListeners();
-        });
-      }
       notifyListeners();
     }
   }

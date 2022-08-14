@@ -12,3 +12,7 @@ query users {
     }
   }
 }
+
+mutation login($identity: String!, $password: String!) {
+  login(input: { identity: $identity, password: $password })
+}

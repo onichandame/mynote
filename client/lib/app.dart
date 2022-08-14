@@ -23,7 +23,17 @@ class MyApp extends StatelessWidget {
           create: (context) => Client(
               Provider.of<SharedPreferences?>(context, listen: false),
               Provider.of<ApiSchema?>(context, listen: false)),
-        )
+        ),
+        FutureProvider(
+            create: (context) async {
+              final client = Provider.of<Client>(context, listen: false);
+              if (client.session == null) {
+                return null;
+              } else {
+                return await client.getUser();
+              }
+            },
+            initialData: null)
       ],
       child: MaterialApp(
         title: 'Notebook',
