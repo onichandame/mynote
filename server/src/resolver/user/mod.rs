@@ -2,7 +2,7 @@ use async_graphql::{async_trait::async_trait, SimpleObject};
 use crud::{Authorizer, Hook, CRUD};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
-use crate::{auth::Session, entity};
+use crate::entity;
 
 #[derive(SimpleObject, CRUD)]
 #[crud(model = "entity::user")]
@@ -26,9 +26,7 @@ impl Authorizer for User {
         ctx: &async_graphql::Context<'_>,
     ) -> async_graphql::Result<sea_orm::Condition> {
         use sea_orm::prelude::*;
-        let db = ctx.data::<DatabaseConnection>()?;
-        let session = ctx.data::<Session>()?;
-        let user = session.decode(db).await?;
+        let user = ctx.data::<entity::user::Model>()?;
         Ok(sea_orm::Condition::all().add(entity::user::Column::Id.eq(user.id)))
     }
 }

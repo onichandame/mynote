@@ -1,4 +1,3 @@
-use tracing::info;
 use warp::{Filter, Rejection};
 
 use crate::auth::Session;

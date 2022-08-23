@@ -30,7 +30,7 @@ struct ChangePasswordInput {
 #[Object]
 impl AuthMutation {
     async fn signup(&self, ctx: &Context<'_>, input: SignupInput) -> Result<String> {
-        ctx.data::<Session>()
+        ctx.data::<entity::user::Model>()
             .err()
             .ok_or("logged in user cannot signup again")?;
         let db = ctx.data::<DatabaseConnection>()?;
@@ -39,22 +39,23 @@ impl AuthMutation {
     }
 
     async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
+        ctx.data::<entity::user::Model>()
+            .err()
+            .ok_or("logged in user cannot log in again")?;
         let db = ctx.data::<DatabaseConnection>()?;
         let session = login_by_password(&input.identity, &input.password, db).await?;
         Ok(session.0)
     }
 
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
+        let user = ctx.data::<entity::user::Model>()?;
         let db = ctx.data::<DatabaseConnection>()?;
-        let session = ctx.data::<Session>()?;
-        let user = session.decode(db).await?;
         Ok(Session::encode(&user, &db).await?.0)
     }
 
     async fn change_password(&self, ctx: &Context<'_>, input: ChangePasswordInput) -> Result<bool> {
         let db = ctx.data::<DatabaseConnection>()?;
-        let session = ctx.data::<Session>()?;
-        let user = session.decode(db).await?;
+        let user = ctx.data::<entity::user::Model>()?;
         entity::credential::ActiveModel {
             password: Set(input.password),
             user_id: Set(user.id),

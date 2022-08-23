@@ -1,8 +1,8 @@
 use async_graphql::{async_trait::async_trait, SimpleObject};
 use crud::{Authorizer, Hook, CRUD};
-use sea_orm::{DatabaseConnection, Set};
+use sea_orm::Set;
 
-use crate::{auth::Session, entity};
+use crate::entity;
 
 #[derive(SimpleObject, CRUD)]
 #[crud(model = "entity::note", deletable, subscribable)]
@@ -26,9 +26,7 @@ impl Hook for Note {
         mut input: Self::ActiveModel,
         _txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<Self::ActiveModel> {
-        let db = ctx.data::<DatabaseConnection>()?;
-        let session = ctx.data::<Session>()?;
-        let user = session.decode(db).await?;
+        let user = ctx.data::<entity::user::Model>()?;
         input.created_at = Set(chrono::Utc::now().naive_utc());
         input.author_id = Set(user.id);
         Ok(input)
@@ -50,9 +48,7 @@ impl Authorizer for Note {
         ctx: &async_graphql::Context<'_>,
     ) -> async_graphql::Result<sea_orm::Condition> {
         use sea_orm::prelude::*;
-        let db = ctx.data::<DatabaseConnection>()?;
-        let session = ctx.data::<Session>()?;
-        let user = session.decode(db).await?;
+        let user = ctx.data::<entity::user::Model>()?;
         Ok(sea_orm::Condition::all().add(entity::note::Column::AuthorId.eq(user.id)))
     }
 }
