@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:notebook/providers/client.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _email;
   @override
   Widget build(BuildContext context) {
-    final client = Provider.of<Client>(context);
+    final client = Provider.of<Client?>(context);
     return Scaffold(
         body: Form(
       key: _formKey,
@@ -70,7 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   setState(() {
                                     _busy = true;
                                   });
-                                  client
+                                  client!
                                       .signup(
                                           name: _name!, password: _password!)
                                       .then((value) {
@@ -78,6 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                             content: Text('signed up')));
+                                    Navigator.pop(context);
                                   }).catchError((e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text(e.toString())));

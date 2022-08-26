@@ -1,11 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:notebook/screens/signup.dart';
-
-import 'home.dart';
-
-Map<String, WidgetBuilder> getRoutes() {
-  return {
-    '/home': (_) => const HomeScreen(),
-    '/signup': (_) => const SignupScreen(),
-  };
-}
+const routeHome = '';
+const routeLoading = '/loading';
+const routeSignup = '$routeHome/signup';
+const routeLogin = '$routeHome/login';

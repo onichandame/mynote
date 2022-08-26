@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +6,7 @@ import 'package:notebook/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Client extends ChangeNotifier {
-  final SharedPreferences? sharedPrefs;
+  final SharedPreferences sharedPrefs;
 
   static final Future<String> _schemaState =
       rootBundle.loadString('assets/api.graphql');
@@ -16,12 +14,11 @@ class Client extends ChangeNotifier {
   static const url =
       String.fromEnvironment('API_URL', defaultValue: 'http://localhost');
   String? _session;
-  Future<User?>? _userState;
 
   Client(
     this.sharedPrefs,
   ) {
-    _session = sharedPrefs?.getString(_sessionKey);
+    session = sharedPrefs.getString(_sessionKey);
   }
 
   GraphQLClient get client {
@@ -36,22 +33,15 @@ class Client extends ChangeNotifier {
   }
 
   String? get session => _session;
-  Future<User?>? get userState => _userState;
 
   set session(String? sess) {
     bool changed = sess != _session;
     _session = sess;
     if (changed) {
-      if (session == null) {
-        _userState = null;
+      if (sess == null) {
+        sharedPrefs.remove(_sessionKey);
       } else {
-        _userState = getUser();
-        _userState?.then((_) {
-          notifyListeners();
-        }).catchError((e) {
-          _session = null;
-          log(e);
-        });
+        sharedPrefs.setString(_sessionKey, sess);
       }
       notifyListeners();
     }

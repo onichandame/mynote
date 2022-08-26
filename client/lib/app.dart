@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notebook/providers/global.dart';
+import 'package:notebook/screens/home.dart';
+import 'package:notebook/screens/loading.dart';
 import 'package:notebook/screens/routes.dart';
 
 class MyApp extends StatelessWidget {
@@ -14,8 +16,20 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.indigo,
         ),
-        initialRoute: '/home',
-        routes: getRoutes(),
+        debugShowCheckedModeBanner: false,
+        onGenerateRoute: (settings) {
+          late Widget page;
+          if (settings.name == routeLoading) {
+            page = const LoadingScreen();
+          } else if (settings.name!.startsWith(routeHome)) {
+            page = const HomeScreen();
+          } else {
+            throw Exception('404: Unknown route: ${settings.name}');
+          }
+          return MaterialPageRoute(
+              builder: (context) => page, settings: settings);
+        },
+        initialRoute: routeLoading,
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notebook/providers/current_user.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,11 +17,15 @@ class Global extends StatelessWidget {
           create: (context) => SharedPreferences.getInstance(),
           initialData: null,
         ),
-        ChangeNotifierProvider(
-          create: (context) => Client(
-            Provider.of<SharedPreferences?>(context, listen: false),
-          ),
+        ChangeNotifierProxyProvider<SharedPreferences?, Client?>(
+          create: (context) => null,
+          update: (context, sharedPref, client) =>
+              sharedPref == null ? null : Client(sharedPref),
         ),
+        ChangeNotifierProxyProvider<Client?, CurrentUser?>(
+            create: (_) => null,
+            update: (context, client, _) =>
+                client == null ? null : CurrentUser(client))
       ],
       child: child,
     );
