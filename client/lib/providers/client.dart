@@ -66,7 +66,7 @@ class Client extends ChangeNotifier {
       {required String identity, required String password}) async {
     return await _request(
         operationName: 'login',
-        variables: {identity: identity, password: password});
+        variables: {'identity': identity, 'password': password});
   }
 
   Future<String> renewSession() async {

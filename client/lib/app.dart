@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:notebook/providers/global.dart';
 import 'package:notebook/screens/home.dart';
 import 'package:notebook/screens/loading.dart';
+import 'package:notebook/screens/login.dart';
+import 'package:notebook/screens/profile.dart';
 import 'package:notebook/screens/routes.dart';
+import 'package:notebook/screens/signup.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -17,17 +20,12 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.indigo,
         ),
         debugShowCheckedModeBanner: false,
-        onGenerateRoute: (settings) {
-          late Widget page;
-          if (settings.name == routeLoading) {
-            page = const LoadingScreen();
-          } else if (settings.name!.startsWith(routeHome)) {
-            page = const HomeScreen();
-          } else {
-            throw Exception('404: Unknown route: ${settings.name}');
-          }
-          return MaterialPageRoute(
-              builder: (context) => page, settings: settings);
+        routes: {
+          routeLoading: (context) => const LoadingScreen(),
+          routeHome: (context) => const HomeScreen(),
+          routeSignup: (context) => const SignupScreen(),
+          routeLogin: (context) => const LoginScreen(),
+          routeProfile: (context) => const ProfileScreen(),
         },
         initialRoute: routeLoading,
       ),

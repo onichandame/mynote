@@ -21,7 +21,7 @@ pub async fn signup(
     let user = active_model.insert(&txn).await?;
     entity::credential::ActiveModel {
         user_id: Set(user.id),
-        password: Set(password.to_owned()),
+        password: Set(bcrypt::hash(password, bcrypt::DEFAULT_COST)?),
         created_at: Set(chrono::Utc::now().naive_utc()),
         ..Default::default()
     }
