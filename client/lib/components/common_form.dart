@@ -6,8 +6,13 @@ class CommonForm extends StatefulWidget {
   final List<CommonFormField> fields;
   final FutureOr Function(BuildContext, Map<String, dynamic>, bool mounted)
       onSubmit;
+  final String buttonLabel;
 
-  const CommonForm({Key? key, required this.fields, required this.onSubmit})
+  const CommonForm(
+      {Key? key,
+      required this.fields,
+      required this.onSubmit,
+      required this.buttonLabel})
       : super(key: key);
 
   @override
@@ -37,6 +42,16 @@ class _CommonFormState extends State<CommonForm> {
                       validator: (value) {
                         if (!field.nullable && value == null) {
                           return '${field.name} cannot be empty';
+                        }
+                        if (field.min != null &&
+                            value != null &&
+                            value.length < field.min!) {
+                          return '${field.name} must be at least ${field.min} characters long';
+                        }
+                        if (field.max != null &&
+                            value != null &&
+                            value.length > field.max!) {
+                          return '${field.name} must be at most ${field.max} characters long';
                         }
                         return null;
                       },
@@ -74,7 +89,7 @@ class _CommonFormState extends State<CommonForm> {
                               _busy = true;
                             });
                           },
-                    child: const Text('Log In')),
+                    child: Text(widget.buttonLabel)),
               )
             ],
           ),
@@ -89,11 +104,15 @@ class CommonFormField {
   final String? label;
   final bool nullable;
   final CommonFormFieldType type;
+  final int? min;
+  final int? max;
   CommonFormField(
       {required this.name,
       required this.type,
       this.nullable = false,
-      this.label});
+      this.label,
+      this.min,
+      this.max});
 }
 
 enum CommonFormFieldType { text }

@@ -24,3 +24,9 @@ mutation login($identity: String!, $password: String!) {
 mutation renewSession {
   renewSession
 }
+
+mutation updateSelf($name: String, $email: String, $avatar: String) {
+  updateSelf: updateUsers(
+    update: { name: $name, email: $email, avatar: $avatar }
+  )
+}

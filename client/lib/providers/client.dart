@@ -55,11 +55,9 @@ class Client extends ChangeNotifier {
 
   Future<String> signup(
       {required String name, required String password, String? email}) async {
-    Map<String, dynamic> vars = {};
-    vars['name'] = name;
-    vars['password'] = password;
-    vars['email'] = email;
-    return await _request(operationName: 'signup', variables: vars);
+    return await _request(
+        operationName: 'signup',
+        variables: {'name': name, 'password': password, 'email': email});
   }
 
   Future<String> login(
@@ -71,6 +69,12 @@ class Client extends ChangeNotifier {
 
   Future<String> renewSession() async {
     return await _request(operationName: 'renewSession');
+  }
+
+  Future<void> updateSelf({String? name, String? email, String? avatar}) async {
+    await _request(
+        operationName: 'updateSelf',
+        variables: {'name': name, 'email': email, 'avatar': avatar});
   }
 
   Future<dynamic> _request(

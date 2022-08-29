@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notebook/components/avatar.dart';
 import 'package:notebook/providers/client.dart';
 import 'package:notebook/providers/current_user.dart';
 import 'package:notebook/screens/routes.dart';
@@ -29,39 +30,18 @@ class Layout extends StatelessWidget {
               )
             : null,
         title: Text(title),
-        actions: const [Avatar()],
+        actions: [
+          Avatar(
+            onPressed: (context) {
+              Scaffold.of(context).openEndDrawer();
+            },
+          )
+        ],
       ),
       endDrawer: const AvatarDrawer(),
       bottomNavigationBar: bottomNavigationBar,
       body: body,
     );
-  }
-}
-
-class Avatar extends StatelessWidget {
-  const Avatar({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<CurrentUser?>(
-        builder: (context, currentUser, child) => IconButton(
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-            icon: currentUser?.user == null
-                ? const Icon(Icons.account_circle)
-                : currentUser!.user?.avatar == null
-                    ? Text(
-                        currentUser.user!.name
-                            .trim()
-                            .split(' ')
-                            .map((v) => v[0])
-                            .take(2)
-                            .map((v) => v.toUpperCase())
-                            .join(),
-                        style: Theme.of(context).appBarTheme.titleTextStyle,
-                      )
-                    : Image.network(currentUser.user!.avatar!)));
   }
 }
 
@@ -93,6 +73,13 @@ class AvatarDrawer extends StatelessWidget {
                         )
                       ]
                     : [
+                        ListTile(
+                            title: const Text('Profile'),
+                            leading: const Icon(Icons.settings),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, routeProfile);
+                            }),
                         ListTile(
                           title: const Text('Log Out'),
                           leading: const Icon(Icons.logout),

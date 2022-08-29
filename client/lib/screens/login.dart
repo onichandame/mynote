@@ -22,6 +22,7 @@ class LoginScreen extends StatelessWidget {
                 label: 'Password',
                 type: CommonFormFieldType.text)
           ],
+          buttonLabel: 'Log In',
           onSubmit: (context, values, mounted) async {
             final session = await client!.login(
                 identity: values['identity'], password: values['password']);
