@@ -65,7 +65,6 @@ jobs:
           --set image.pullPolicy=Always
           --set args.port=80
           --set args.databaseUrl=sqlite::memory:
-          --set "args.allowOrigins={https://notebook-staging.onichandame.com,https://api-notebook-staging.onichandame.com}"
           --set service.port=80
           --set ingress.enabled=true
           --set ingress.className=nginx
