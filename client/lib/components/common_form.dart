@@ -55,6 +55,7 @@ class _CommonFormState extends State<CommonForm> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) => _onSubmit(),
                       onSaved: (value) {
                         _values[field.name] = value;
                       },
@@ -64,31 +65,7 @@ class _CommonFormState extends State<CommonForm> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: ElevatedButton(
-                    onPressed: _busy
-                        ? null
-                        : () {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              (() async {
-                                try {
-                                  await widget.onSubmit(
-                                      context, _values, mounted);
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(e.toString()),
-                                  ));
-                                } finally {
-                                  setState(() {
-                                    _busy = false;
-                                  });
-                                }
-                              })();
-                            }
-                            setState(() {
-                              _busy = true;
-                            });
-                          },
+                    onPressed: _busy ? null : _onSubmit,
                     child: Text(widget.buttonLabel)),
               )
             ],
@@ -96,6 +73,26 @@ class _CommonFormState extends State<CommonForm> {
         ),
       ),
     );
+  }
+
+  void _onSubmit() async {
+    setState(() {
+      _busy = true;
+    });
+    try {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+        await widget.onSubmit(context, _values, mounted);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+      ));
+    } finally {
+      setState(() {
+        _busy = false;
+      });
+    }
   }
 }
 

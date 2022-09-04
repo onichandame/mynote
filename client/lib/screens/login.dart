@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notebook/components/common_form.dart';
 import 'package:notebook/components/layout.dart';
 import 'package:notebook/providers/client.dart';
+import 'package:notebook/screens/routes.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -30,7 +31,8 @@ class LoginScreen extends StatelessWidget {
               ScaffoldMessenger.of(context)
                   .showSnackBar(const SnackBar(content: Text('logged in')));
               client.session = session;
-              Navigator.of(context).pop();
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil(routeHome, (_) => false);
             }
           },
         ));

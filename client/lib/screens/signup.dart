@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notebook/components/common_form.dart';
 import 'package:notebook/components/layout.dart';
 import 'package:notebook/providers/client.dart';
+import 'package:notebook/screens/routes.dart';
 import 'package:provider/provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -37,7 +38,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   client.session = session;
                   ScaffoldMessenger.of(context)
                       .showSnackBar(const SnackBar(content: Text('signed up')));
-                  Navigator.of(context).pop();
+                  Navigator.of(context)
+                      .pushNamedAndRemoveUntil(routeHome, (_) => false);
                 }
               },
             )));

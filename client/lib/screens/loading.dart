@@ -10,12 +10,15 @@ class LoadingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final client = Provider.of<Client?>(context);
     if (client != null) {
-      Future.microtask(() =>
-          Navigator.pushNamedAndRemoveUntil(context, routeHome, (_) => false));
+      Future.microtask(() => Navigator.of(context)
+          .pushNamedAndRemoveUntil(routeHome, (_) => false));
     }
-    return const Scaffold(
+    return Scaffold(
         body: Center(
-          child: Text("loading..."),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [Text("loading...")],
+          ),
         ),
         backgroundColor: Colors.indigo);
   }
