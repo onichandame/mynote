@@ -3,8 +3,11 @@ import 'package:notebook/providers/global.dart';
 import 'package:notebook/screens/home.dart';
 import 'package:notebook/screens/loading.dart';
 import 'package:notebook/screens/login.dart';
-import 'package:notebook/screens/profile.dart';
+import 'package:notebook/screens/settings/backend/backend.dart';
+import 'package:notebook/screens/settings/backend/url.dart';
+import 'package:notebook/screens/settings/profile.dart';
 import 'package:notebook/screens/routes.dart';
+import 'package:notebook/screens/settings/settings.dart';
 import 'package:notebook/screens/signup.dart';
 
 class MyApp extends StatelessWidget {
@@ -25,7 +28,11 @@ class MyApp extends StatelessWidget {
           routeHome: (context) => const HomeScreen(),
           routeSignup: (context) => const SignupScreen(),
           routeLogin: (context) => const LoginScreen(),
-          routeProfile: (context) => const ProfileScreen(),
+          routeSettings: (context) => const SettingsScreen(),
+          routeSettingsBackend: (context) => const BackendSettingsScreen(),
+          routeSettingsBackendURL: (context) =>
+              const UrlBackendSettingsScreen(),
+          routeSettingsProfile: (context) => const ProfileScreen(),
         },
         initialRoute: routeLoading,
       ),

@@ -11,19 +11,31 @@ class Client extends ChangeNotifier {
   static final Future<String> _schemaState =
       rootBundle.loadString('assets/api.graphql');
   static const String _sessionKey = "auth";
-  static const url =
-      String.fromEnvironment('API_URL', defaultValue: 'http://localhost');
+  static const String _urlKey = "url";
+
+  late String _url;
   String? _session;
 
   Client(
     this.sharedPrefs,
   ) {
     session = sharedPrefs.getString(_sessionKey);
+    url = sharedPrefs.getString(_urlKey) ??
+        const String.fromEnvironment('API_URL',
+            defaultValue: 'http://localhost');
+  }
+
+  String get url => _url;
+
+  set url(String value) {
+    _url = value;
+    notifyListeners();
+    sharedPrefs.setString(_urlKey, value);
   }
 
   GraphQLClient get client {
-    final httpLink = HttpLink(url);
-    final wsLink = WebSocketLink(url);
+    final httpLink = HttpLink(_url);
+    final wsLink = WebSocketLink(_url);
     final transportLink =
         Link.split((request) => request.isSubscription, wsLink, httpLink);
     final authLink =

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notebook/components/avatar.dart';
+import 'package:notebook/components/list_item.dart';
 import 'package:notebook/providers/client.dart';
 import 'package:notebook/providers/current_user.dart';
 import 'package:notebook/screens/routes.dart';
@@ -52,44 +53,83 @@ class AvatarDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<CurrentUser?, Client?>(
         builder: (context, currentUser, client, _) => Drawer(
-              child: ListView(
-                children: currentUser?.user == null
-                    ? [
-                        ListTile(
-                          title: const Text('Log In'),
-                          leading: const Icon(Icons.login),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(context, routeLogin);
-                          },
-                        ),
-                        ListTile(
-                          title: const Text('Sign Up'),
-                          leading: const Icon(Icons.account_circle),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.pushNamed(context, routeSignup);
-                          },
-                        )
-                      ]
-                    : [
-                        ListTile(
-                            title: const Text('Profile'),
-                            leading: const Icon(Icons.settings),
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.pushNamed(context, routeProfile);
-                            }),
-                        ListTile(
-                          title: const Text('Log Out'),
-                          leading: const Icon(Icons.logout),
-                          onTap: () {
-                            Navigator.pop(context);
-                            client!.session = null;
-                          },
-                        )
-                      ],
-              ),
-            ));
+                child: Wrap(
+              direction: Axis.vertical,
+              spacing: 10,
+              children: [
+                ListView(
+                  children: [
+                    DrawerItem(
+                      icon: Icons.settings,
+                      title: 'Settings',
+                      onTap: () =>
+                          _navigateFromDrawerItem(context, routeSettings),
+                    )
+                  ],
+                ),
+                ListView(
+                  children: (currentUser?.user == null
+                      ? [
+                          DrawerItem(
+                            icon: Icons.login,
+                            title: 'Log In',
+                            onTap: () =>
+                                _navigateFromDrawerItem(context, routeLogin),
+                          ),
+                          DrawerItem(
+                            icon: Icons.account_circle,
+                            title: 'Sign Up',
+                            onTap: () =>
+                                _navigateFromDrawerItem(context, routeSignup),
+                          ),
+                        ]
+                      : [
+                          DrawerItem(
+                              title: 'Log Out',
+                              color: Theme.of(context).colorScheme.error,
+                              icon: Icons.logout,
+                              onTap: () {
+                                Navigator.pop(context);
+                                client!.session = null;
+                              }),
+                        ]),
+                )
+              ],
+            )));
   }
+}
+
+class DrawerItem extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color? color;
+  final Function() onTap;
+
+  const DrawerItem(
+      {Key? key,
+      required this.title,
+      this.color,
+      required this.onTap,
+      required this.icon})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem(
+      leading: Icon(
+        icon,
+        color: color,
+      ),
+      title: Text(
+        title,
+        style: color == null ? null : TextStyle(color: color),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+void _navigateFromDrawerItem(BuildContext context, String target) {
+  Navigator.pop(context);
+  Navigator.pushNamed(context, target);
 }
