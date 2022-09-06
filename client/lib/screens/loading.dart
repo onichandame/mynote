@@ -13,12 +13,9 @@ class LoadingScreen extends StatelessWidget {
       Future.microtask(() => Navigator.of(context)
           .pushNamedAndRemoveUntil(routeHome, (_) => false));
     }
-    return Scaffold(
+    return const Scaffold(
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [Text("loading...")],
-          ),
+          child: CircularProgressIndicator(),
         ),
         backgroundColor: Colors.indigo);
   }

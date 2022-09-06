@@ -53,49 +53,40 @@ class AvatarDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<CurrentUser?, Client?>(
         builder: (context, currentUser, client, _) => Drawer(
-                child: Wrap(
-              direction: Axis.vertical,
-              spacing: 10,
-              children: [
-                ListView(
-                  children: [
-                    DrawerItem(
-                      icon: Icons.settings,
-                      title: 'Settings',
-                      onTap: () =>
-                          _navigateFromDrawerItem(context, routeSettings),
-                    )
-                  ],
+              child: ListView(children: [
+                ...(currentUser?.user == null
+                    ? [
+                        DrawerItem(
+                          icon: Icons.login,
+                          title: 'Log In',
+                          onTap: () =>
+                              _navigateFromDrawerItem(context, routeLogin),
+                        ),
+                        DrawerItem(
+                          icon: Icons.account_circle,
+                          title: 'Sign Up',
+                          onTap: () =>
+                              _navigateFromDrawerItem(context, routeSignup),
+                        ),
+                      ]
+                    : [
+                        DrawerItem(
+                            title: 'Log Out',
+                            color: Theme.of(context).colorScheme.error,
+                            icon: Icons.logout,
+                            onTap: () {
+                              Navigator.pop(context);
+                              client!.session = null;
+                            }),
+                      ]),
+                const Divider(),
+                DrawerItem(
+                  icon: Icons.settings,
+                  title: 'Settings',
+                  onTap: () => _navigateFromDrawerItem(context, routeSettings),
                 ),
-                ListView(
-                  children: (currentUser?.user == null
-                      ? [
-                          DrawerItem(
-                            icon: Icons.login,
-                            title: 'Log In',
-                            onTap: () =>
-                                _navigateFromDrawerItem(context, routeLogin),
-                          ),
-                          DrawerItem(
-                            icon: Icons.account_circle,
-                            title: 'Sign Up',
-                            onTap: () =>
-                                _navigateFromDrawerItem(context, routeSignup),
-                          ),
-                        ]
-                      : [
-                          DrawerItem(
-                              title: 'Log Out',
-                              color: Theme.of(context).colorScheme.error,
-                              icon: Icons.logout,
-                              onTap: () {
-                                Navigator.pop(context);
-                                client!.session = null;
-                              }),
-                        ]),
-                )
-              ],
-            )));
+              ]),
+            ));
   }
 }
 
