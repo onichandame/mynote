@@ -9,4 +9,16 @@ pub struct Args {
     pub port: u16,
     #[clap(short, long)]
     pub allow_origins: Vec<String>,
+    #[clap(
+        long,
+        default_value = "content",
+        help = "Root directory of contents. Contents are plain files stored locally"
+    )]
+    pub content_dir: String,
+    #[clap(
+        long,
+        default_value = "content",
+        help = "Root path from which the contents are served"
+    )]
+    pub content_path: String,
 }

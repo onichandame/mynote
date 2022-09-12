@@ -38,7 +38,7 @@ pub async fn start_server() -> Result<(), Box<dyn Error + Send + Sync>> {
     .finish();
     debug!(schema = schema.sdl(), "graphql schema built");
 
-    let app = routes::routes(schema.clone());
+    let app = routes::routes(schema.clone(), &args);
     let app = app.with(warp::trace::request());
     let cors = warp::cors()
         .allow_methods(vec!["POST", "GET"])
@@ -49,7 +49,9 @@ pub async fn start_server() -> Result<(), Box<dyn Error + Send + Sync>> {
         cors.allow_any_origin()
     };
     let app = app.with(cors);
-    warp::serve(app).run(([0, 0, 0, 0], args.port)).await;
+    warp::serve(app)
+        .run(([0, 0, 0, 0], args.port.clone()))
+        .await;
 
     trace!("server shutting down");
     Ok(())

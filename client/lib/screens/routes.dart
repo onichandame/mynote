@@ -6,4 +6,5 @@ const routeSettings = '/settings';
 const routeSettingsBackend = '$routeSettings/backend';
 const routeSettingsBackendURL = '$routeSettingsBackend/url';
 const routeSettingsProfile = '$routeSettings/profile';
-const routeSettingsProfileEdit = '$routeSettingsProfile/edit';
+const routeSettingsProfileUsername = '$routeSettingsProfile/username';
+const routeSettingsProfileAvatarUrl = '$routeSettingsProfile/avatarurl';

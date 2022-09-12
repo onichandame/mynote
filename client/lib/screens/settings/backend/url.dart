@@ -23,6 +23,7 @@ class _UrlBackendSettingsScreenState extends State<UrlBackendSettingsScreen> {
                 : TextFormField(
                     decoration:
                         const InputDecoration(labelText: 'Enter new URL'),
+                    initialValue: client.url,
                     onFieldSubmitted: (value) {
                       showDialog(
                           context: context,

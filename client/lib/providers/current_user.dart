@@ -19,12 +19,22 @@ class CurrentUser extends ChangeNotifier {
     notifyListeners();
   }
 
-  reload() {
-    _client.getUser().then((value) {
-      user = value;
-    }).catchError((e) {
-      log(e, level: 4);
+  reload() async {
+    try {
+      user = await _client.getUser();
+    } catch (e) {
+      log(e.toString(), level: 4);
       _client.session = null;
-    });
+    }
+  }
+
+  Future<void> updateName(String name) async {
+    await _client.updateSelf(name: name);
+    await reload();
+  }
+
+  Future<void> updateAvatar(String url) async {
+    await _client.updateSelf(avatar: url);
+    await reload();
   }
 }

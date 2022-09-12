@@ -10,8 +10,6 @@ class Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CurrentUser?>(
         builder: (context, currentUser, child) => CircleAvatar(
-              backgroundColor:
-                  Theme.of(context).buttonTheme.colorScheme!.primary,
               child: IconButton(
                   onPressed: onPressed == null
                       ? null

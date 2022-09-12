@@ -36,6 +36,7 @@ dependencies:
   graphql: ^5.1.1
   shared_preferences: ^2.0.15
   provider: ^6.0.3
+  image_picker: ^0.8.5+3
 
 dev_dependencies:
   flutter_test:
