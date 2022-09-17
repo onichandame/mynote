@@ -35,7 +35,7 @@ impl AuthMutation {
             .ok_or("logged in user cannot signup again")?;
         let db = ctx.data::<DatabaseConnection>()?;
         let user = signup(&input.name, &input.password, input.email.as_deref(), db).await?;
-        Ok(Session::encode(&user, db).await?.0)
+        Ok(Session::try_from_user(&user, db).await?.token)
     }
 
     async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
@@ -44,13 +44,13 @@ impl AuthMutation {
             .ok_or("logged in user cannot log in again")?;
         let db = ctx.data::<DatabaseConnection>()?;
         let session = login_by_password(&input.identity, &input.password, db).await?;
-        Ok(session.0)
+        Ok(session.token)
     }
 
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
         let user = ctx.data::<entity::user::Model>()?;
         let db = ctx.data::<DatabaseConnection>()?;
-        Ok(Session::encode(&user, &db).await?.0)
+        Ok(Session::try_from_user(&user, &db).await?.token)
     }
 
     async fn change_password(&self, ctx: &Context<'_>, input: ChangePasswordInput) -> Result<bool> {

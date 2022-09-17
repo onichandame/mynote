@@ -25,6 +25,7 @@ pub async fn start_server() -> Result<(), Box<dyn Error + Send + Sync>> {
     setup_trace().await?;
     trace!("server starting");
     let args = Args::parse();
+    args.validate()?;
     let db = Database::connect(&args.database_url).await?;
     Migrator::up(&db, None).await?;
     let schema = Schema::build(
@@ -38,7 +39,7 @@ pub async fn start_server() -> Result<(), Box<dyn Error + Send + Sync>> {
     .finish();
     debug!(schema = schema.sdl(), "graphql schema built");
 
-    let app = routes::routes(schema.clone(), &args);
+    let app = routes::create_routes(schema.clone(), &args, &db);
     let app = app.with(warp::trace::request());
     let cors = warp::cors()
         .allow_methods(vec!["POST", "GET"])

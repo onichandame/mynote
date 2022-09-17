@@ -34,5 +34,5 @@ pub async fn login_by_password(
         }
         None => {}
     };
-    Ok(Session::encode(&user, db).await?)
+    Ok(Session::try_from_user(&user, db).await?)
 }

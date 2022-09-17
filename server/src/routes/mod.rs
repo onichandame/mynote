@@ -1,25 +1,25 @@
-use warp::{Filter, Reply};
+use sea_orm::DatabaseConnection;
+use warp::{Filter, Rejection, Reply};
 
 use crate::{args::Args, schema::Schema};
 
-use self::{
-    content::content, playground::playground, query_mutation::query_mutation,
-    subscription::subscription,
-};
+use self::{api::create_api, content::create_content, error::handle_error};
 
+mod api;
 mod content;
+mod error;
 mod middlewares;
-mod playground;
-mod query_mutation;
-mod subscription;
 
-pub fn routes(
+pub fn create_routes(
     schema: Schema,
     args: &Args,
-) -> impl Filter<Extract = impl Reply, Error = warp::Rejection> + Clone {
-    content(args).or(warp::path::end().and(
-        playground()
-            .or(query_mutation(schema.clone()))
-            .or(subscription(schema)),
-    ))
+    db: &DatabaseConnection,
+) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+    let api_route = warp::path(args.api_path.to_owned())
+        .and(warp::path::end())
+        .and(create_api(schema, db));
+    let content_route =
+        warp::path(args.content_path.to_owned()).and(create_content(&args.content_dir, db));
+
+    api_route.or(content_route).recover(handle_error)
 }

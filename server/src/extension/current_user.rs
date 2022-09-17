@@ -5,11 +5,8 @@ use async_graphql::{
     Request, ServerResult,
 };
 use async_trait::async_trait;
-use sea_orm::DatabaseConnection;
 
 use crate::auth::Session;
-
-use super::utils::error_to_server_error;
 
 pub struct CurrentUser;
 
@@ -30,12 +27,9 @@ impl Extension for CurrentUserExtension {
         mut request: Request,
         next: NextPrepareRequest<'_>,
     ) -> ServerResult<Request> {
-        let db = ctx
-            .data::<DatabaseConnection>()
-            .map_err(error_to_server_error)?;
         let session = ctx.data::<Session>();
         if let Ok(session) = session {
-            request = request.data(session.decode(db).await.map_err(error_to_server_error)?);
+            request = request.data(session.user.clone());
         }
         next.run(ctx, request).await
     }

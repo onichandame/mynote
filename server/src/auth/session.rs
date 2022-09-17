@@ -1,4 +1,5 @@
-use async_graphql::Result;
+use std::error::Error;
+
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use rand::{distributions::Alphanumeric, Rng};
 use sea_orm::{
@@ -6,11 +7,13 @@ use sea_orm::{
     TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
-use std::{convert::Infallible, str::FromStr};
 
 use crate::entity::{self, prelude::*};
 
-pub struct Session(pub String);
+pub struct Session {
+    pub token: String,
+    pub user: entity::user::Model,
+}
 
 #[derive(Serialize, Deserialize)]
 struct Claims {
@@ -20,23 +23,19 @@ struct Claims {
     exp: usize,
 }
 
-impl FromStr for Session {
-    type Err = Infallible;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_owned()))
-    }
-}
-
 impl Session {
-    pub async fn decode(&self, db: &DatabaseConnection) -> Result<entity::user::Model> {
-        let meta = jsonwebtoken::decode_header(&self.0)?;
+    pub async fn try_from_token(
+        token: &str,
+        db: &DatabaseConnection,
+    ) -> Result<Self, Box<dyn Error + Sync + Send>> {
+        let meta = jsonwebtoken::decode_header(token)?;
         let kid = meta.kid.ok_or("session key id empty")?;
         let key_doc = SessionKey::find_by_id(kid.parse()?)
             .one(db)
             .await?
             .ok_or(format!("session key {} not found", kid))?;
         let claims = jsonwebtoken::decode::<Claims>(
-            &self.0,
+            token,
             &DecodingKey::from_secret(key_doc.key.as_bytes()),
             &Validation::default(),
         )?
@@ -44,15 +43,21 @@ impl Session {
         if chrono::Utc::now().naive_utc()
             < chrono::NaiveDateTime::from_timestamp(claims.exp.try_into()?, 0)
         {
-            User::find_by_id(claims.sub.parse()?)
-                .one(db)
-                .await?
-                .ok_or("user not found".into())
+            Ok(Self {
+                token: token.to_owned(),
+                user: User::find_by_id(claims.sub.parse()?)
+                    .one(db)
+                    .await?
+                    .ok_or("user not found")?,
+            })
         } else {
             Err("session expired".into())
         }
     }
-    pub async fn encode(user: &entity::user::Model, db: &DatabaseConnection) -> Result<Self> {
+    pub async fn try_from_user(
+        user: &entity::user::Model,
+        db: &DatabaseConnection,
+    ) -> Result<Self, Box<dyn Error + Sync + Send>> {
         let claims = Claims {
             sub: user.id.to_string(),
             exp: (chrono::Utc::now() + chrono::Duration::days(7))
@@ -69,12 +74,19 @@ impl Session {
             &claims,
             &EncodingKey::from_secret(key_doc.key.as_bytes()),
         )?;
-        Ok(Self(token))
+        Ok(Self {
+            token,
+            user: user.to_owned(),
+        })
     }
 }
 
-async fn get_active_key(db: &DatabaseConnection) -> Result<entity::session_key::Model> {
-    async fn create_key<TDb: ConnectionTrait>(txn: &TDb) -> Result<entity::session_key::Model> {
+async fn get_active_key(
+    db: &DatabaseConnection,
+) -> Result<entity::session_key::Model, Box<dyn Error + Send + Sync>> {
+    async fn create_key<TDb: ConnectionTrait>(
+        txn: &TDb,
+    ) -> Result<entity::session_key::Model, Box<dyn Error + Send + Sync>> {
         let key = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(32)
