@@ -75,8 +75,9 @@ class AvatarDrawer extends StatelessWidget {
                             color: Theme.of(context).colorScheme.error,
                             icon: Icons.logout,
                             onTap: () {
-                              Navigator.pop(context);
                               client!.session = null;
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                  routeHome, (_) => false);
                             }),
                       ]),
                 const Divider(),

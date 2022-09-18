@@ -27,8 +27,7 @@ class _UsernameProfileSettingsScreenState
                       const InputDecoration(labelText: 'Enter new username'),
                   initialValue: currentUser!.user!.name,
                   onFieldSubmitted: (value) async {
-                    await currentUser.updateName(value);
-                    if (mounted) Navigator.of(context).pop();
+                    if (mounted) Navigator.of(context).pop(value);
                   },
                 ),
         ));

@@ -11,7 +11,7 @@ use crate::{auth::Session, schema::Schema};
 
 use super::middlewares::extract_session;
 
-pub fn create_api(
+pub fn create_api_route(
     schema: Schema,
     db: &DatabaseConnection,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
@@ -68,7 +68,7 @@ pub fn create_api(
         http::Response::builder()
             .header("content-type", "text/html")
             .body(playground_source(
-                GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+                GraphQLPlaygroundConfig::new("").subscription_endpoint(""),
             ))
     });
     query_mutation.or(subscription).or(playground)

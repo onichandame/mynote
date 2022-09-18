@@ -1,11 +1,16 @@
+import 'dart:convert';
+import 'dart:html';
+
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql/client.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:notebook/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Client extends ChangeNotifier {
+class Client extends ChangeNotifier with http.BaseClient {
   final SharedPreferences sharedPrefs;
 
   static final Future<String> _schemaState =
@@ -28,20 +33,34 @@ class Client extends ChangeNotifier {
   String get url => _url;
 
   set url(String value) {
-    _url = value;
+    _url = value.replaceAll(
+        RegExp(
+          r'\/$',
+        ),
+        '');
     notifyListeners();
-    sharedPrefs.setString(_urlKey, value);
+    sharedPrefs.setString(_urlKey, _url);
   }
 
-  GraphQLClient get client {
-    final httpLink = HttpLink(_url);
-    final wsLink = WebSocketLink(_url);
+  String get apiUrl => '$url/api';
+
+  String get contentUrl => '$url/content';
+
+  GraphQLClient get apiClient {
+    final httpLink = HttpLink(apiUrl);
+    final wsLink = WebSocketLink(apiUrl);
     final transportLink =
         Link.split((request) => request.isSubscription, wsLink, httpLink);
     final authLink =
         AuthLink(getToken: () => _session == null ? null : 'Bearer $_session');
     final link = authLink.concat(transportLink);
     return GraphQLClient(link: link, cache: GraphQLCache());
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    if (session != null) request.headers['authorization'] = 'Bearer $session';
+    return http.Client().send(request);
   }
 
   String? get session => _session;
@@ -93,7 +112,8 @@ class Client extends ChangeNotifier {
       {required String operationName,
       Map<String, dynamic> variables = const {},
       String? resultName}) async {
-    final response = await client.query(QueryOptions(
+    variables.removeWhere((key, value) => value == null);
+    final response = await apiClient.query(QueryOptions(
         document: gql(await _schemaState),
         operationName: operationName,
         variables: variables));
@@ -103,5 +123,17 @@ class Client extends ChangeNotifier {
     final result = response.data?[key];
     if (result == null) throw Exception('$key not found');
     return result;
+  }
+
+  Future<String> uploadFile(XFile file) async {
+    final request = http.MultipartRequest('POST', Uri.parse(contentUrl));
+    final uploadedFile = http.MultipartFile.fromBytes(
+        'file', await file.readAsBytes(),
+        filename: file.name);
+    request.files.add(uploadedFile);
+    final res = await send(request);
+    final r = jsonDecode(utf8.decode(await res.stream.toBytes()));
+    print(r);
+    return '$contentUrl/${r[file.name]}';
   }
 }

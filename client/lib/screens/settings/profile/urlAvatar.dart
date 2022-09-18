@@ -19,16 +19,12 @@ class _UrlAvatarProfileSettingsScreenState
   Widget build(BuildContext context) {
     return Layout(
         title: 'Avatar',
-        body: Consumer<CurrentUser?>(
-            builder: (context, currentUser, child) => currentUser?.user == null
-                ? const CircularProgressIndicator()
-                : TextFormField(
-                    decoration: const InputDecoration(
-                        labelText: 'Enter URL for new avatar'),
-                    onFieldSubmitted: (value) async {
-                      await currentUser!.updateAvatar(value);
-                      if (mounted) Navigator.of(context).pop();
-                    },
-                  )));
+        body: TextFormField(
+          decoration:
+              const InputDecoration(labelText: 'Enter URL for new avatar'),
+          onFieldSubmitted: (value) async {
+            if (mounted) Navigator.of(context).pop(value);
+          },
+        ));
   }
 }
