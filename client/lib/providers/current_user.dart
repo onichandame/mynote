@@ -29,12 +29,17 @@ class CurrentUser extends ChangeNotifier {
   }
 
   Future<void> updateName(String name) async {
-    await _client.updateSelf(name: name);
+    await _client.updateProfileName(name);
     await reload();
   }
 
   Future<void> updateAvatar(String url) async {
-    await _client.updateSelf(avatar: url);
+    await _client.updateProfileAvatar(url);
+    await reload();
+  }
+
+  Future<void> updateEmail(String email) async {
+    await _client.updateProfileEmail(email);
     await reload();
   }
 }

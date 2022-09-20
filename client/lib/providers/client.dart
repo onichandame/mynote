@@ -102,10 +102,25 @@ class Client extends ChangeNotifier with http.BaseClient {
     return await _request(operationName: 'renewSession');
   }
 
-  Future<void> updateSelf({String? name, String? email, String? avatar}) async {
-    await _request(
-        operationName: 'updateSelf',
-        variables: {'name': name, 'email': email, 'avatar': avatar});
+  Future<int> updateProfileName(String name) async {
+    return await _request(
+        operationName: 'updateProfileName', variables: {'name': name});
+  }
+
+  Future<int> updateProfileAvatar(String avatar) async {
+    return await _request(
+        operationName: 'updateProfileAvatar', variables: {'avatar': avatar});
+  }
+
+  Future<int> updateProfileEmail(String email) async {
+    return await _request(
+        operationName: 'updateProfileEmail', variables: {'email': email});
+  }
+
+  Future createNote(String title, String content) async {
+    return await _request(
+        operationName: 'createNote',
+        variables: {'title': title, 'content': content});
   }
 
   Future<dynamic> _request(
@@ -121,7 +136,7 @@ class Client extends ChangeNotifier with http.BaseClient {
     if (error != null) throw error;
     final key = resultName ?? operationName;
     final result = response.data?[key];
-    if (result == null) throw Exception('$key not found');
+    if (result == null) throw Exception('$key not found from response');
     return result;
   }
 
@@ -133,7 +148,6 @@ class Client extends ChangeNotifier with http.BaseClient {
     request.files.add(uploadedFile);
     final res = await send(request);
     final r = jsonDecode(utf8.decode(await res.stream.toBytes()));
-    print(r);
     return '$contentUrl/${r[file.name]}';
   }
 }

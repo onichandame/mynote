@@ -3,10 +3,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:notebook/components/avatar.dart';
 import 'package:notebook/components/layout.dart';
 import 'package:notebook/components/list_item.dart';
+import 'package:notebook/components/text_input_screen.dart';
 import 'package:notebook/providers/client.dart';
 import 'package:notebook/providers/current_user.dart';
-import 'package:notebook/screens/routes.dart';
-import 'package:notebook/screens/settings/profile/username.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -60,10 +59,25 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () async {
                       final name = await Navigator.of(context)
                           .push<String>(MaterialPageRoute(
-                        builder: (context) =>
-                            const UsernameProfileSettingsScreen(),
+                        builder: (context) => TextInputScreen(
+                            title: 'Username',
+                            initialValue: currentUser.user!.name,
+                            label: 'Enter new username'),
                       ));
                       if (name != null) await currentUser.updateName(name);
+                    }),
+                ListItem(
+                    title: const Text('Email'),
+                    value: Text(currentUser.user!.email ?? ''),
+                    onTap: () async {
+                      final email = await Navigator.of(context)
+                          .push<String>(MaterialPageRoute(
+                        builder: (context) => TextInputScreen(
+                            title: 'Email',
+                            label: 'Enter new Email',
+                            initialValue: currentUser.user!.email),
+                      ));
+                      if (email != null) await currentUser.updateEmail(email);
                     })
               ]),
       ),

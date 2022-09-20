@@ -7,15 +7,12 @@ import 'package:notebook/screens/routes.dart';
 import 'package:provider/provider.dart';
 
 class Layout extends StatelessWidget {
-  final Widget body;
+  final Widget? body;
   final String title;
   final Widget? bottomNavigationBar;
 
   const Layout(
-      {Key? key,
-      required this.title,
-      required this.body,
-      this.bottomNavigationBar})
+      {Key? key, required this.title, this.body, this.bottomNavigationBar})
       : super(key: key);
 
   @override
@@ -54,6 +51,12 @@ class AvatarDrawer extends StatelessWidget {
     return Consumer2<CurrentUser?, Client?>(
         builder: (context, currentUser, client, _) => Drawer(
               child: ListView(children: [
+                DrawerItem(
+                  icon: Icons.settings,
+                  title: 'Settings',
+                  onTap: () => _navigateFromDrawerItem(context, routeSettings),
+                ),
+                const Divider(),
                 ...(currentUser?.user == null
                     ? [
                         DrawerItem(
@@ -77,15 +80,9 @@ class AvatarDrawer extends StatelessWidget {
                             onTap: () {
                               client!.session = null;
                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                  routeHome, (_) => false);
+                                  routeDashboard, (_) => false);
                             }),
                       ]),
-                const Divider(),
-                DrawerItem(
-                  icon: Icons.settings,
-                  title: 'Settings',
-                  onTap: () => _navigateFromDrawerItem(context, routeSettings),
-                ),
               ]),
             ));
   }

@@ -25,8 +25,35 @@ mutation renewSession {
   renewSession
 }
 
-mutation updateSelf($name: String, $email: String, $avatar: String) {
-  updateSelf: updateUsers(
-    update: { name: $name, email: $email, avatar: $avatar }
-  )
+mutation updateProfileName($name: String!) {
+  updateProfileName: updateUsers(update: { name: $name })
+}
+
+mutation updateProfileAvatar($avatar: String!) {
+  updateProfileAvatar: updateUsers(update: { avatar: $avatar })
+}
+
+mutation updateProfileEmail($email: String!) {
+  updateProfileEmail: updateUsers(update: { email: $email })
+}
+
+query listNotes {
+  listNotes: notes {
+    edges {
+      node {
+        id
+        createdAt
+        updatedAt
+        authorId
+        title
+        content
+      }
+    }
+  }
+}
+
+mutation createNote($title: String!, $content: String!) {
+  createNote(title: $title, content: $content) {
+    id
+  }
 }

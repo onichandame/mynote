@@ -32,12 +32,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   .pushNamed(routeSettingsProfile);
                             },
                           ),
-                          Divider()
+                          const Divider()
                         ]),
                   ListItem(
-                    title: const Text('Backend'),
+                    title: const Text('General'),
                     onTap: () {
-                      Navigator.of(context).pushNamed(routeSettingsBackend);
+                      Navigator.of(context).pushNamed(routeSettingsGeneral);
                     },
                   )
                 ],

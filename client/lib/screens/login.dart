@@ -32,7 +32,7 @@ class LoginScreen extends StatelessWidget {
                   .showSnackBar(const SnackBar(content: Text('logged in')));
               client.session = session;
               Navigator.of(context)
-                  .pushNamedAndRemoveUntil(routeHome, (_) => false);
+                  .pushNamedAndRemoveUntil(routeDashboard, (_) => false);
             }
           },
         ));

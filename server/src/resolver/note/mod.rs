@@ -1,11 +1,19 @@
 use async_graphql::{async_trait::async_trait, SimpleObject};
-use crud::{Authorizer, Hook, CRUD};
+use crud::{Authorizer, Hook, Relation, CRUD};
 use sea_orm::Set;
 
 use crate::entity;
 
-#[derive(SimpleObject, CRUD)]
+#[derive(SimpleObject, CRUD, Relation)]
+#[relation(
+    name = "author",
+    target_dto = "super::user::User",
+    target_model = "entity::user",
+    from = "author_id",
+    to = "id"
+)]
 #[crud(model = "entity::note", deletable, subscribable)]
+#[graphql(complex)]
 pub struct Note {
     pub id: i32,
     pub created_at: chrono::NaiveDateTime,
