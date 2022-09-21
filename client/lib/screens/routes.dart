@@ -5,3 +5,6 @@ const routeLogin = '/login';
 const routeSettings = '/settings';
 const routeSettingsGeneral = '$routeSettings/general';
 const routeSettingsProfile = '$routeSettings/profile';
+const routeDashboardNote = '$routeDashboard/notes';
+const routeDashboardTodo = '$routeDashboard/todos';
+const routeDashboardReport = '$routeDashboard/reports';

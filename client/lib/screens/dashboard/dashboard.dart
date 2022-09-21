@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notebook/components/layout.dart';
 import 'package:notebook/providers/current_user.dart';
-import 'package:notebook/screens/dashboard/note_list.dart';
+import 'package:notebook/screens/dashboard/note/main.dart';
 import 'package:notebook/screens/dashboard/todo.dart';
 import 'package:notebook/screens/routes.dart';
 import 'package:provider/provider.dart';
@@ -24,13 +24,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           case 0:
             return const TodoList();
           case 1:
-            return const NoteList();
+            return const NoteMain();
           default:
             throw UnimplementedError('This screen is not implemented yet');
         }
       }
 
-      ;
       return Layout(
           title: 'Notebook',
           body: loggedIn ? getBody() : const _Guest(),

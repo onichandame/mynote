@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql/client.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:notebook/models/note.dart';
 import 'package:notebook/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -117,10 +118,19 @@ class Client extends ChangeNotifier with http.BaseClient {
         operationName: 'updateProfileEmail', variables: {'email': email});
   }
 
-  Future createNote(String title, String content) async {
-    return await _request(
+  Future<Note> createNote(String title, String content) async {
+    return Note.fromJson(await _request(
         operationName: 'createNote',
-        variables: {'title': title, 'content': content});
+        variables: {'title': title, 'content': content}));
+  }
+
+  Future<NoteConnection> listNotes() async {
+    return NoteConnection.fromJson(await _request(operationName: 'listNotes'));
+  }
+
+  Future<Note> findNote(int id) async {
+    return Note.fromJson(
+        await _request(operationName: 'findNote', variables: {'id': id}));
   }
 
   Future<dynamic> _request(

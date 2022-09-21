@@ -2,12 +2,7 @@ query users {
   users {
     edges {
       node {
-        id
-        name
-        email
-        avatar
-        createdAt
-        updatedAt
+        ...UserCore
       }
     }
   }
@@ -41,12 +36,17 @@ query listNotes {
   listNotes: notes {
     edges {
       node {
-        id
-        createdAt
-        updatedAt
-        authorId
-        title
-        content
+        ...NoteCore
+      }
+    }
+  }
+}
+
+query findNote($id: Int!) {
+  findNote: notes(filter: { id: { eq: $id } }) {
+    edges {
+      node {
+        ...NoteCore
       }
     }
   }
@@ -54,6 +54,24 @@ query listNotes {
 
 mutation createNote($title: String!, $content: String!) {
   createNote(title: $title, content: $content) {
-    id
+    ...NoteCore
   }
+}
+
+fragment UserCore on User {
+  id
+  name
+  email
+  avatar
+  createdAt
+  updatedAt
+}
+
+fragment NoteCore on Note {
+  id
+  createdAt
+  updatedAt
+  authorId
+  title
+  content
 }
