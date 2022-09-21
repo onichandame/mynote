@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:notebook/models/note.dart';
 import 'package:notebook/providers/client.dart';
-import 'package:notebook/screens/dashboard/note/routes.dart';
 import 'package:provider/provider.dart';
 
 class NoteItem extends StatefulWidget {
-  const NoteItem({Key? key}) : super(key: key);
+  final int id;
+  const NoteItem({Key? key, required this.id}) : super(key: key);
 
   @override
   State<NoteItem> createState() => _NoteItemState();
@@ -16,25 +16,27 @@ class _NoteItemState extends State<NoteItem> {
 
   @override
   void initState() {
-    final client = Provider.of<Client?>(context);
-    if (client != null) {
-      client
-          .findNote(
-              (ModalRoute.of(context)!.settings.arguments as RouteItemArguments)
-                  .id)
-          .then((res) {
-        setState(() {
-          _note = res;
-        });
-      });
-    }
+    _reload();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as RouteItemArguments;
-    return Column(children: []);
+    return _note == null
+        ? const CircularProgressIndicator()
+        : Column(children: [Text(_note!.title), Text(_note!.content)]);
+  }
+
+  _reload() {
+    final client = Provider.of<Client?>(context, listen: false);
+    if (client != null) {
+      client.findNote(widget.id).then((res) {
+        if (mounted) {
+          setState(() {
+            _note = res;
+          });
+        }
+      });
+    }
   }
 }

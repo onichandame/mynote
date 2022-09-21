@@ -34,7 +34,11 @@ mutation updateProfileEmail($email: String!) {
 
 query listNotes {
   listNotes: notes {
+    pageInfo {
+      ...PageInfo
+    }
     edges {
+      cursor
       node {
         ...NoteCore
       }
@@ -53,7 +57,7 @@ query findNote($id: Int!) {
 }
 
 mutation createNote($title: String!, $content: String!) {
-  createNote(title: $title, content: $content) {
+  createNote(input: { title: $title, content: $content }) {
     ...NoteCore
   }
 }
@@ -74,4 +78,11 @@ fragment NoteCore on Note {
   authorId
   title
   content
+}
+
+fragment PageInfo on PageInfo {
+  hasPreviousPage
+  hasNextPage
+  startCursor
+  endCursor
 }

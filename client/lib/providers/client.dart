@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -80,7 +79,7 @@ class Client extends ChangeNotifier with http.BaseClient {
   }
 
   Future<User?> getUser() async {
-    if (session == null) return null;
+    _checkSession();
     return User.fromJson(
         (await _request(operationName: 'users'))?['edges']?[0]?['node']);
   }
@@ -100,37 +99,45 @@ class Client extends ChangeNotifier with http.BaseClient {
   }
 
   Future<String> renewSession() async {
+    _checkSession();
     return await _request(operationName: 'renewSession');
   }
 
   Future<int> updateProfileName(String name) async {
+    _checkSession();
     return await _request(
         operationName: 'updateProfileName', variables: {'name': name});
   }
 
   Future<int> updateProfileAvatar(String avatar) async {
+    _checkSession();
     return await _request(
         operationName: 'updateProfileAvatar', variables: {'avatar': avatar});
   }
 
   Future<int> updateProfileEmail(String email) async {
+    _checkSession();
     return await _request(
         operationName: 'updateProfileEmail', variables: {'email': email});
   }
 
   Future<Note> createNote(String title, String content) async {
+    _checkSession();
     return Note.fromJson(await _request(
         operationName: 'createNote',
         variables: {'title': title, 'content': content}));
   }
 
   Future<NoteConnection> listNotes() async {
+    _checkSession();
     return NoteConnection.fromJson(await _request(operationName: 'listNotes'));
   }
 
   Future<Note> findNote(int id) async {
-    return Note.fromJson(
-        await _request(operationName: 'findNote', variables: {'id': id}));
+    _checkSession();
+    return Note.fromJson((await _request(
+            operationName: 'findNote', variables: {'id': id}))['edges']?[0]
+        ?.node);
   }
 
   Future<dynamic> _request(
@@ -159,5 +166,9 @@ class Client extends ChangeNotifier with http.BaseClient {
     final res = await send(request);
     final r = jsonDecode(utf8.decode(await res.stream.toBytes()));
     return '$contentUrl/${r[file.name]}';
+  }
+
+  void _checkSession() {
+    if (session == null) throw Exception('not logged in');
   }
 }

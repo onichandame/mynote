@@ -19,18 +19,7 @@ class _NoteListState extends State<NoteList> {
 
   @override
   void initState() {
-    final client = Provider.of<Client?>(context, listen: false);
-    if (client != null) {
-      client.listNotes().then((res) {
-        setState(() {
-          _notes = res;
-        });
-      }).catchError((e) {
-        setState(() {
-          _error = e;
-        });
-      });
-    }
+    _reload();
     super.initState();
   }
 
@@ -44,6 +33,8 @@ class _NoteListState extends State<NoteList> {
                         .map((edge) => edge.node)
                         .map((note) => ListTile(
                               title: Text(note.title),
+                              trailing: Text((note.updatedAt ?? note.createdAt)
+                                  .toString()),
                               onTap: () {
                                 Navigator.of(context).pushNamed(routeItem,
                                     arguments: RouteItemArguments(note.id));
@@ -51,20 +42,40 @@ class _NoteListState extends State<NoteList> {
                             ))
                         .toList() ??
                     []),
+                const Divider(),
                 Consumer<Client>(
                   builder: (context, client, child) => ListItem(
                       title: const Text('Create...'),
                       onTap: () async {
                         final note =
-                            await Navigator.of(context).push(MaterialPageRoute(
+                            await Navigator.of(context, rootNavigator: true)
+                                .push<CreateNoteArgs>(MaterialPageRoute(
                           builder: (context) => const NoteCreateScreen(),
                         ));
                         if (note != null) {
                           await client.createNote(note.title, note.content);
+                          _reload();
                         }
                       }),
                 )
               ])
         : Text(_error.toString());
+  }
+
+  _reload() {
+    final client = Provider.of<Client?>(context, listen: false);
+    if (client != null) {
+      client.listNotes().then((res) {
+        if (mounted) {
+          setState(() {
+            _notes = res;
+          });
+        }
+      }).catchError((e) {
+        setState(() {
+          _error = e;
+        });
+      });
+    }
   }
 }

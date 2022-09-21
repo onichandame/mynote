@@ -8,21 +8,24 @@ class NoteMain extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routes = _getRoutes(context);
     return Navigator(
       initialRoute: routeList,
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
-            builder: (context) => routes[settings.name]!(context),
+            builder: (context) {
+              switch (settings.name) {
+                case routeList:
+                  return const NoteList();
+                case routeItem:
+                  return NoteItem(
+                      id: (settings.arguments! as RouteItemArguments).id);
+                default:
+                  throw UnimplementedError(
+                      'route ${settings.name} not implemented');
+              }
+            },
             settings: settings);
       },
     );
-  }
-
-  Map<String, WidgetBuilder> _getRoutes(BuildContext context) {
-    return {
-      routeList: (context) => const NoteList(),
-      routeItem: (context) => const NoteItem(),
-    };
   }
 }

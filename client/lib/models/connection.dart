@@ -12,8 +12,8 @@ abstract class Connection<TEdge extends Edge> {
 class PageInfo {
   final bool hasPreviousPage;
   final bool hasNextPage;
-  final String startCursor;
-  final String endCursor;
+  final String? startCursor;
+  final String? endCursor;
   PageInfo(
       this.hasPreviousPage, this.hasNextPage, this.startCursor, this.endCursor);
 
