@@ -39,7 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ScaffoldMessenger.of(context)
                       .showSnackBar(const SnackBar(content: Text('signed up')));
                   Navigator.of(context)
-                      .pushNamedAndRemoveUntil(routeDashboard, (_) => false);
+                      .pushNamedAndRemoveUntil(defaultRoute, (_) => false);
                 }
               },
             )));

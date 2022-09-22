@@ -33,7 +33,7 @@ mutation updateProfileEmail($email: String!) {
 }
 
 query listNotes {
-  listNotes: notes {
+  listNotes: notes(sorting: [{ field: CREATED_AT, direction: DESC }]) {
     pageInfo {
       ...PageInfo
     }

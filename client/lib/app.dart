@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notebook/providers/global.dart';
-import 'package:notebook/screens/dashboard/dashboard.dart';
+import 'package:notebook/screens/dashboard/note/main.dart';
+import 'package:notebook/screens/dashboard/todo.dart';
 import 'package:notebook/screens/loading.dart';
 import 'package:notebook/screens/login.dart';
 import 'package:notebook/screens/settings/general/general.dart';
@@ -24,7 +25,9 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           routeLoading: (context) => const LoadingScreen(),
-          routeDashboard: (context) => const DashboardScreen(),
+          routeDashboardNotes: (context) => const NoteMain(),
+          routeDashboardTodos: (context) => const TodoMain(),
+          routeDashboardReports: (context) => const TodoMain(),
           routeSignup: (context) => const SignupScreen(),
           routeLogin: (context) => const LoginScreen(),
           routeSettings: (context) => const SettingsScreen(),

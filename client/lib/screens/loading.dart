@@ -11,7 +11,7 @@ class LoadingScreen extends StatelessWidget {
     final client = Provider.of<Client?>(context);
     if (client != null) {
       Future.microtask(() => Navigator.of(context)
-          .pushNamedAndRemoveUntil(routeDashboard, (_) => false));
+          .pushNamedAndRemoveUntil(defaultRoute, (_) => false));
     }
     return const Scaffold(
         body: Center(

@@ -136,8 +136,8 @@ class Client extends ChangeNotifier with http.BaseClient {
   Future<Note> findNote(int id) async {
     _checkSession();
     return Note.fromJson((await _request(
-            operationName: 'findNote', variables: {'id': id}))['edges']?[0]
-        ?.node);
+        operationName: 'findNote',
+        variables: {'id': id}))['edges']?[0]?['node']);
   }
 
   Future<dynamic> _request(

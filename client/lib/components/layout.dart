@@ -80,7 +80,7 @@ class AvatarDrawer extends StatelessWidget {
                             onTap: () {
                               client!.session = null;
                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                  routeDashboard, (_) => false);
+                                  defaultRoute, (_) => false);
                             }),
                       ]),
               ]),
