@@ -45,11 +45,13 @@ pub fn create_api_route(
                             let mut data = Data::default();
                             #[derive(Deserialize)]
                             struct ConnectionInitPayload {
-                                authorization: Option<String>,
+                                authorization: String,
                             }
-                            let payload = serde_json::from_value::<ConnectionInitPayload>(v)?;
-                            if let Some(token) = payload.authorization {
-                                if let Ok(session) = Session::try_from_token(&token, &db).await {
+                            if let Ok(payload) = serde_json::from_value::<ConnectionInitPayload>(v)
+                            {
+                                if let Ok(session) =
+                                    Session::try_from_token(&payload.authorization, &db).await
+                                {
                                     data.insert(session);
                                 }
                             }
