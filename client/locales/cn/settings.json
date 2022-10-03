@@ -1,1 +1,6 @@
-{ "title": "设置" }
+{
+  "title": "设置",
+  "profileTitle": "账号资料",
+  "profileDescription": "自定义昵称与头像",
+  "profileLinkText": "修改账号信息"
+}

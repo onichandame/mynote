@@ -1,1 +1,6 @@
-{ "title": "Settings" }
+{
+  "title": "Settings",
+  "profileTitle": "Profile",
+  "profileDescription": "Customize your nickname and avatar",
+  "profileLinkText": "Manage your account data"
+}

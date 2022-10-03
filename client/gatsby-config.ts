@@ -1,5 +1,9 @@
 import type { GatsbyConfig } from "gatsby"
 
+import * as dotenv from "dotenv"
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
+
 const config: GatsbyConfig = {
   siteMetadata: {
     title: `Notebook`,
@@ -24,6 +28,7 @@ const config: GatsbyConfig = {
         localeJsonSourceName: `locale`, // name given to `gatsby-source-filesystem` plugin.
         languages: [`en`, `cn`],
         defaultLanguage: `en`,
+        trailingSlash: "always",
         // you can pass any i18next options
         i18nextOptions: {
           interpolation: {

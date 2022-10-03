@@ -1,5 +1,9 @@
-import { ArrowForwardIos } from "@mui/icons-material"
-import { ListItemButton, ListItemIcon, ListItemText } from "@mui/material"
+import {
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+} from "@mui/material"
 import { ReactNode } from "react"
 
 import { Link } from "./link"
@@ -16,19 +20,22 @@ export function NavigationItem({
   /** default to 'normal' */
   variant?: Variant
 }) {
+  const theme = useTheme()
+  const color =
+    variant === `error`
+      ? theme.palette.secondary.light
+      : theme.palette.text.primary
   return (
     <Link to={to}>
       <ListItemButton
         sx={{
-          color: theme =>
-            variant === `error`
-              ? theme.palette.text.secondary
-              : theme.palette.text.primary,
+          color,
         }}
       >
-        <ListItemIcon>{icon}</ListItemIcon>
-        <ListItemText>{title}</ListItemText>
-        <ArrowForwardIos />
+        <ListItemIcon color={color}>{icon}</ListItemIcon>
+        <ListItemText>
+          <div style={{ color }}>{title}</div>
+        </ListItemText>
       </ListItemButton>
     </Link>
   )

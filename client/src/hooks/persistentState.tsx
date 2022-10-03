@@ -1,20 +1,30 @@
-import { useEffect, useState } from "react"
+import { useReducer } from "react"
 
 /** Synchronized state which is automatically stored to local storage */
-export function usePersistentState<TData>(key: string, defaultValue: TData) {
-  const [value, setValue] = useState<TData>(defaultValue)
-  useEffect(() => {
-    const savedValue = window.localStorage.getItem(key)
-    if (savedValue !== null) {
-      setValue(JSON.parse(savedValue))
-    }
-  }, [])
+export function usePersistentState<TData>(
+  key: string,
+  defaultValue: TData
+): PersistentState<TData> {
+  const [value, setValue] = useReducer(
+    (_old: TData, opts: { value: TData; noPersistent: boolean }) => {
+      if (!opts.noPersistent)
+        window.localStorage.setItem(key, JSON.stringify(opts.value))
+      return opts.value
+    },
+    (() => {
+      const savedValue = window.localStorage.getItem(key)
+      if (savedValue !== null) return JSON.parse(savedValue)
+      else return defaultValue
+    })()
+  )
   return [
     value,
-    /** @param sync - If true the update will be persisted. Default is true */
-    (val: TData, sync: boolean = true) => {
-      setValue(val)
-      if (sync) window.localStorage.setItem(key, JSON.stringify(val))
-    },
-  ] as const
+    /** @param sync - If true the new value will be saved to local storage. Default to true */
+    (value: TData, sync = true) => setValue({ value, noPersistent: !sync }),
+  ]
 }
+
+export type PersistentState<TData> = [
+  TData,
+  (value: TData, sync?: boolean) => void
+]

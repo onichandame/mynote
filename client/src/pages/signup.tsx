@@ -1,64 +1,70 @@
 import { Button, Grid, TextField } from "@mui/material"
 import { graphql, HeadFC } from "gatsby"
 import { useI18next } from "gatsby-plugin-react-i18next"
-import { classValidatorResolver } from "@hookform/resolvers/class-validator"
-import { useCallback } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { useTranslation } from "react-i18next"
-import { IsString } from "class-validator"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 import { Layout } from "../components/layout"
 import { SEO } from "../components/seo"
-import { useSession } from "../hooks/session"
 import { useClient } from "../providers/client"
-
-class SignupInput {
-  @IsString()
-  name!: string
-  @IsString()
-  password!: string
-}
+import { useSession } from "../providers/session"
+import { useTranslateScoped } from "../hooks/translate"
 
 export default function () {
-  const { t } = useTranslation()
   const { navigate } = useI18next()
-  const translate = useCallback((key: string) => t(key, { ns: `signup` }), [t])
+  const translate = useTranslateScoped(`signup`)
   const client = useClient()
   const [, setSession] = useSession()
-  const { control, handleSubmit } = useForm<{ name: string; password: string }>(
-    { resolver: classValidatorResolver(SignupInput) }
-  )
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useForm<SignUpInput>({
+    mode: `onChange`,
+    resolver: zodResolver(
+      z
+        .object({ name: z.string().min(1), password: z.string().min(5) })
+        .strict() as z.Schema<SignUpInput>
+    ),
+    defaultValues: { name: ``, password: `` },
+  })
   return (
-    <Layout title={translate(`title`)}>
+    <Layout publicOnly title={translate(`title`)}>
       <Grid container justifyContent="center">
         <Grid
           item
           component="form"
           onSubmit={handleSubmit(async vals => {
-            alert(JSON.stringify(vals))
-            // setSession(await client.signup(vals))
-            // window.history.back()
+            const session = await client.signup(vals)
+            if (session) {
+              setSession(session)
+              navigate(`/`, { replace: true })
+            }
           })}
         >
           <Grid container direction="column" spacing={2} alignItems="center">
             <Grid item>
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => <TextField label="Name" {...field} />}
+              <TextField
+                {...register(`name`)}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+                autoFocus
+                label="Name"
               />
             </Grid>
             <Grid item>
-              <Controller
-                name="password"
-                control={control}
-                render={({ field }) => (
-                  <TextField label="Password" {...field} />
-                )}
+              <TextField
+                {...register(`password`)}
+                error={!!errors.password}
+                helperText={errors.password?.message}
+                label="Password"
               />
             </Grid>
             <Grid item>
-              <Button type="submit">Sign Up</Button>
+              <Button type="submit" variant="contained" disabled={isSubmitting}>
+                {translate(`buttonText`)}
+              </Button>
             </Grid>
           </Grid>
         </Grid>

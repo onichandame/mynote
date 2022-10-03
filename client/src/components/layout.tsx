@@ -2,10 +2,10 @@ import {
   AppBar,
   Avatar,
   Box,
+  Container,
   Divider,
   Drawer,
   FormControl,
-  Grid,
   IconButton,
   List,
   MenuItem,
@@ -30,34 +30,53 @@ import {
   PersonOutline,
   Settings,
 } from "@mui/icons-material"
-import { useI18next, useTranslation } from "gatsby-plugin-react-i18next"
+import { useI18next } from "gatsby-plugin-react-i18next"
 
 import { useCurrentUser } from "../providers/currentUser"
 import { Loading } from "./loading"
 import { Link } from "./link"
 import { NavigationItem } from "./navigationItem"
+import { useTranslateScoped } from "../hooks/translate"
+import * as routes from "../routes"
 
 export function Layout({
   children,
   title,
   isPrivate,
-}: PropsWithChildren & { title?: ReactNode; isPrivate?: true }) {
-  const { t } = useTranslation()
+  publicOnly,
+}: PropsWithChildren & {
+  title?: ReactNode
+  isPrivate?: true
+  publicOnly?: true
+}) {
   const {
     i18n: { language },
     originalPath,
     languages,
+    navigate,
   } = useI18next()
-  const translate = useCallback((key: string) => t(key, { ns: `layout` }), [t])
+  const translate = useTranslate()
   const { user, loading: userLoading } = useCurrentUser()
-  const theme = useTheme()
+  useEffect(() => {
+    if (publicOnly && user) navigate(`/`)
+  }, [publicOnly, user, navigate])
   return (
     <Box sx={{ flexGrow: 1 }}>
       <header>
         <AppBar position="static">
           <Toolbar variant="dense">
             {originalPath !== `/` ? (
-              <IconButton onClick={() => window.history.back()}>
+              <IconButton
+                onClick={() =>
+                  navigate(
+                    originalPath
+                      .replace(/\/$/, ``)
+                      .split(`/`)
+                      .slice(0, -1)
+                      .join(`/`)
+                  )
+                }
+              >
                 <ArrowBackIos />
               </IconButton>
             ) : (
@@ -85,29 +104,21 @@ export function Layout({
           </Toolbar>
         </AppBar>
       </header>
-      <main>
-        <Toolbar />
-        <Grid container direction="column" alignItems="center">
-          <Grid item>
-            {isPrivate ? (
-              userLoading ? (
-                <Loading />
-              ) : user ? (
-                children
-              ) : (
-                <Redirect />
-              )
-            ) : (
-              children
-            )}
-          </Grid>
-        </Grid>
-      </main>
+      {userLoading ? (
+        <Loading />
+      ) : (
+        <main>
+          <Toolbar />
+          {isPrivate ? user ? children : <Redirect /> : children}
+        </main>
+      )}
     </Box>
   )
 }
 
-function Ending({ user }: { user?: Nullable<User> }) {
+function Ending() {
+  const translate = useTranslate()
+  const { user } = useCurrentUser()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const openDrawer = useCallback(() => {
     setDrawerOpen(true)
@@ -133,35 +144,40 @@ function Ending({ user }: { user?: Nullable<User> }) {
         )}
       </IconButton>
       <Drawer open={drawerOpen} onClose={closeDrawer} anchor="right">
-        <Box>
-          <List>
-            {user ? (
-              <>
-                <NavigationItem
-                  to="/settings"
-                  icon={<Settings />}
-                  title="Settings"
-                />
-                <Divider />
-                <NavigationItem
-                  to="logout"
-                  icon={<Logout />}
-                  title="Log Out"
-                  variant="error"
-                />
-              </>
-            ) : (
-              <>
-                <NavigationItem to="/login" icon={<Login />} title="Log In" />
-                <NavigationItem
-                  to="/signup"
-                  icon={<PersonOutline />}
-                  title="Sign Up"
-                />
-              </>
-            )}
-          </List>
-        </Box>
+        <List sx={{ minWidth: 200 }}>
+          <Toolbar variant="dense" />
+          <Divider />
+          {user ? (
+            <>
+              <NavigationItem
+                to={routes.SETTINGS}
+                icon={<Settings />}
+                title={translate(`settings`)}
+              />
+              <Divider />
+              <NavigationItem
+                to={routes.LOG_OUT}
+                icon={<Logout />}
+                title={translate(`log out`)}
+                variant="error"
+              />
+            </>
+          ) : (
+            <>
+              <NavigationItem
+                to={routes.LOG_IN}
+                icon={<Login />}
+                title={translate(`log in`)}
+              />
+              <NavigationItem
+                to={routes.SIGN_UP}
+                icon={<PersonOutline />}
+                title={translate(`sign up`)}
+              />
+            </>
+          )}
+          <Divider />
+        </List>
       </Drawer>
     </>
   )
@@ -178,19 +194,26 @@ function Redirect({ countdown }: { countdown?: number }) {
     return () => clearInterval(counter)
   }, [reduceRemaining])
   useEffect(() => {
-    if (remaining <= 0) navigate("/login")
+    if (remaining <= 0) navigate(routes.LOG_IN)
   }, [remaining])
   return (
-    <Typography>
-      Please{" "}
-      <Link original to="/login">
-        log in
-      </Link>{" "}
-      or{" "}
-      <Link original to="/signup">
-        sign up
-      </Link>{" "}
-      to use your private notebook. Redirecting to login page in {remaining}s...
-    </Typography>
+    <Container>
+      <Typography>
+        Please{" "}
+        <Link original to={routes.LOG_IN}>
+          log in
+        </Link>{" "}
+        or{" "}
+        <Link original to={routes.SIGN_UP}>
+          sign up
+        </Link>{" "}
+        to use your private notebook. Redirecting to login page in {remaining}
+        s...
+      </Typography>
+    </Container>
   )
+}
+
+function useTranslate() {
+  return useTranslateScoped(`layout`)
 }

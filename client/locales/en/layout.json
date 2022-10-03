@@ -1,1 +1,9 @@
-{ "title": "Notebook", "en": "English", "cn": "中文" }
+{
+  "title": "Notebook",
+  "en": "English",
+  "cn": "中文",
+  "settings": "Settings",
+  "log out": "Log Out",
+  "log in": "Log In",
+  "sign up": "Sign Up"
+}

@@ -1,9 +1,9 @@
 import {
   createContext,
   PropsWithChildren,
-  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react"
 import {
@@ -17,12 +17,14 @@ import {
 } from "urql"
 import { createClient as createWSClient } from "graphql-ws"
 import { useSnackbar } from "notistack"
-import { useSession } from "../hooks/session"
 import { authExchange } from "@urql/exchange-auth"
+import { useSession } from "./session"
 
 class Client {
   private static readonly ApiPath = `/api`
+  private static ApiHost = process.env.GATSBY_API_HOST
 
+  private readonly session?: Nullable<string>
   private readonly gqlClient: GqlClient
   private readonly onError?: (err: Error) => void
 
@@ -30,6 +32,7 @@ class Client {
     session?: Nullable<string>
     onError?: (err: Error) => void
   }) {
+    this.session = props?.session
     this.onError = props?.onError
     const wsClient = createWSClient({
       url: Client.wsUrl,
@@ -38,12 +41,13 @@ class Client {
         : undefined,
     })
     this.gqlClient = createClient({
-      url: Client.ApiPath,
+      url: Client.httpUrl,
       exchanges: [
         dedupExchange,
         cacheExchange,
         errorExchange({
           onError: err => {
+            console.warn(err)
             props?.onError?.(err)
           },
         }),
@@ -79,13 +83,20 @@ class Client {
     })
   }
 
+  private static get httpUrl() {
+    if (this.ApiHost) return `${this.ApiHost}${this.ApiPath}`
+    else return this.ApiPath
+  }
+
   private static get wsUrl() {
-    return `${window.location.protocol.startsWith(`https`) ? `wss:` : `ws:`}//${
-      window.location.host
-    }${this.ApiPath}`
+    const host = this.ApiHost?.startsWith(`http`)
+      ? this.ApiHost
+      : `${window.location.protocol}//${window.location.host}:${window.location.port}`
+    return `${host.replace(/^http/, "ws")}${this.ApiPath}`
   }
 
   async getSelf() {
+    if (!this.session) return
     const res = await this.gqlClient
       .query<{
         users: {
@@ -112,17 +123,13 @@ class Client {
       )
       .toPromise()
     if (res.error) this.onError?.(res.error)
-    return (
-      res.data?.users.edges[0]?.node ??
-      (() => {
-        throw new Error(`current user not found`)
-      })()
-    )
+    else return res.data?.users.edges[0]?.node
   }
 
   async updateSelf(update: UserUpdate) {
+    if (!this.session) return
     const res = await this.gqlClient
-      .query<{ updateUsers: number }, UserUpdate>(
+      .mutation<{ updateUsers: number }, UserUpdate>(
         /* GraphQL */ `
           mutation ($name: String, $email: String, $avatar: String) {
             updateUsers(update: { name: $name, email: $email, avatar: $avatar })
@@ -132,12 +139,12 @@ class Client {
       )
       .toPromise()
     if (res.error) this.onError?.(res.error)
-    if (!res.data?.updateUsers) throw new Error(`update self failed`)
+    else if (!res.data?.updateUsers) throw new Error(`update self failed`)
   }
 
   async signup(input: SignUpInput) {
     const res = await this.gqlClient
-      .query<{ signup: string }, SignUpInput>(
+      .mutation<{ signup: string }, SignUpInput>(
         /* GraphQL */ `
           mutation ($name: String!, $password: String!) {
             signup(input: { name: $name, password: $password })
@@ -147,12 +154,12 @@ class Client {
       )
       .toPromise()
     if (res.error) this.onError?.(res.error)
-    return res.data!.signup
+    else return res.data!.signup
   }
 
   async login(input: LogInInput) {
     const res = await this.gqlClient
-      .query<{ login: string }, LogInInput>(
+      .mutation<{ login: string }, LogInInput>(
         /* GraphQL */ `
           mutation ($identity: String!, $password: String!) {
             login(input: { identity: $identity, password: $password })
@@ -162,48 +169,37 @@ class Client {
       )
       .toPromise()
     if (res.error) this.onError?.(res.error)
-    return res.data!.login
+    else return res.data!.login
   }
 }
 
-const ClientContext = createContext<{
-  client: Client
-  reload: () => void
-} | null>(null)
+const ClientContext = createContext<Client | null>(null)
 
 export function ClientProvider({ children }: PropsWithChildren) {
   const [session] = useSession()
   const { enqueueSnackbar } = useSnackbar()
-  const onError = useCallback(
-    (e: Error) => {
-      enqueueSnackbar(e.message, { variant: `error` })
-    },
-    [enqueueSnackbar]
-  )
-  const createClient = useCallback(
-    () => new Client({ onError, session }),
-    [session, onError]
-  )
-  const [client, setClient] = useState(createClient())
+  const onError = (e: Error) => {
+    enqueueSnackbar(e.message, { variant: `error` })
+  }
+  const [client, setClient] = useState(new Client({ onError, session }))
+  let inited = useRef(false)
+  useEffect(() => {
+    if (inited.current) {
+      setClient(new Client({ onError, session }))
+    } else {
+      inited.current = true
+    }
+  }, [session])
   return (
-    <ClientContext.Provider
-      value={{
-        client,
-        reload: () => {
-          setClient(createClient())
-        },
-      }}
-    >
-      {children}
-    </ClientContext.Provider>
+    <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
   )
 }
 
 export function useClient() {
-  const client = useContext(ClientContext)?.client
+  const client = useContext(ClientContext)
   if (!client)
     throw new Error(
-      `useClient must be called within a component wrapped by ClientContext`
+      `useClient must be called within a component wrapped by ClientProvider`
     )
   return client
 }

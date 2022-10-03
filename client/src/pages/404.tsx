@@ -1,12 +1,13 @@
 import { graphql, HeadFC } from "gatsby"
+
 import { Layout } from "../components/layout"
 import { SEO } from "../components/seo"
+import { useTranslateScoped } from "../hooks/translate"
 
-const NotFoundPage = () => {
-  return <Layout title="404 Not Found">404</Layout>
+export default function NotFoundPage() {
+  const translate = useTranslateScoped(`404`)
+  return <Layout title={translate(`title`)}>404</Layout>
 }
-
-export default NotFoundPage
 
 export const Head: HeadFC = () => <SEO />
 

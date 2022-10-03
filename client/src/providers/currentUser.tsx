@@ -1,14 +1,14 @@
 import {
   createContext,
   PropsWithChildren,
-  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react"
 
-import { useSession } from "../hooks/session"
 import { useClient } from "./client"
+import { useSession } from "./session"
 
 const CurrentUserContext = createContext<{
   user?: Nullable<User>
@@ -18,25 +18,39 @@ const CurrentUserContext = createContext<{
 
 export function CurrentUserProvider({ children }: PropsWithChildren) {
   const client = useClient()
-  const [session, setSession] = useSession()
-  const [user, setUser] = useState<null | User>(null)
   const [loading, setLoading] = useState(true)
-  const reload = useCallback(async () => {
-    setLoading(true)
-    if (session) {
-      try {
-        setUser(await client.getSelf())
-      } catch (e) {
-        setSession(null, false)
-      }
-    }
-    setLoading(false)
-  }, [session, setUser, client, setSession])
+  const [user, setUser] = useState<null | User>(null)
+  const inited = useRef(false)
   useEffect(() => {
-    reload()
-  }, [reload])
+    if (inited.current) setLoading(true)
+    else inited.current = true
+  }, [client])
+  useEffect(() => {
+    let active = true
+    if (loading) {
+      client
+        .getSelf()
+        .then(self => {
+          if (active) setUser(self ?? null)
+        })
+        .finally(() => {
+          if (active) setLoading(false)
+        })
+    }
+    return () => {
+      active = false
+    }
+  }, [client, loading])
   return (
-    <CurrentUserContext.Provider value={{ user, reload, loading }}>
+    <CurrentUserContext.Provider
+      value={{
+        user,
+        reload: () => {
+          setLoading(true)
+        },
+        loading,
+      }}
+    >
       {children}
     </CurrentUserContext.Provider>
   )

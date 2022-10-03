@@ -1,23 +1,23 @@
-import { List } from "@mui/material"
 import { graphql, HeadFC } from "gatsby"
-import { useTranslation } from "gatsby-plugin-react-i18next"
-import { useCallback } from "react"
+import { useI18next } from "gatsby-plugin-react-i18next"
+import { useEffect } from "react"
 
 import { Layout } from "../components/layout"
-import { NavigationItem } from "../components/navigationItem"
 import { SEO } from "../components/seo"
+import { useTranslateScoped } from "../hooks/translate"
+import { useSession } from "../providers/session"
 
 export default function () {
-  const { t } = useTranslation()
-  const translate = useCallback(
-    (key: string) => t(key, { ns: `settings` }),
-    [t]
-  )
+  const [, setSession] = useSession()
+  const { navigate } = useI18next()
+  const translate = useTranslateScoped(`logout`)
+  useEffect(() => {
+    setSession(null, true)
+    navigate(`/`, { replace: true })
+  }, [setSession])
   return (
     <Layout title={translate(`title`)} isPrivate>
-      <List>
-        <NavigationItem title="Profile" to="./profile" />
-      </List>
+      {translate(`body`)}
     </Layout>
   )
 }

@@ -2,7 +2,7 @@ import { Box, CircularProgress, Modal } from "@mui/material"
 
 export function Loading() {
   return (
-    <Modal open={true}>
+    <Modal open disableAutoFocus>
       <Box
         sx={{
           position: `absolute`,

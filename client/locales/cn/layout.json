@@ -1,1 +1,9 @@
-{ "title": "随身笔记", "en": "English", "cn": "中文" }
+{
+  "title": "随身笔记",
+  "en": "English",
+  "cn": "中文",
+  "settings": "设置",
+  "log out": "登出",
+  "log in": "登录",
+  "sign up": "注册"
+}
