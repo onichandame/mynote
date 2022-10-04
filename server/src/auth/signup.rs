@@ -3,6 +3,8 @@ use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
 
 use crate::entity;
 
+use super::credential;
+
 pub async fn signup(
     name: &str,
     password: &str,
@@ -19,14 +21,7 @@ pub async fn signup(
         ..Default::default()
     };
     let user = active_model.insert(&txn).await?;
-    entity::credential::ActiveModel {
-        user_id: Set(user.id),
-        password: Set(bcrypt::hash(password, bcrypt::DEFAULT_COST)?),
-        created_at: Set(chrono::Utc::now().naive_utc()),
-        ..Default::default()
-    }
-    .insert(&txn)
-    .await?;
+    credential::create_credential(user.id, password, &txn).await?;
     txn.commit().await?;
     Ok(user)
 }

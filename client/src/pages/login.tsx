@@ -51,6 +51,7 @@ export default function () {
             error={!!errors.identity}
             helperText={errors.identity?.message}
             autoFocus
+            disabled={isSubmitting}
             label="Email/Username"
           />
         </Grid>
@@ -60,6 +61,7 @@ export default function () {
             error={!!errors.password}
             helperText={errors.password?.message}
             {...register(`password`)}
+            disabled={isSubmitting}
             label="Password"
           />
         </Grid>

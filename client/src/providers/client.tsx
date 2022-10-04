@@ -7,11 +7,11 @@ import {
   useState,
 } from "react"
 import {
-  cacheExchange,
   Client as GqlClient,
   createClient,
   dedupExchange,
   errorExchange,
+  fetchExchange,
   makeOperation,
   subscriptionExchange,
 } from "urql"
@@ -22,6 +22,7 @@ import { useSession } from "./session"
 
 class Client {
   private static readonly ApiPath = `/api`
+  private static readonly ContentPath = `/content`
   private static ApiHost = process.env.GATSBY_API_HOST
 
   private readonly session?: Nullable<string>
@@ -44,7 +45,6 @@ class Client {
       url: Client.httpUrl,
       exchanges: [
         dedupExchange,
-        cacheExchange,
         errorExchange({
           onError: err => {
             console.warn(err)
@@ -72,6 +72,8 @@ class Client {
           },
         }),
         subscriptionExchange({
+          isSubscriptionOperation: operation =>
+            operation.kind === `subscription`,
           forwardSubscription: operation => ({
             subscribe: sink => ({
               unsubscribe: wsClient.subscribe(operation, sink),
@@ -79,6 +81,7 @@ class Client {
           }),
           enableAllOperations: true,
         }),
+        fetchExchange,
       ],
     })
   }
@@ -93,6 +96,11 @@ class Client {
       ? this.ApiHost
       : `${window.location.protocol}//${window.location.host}:${window.location.port}`
     return `${host.replace(/^http/, "ws")}${this.ApiPath}`
+  }
+
+  private static get contentUrl() {
+    if (this.ApiHost) return `${this.ApiHost}${this.ContentPath}`
+    else return this.ContentPath
   }
 
   async getSelf() {
@@ -170,6 +178,38 @@ class Client {
       .toPromise()
     if (res.error) this.onError?.(res.error)
     else return res.data!.login
+  }
+
+  async changePassword(input: ChangePasswordInput) {
+    const res = await this.gqlClient
+      .mutation<{ changePassword: boolean }, ChangePasswordInput>(
+        /* GraphQL */ `
+          mutation ($password: String!) {
+            changePassword(input: { password: $password })
+          }
+        `,
+        input
+      )
+      .toPromise()
+    if (res.error) this.onError?.(res.error)
+    else if (!res.data?.changePassword)
+      throw new Error(`change password failed`)
+  }
+
+  async uploadFile(file: File) {
+    const data = new FormData()
+    data.append(file.name, file)
+    const res = await fetch(Client.contentUrl, {
+      method: `POST`,
+      body: data,
+      headers: { authorization: `Bearer ${this.session}` },
+    }).then(async v => {
+      if (v.status >= 400) throw new Error(await v.text())
+      return v.json()
+    })
+    const fileUrl = res[file.name]
+    if (!fileUrl) throw new Error(`file url not received`)
+    return `${Client.contentUrl}/${fileUrl}`
   }
 }
 

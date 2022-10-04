@@ -10,15 +10,20 @@ use serde::{Deserialize, Serialize};
 
 use crate::entity::{self, prelude::*};
 
+use super::credential;
+
 pub struct Session {
     pub token: String,
     pub user: entity::user::Model,
+    pub credential_id: i32,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Claims {
     /// user id
     sub: String,
+    /// credential id
+    cid: i32,
     /// expiration date in seconds after epoch
     exp: usize,
 }
@@ -43,13 +48,20 @@ impl Session {
         if chrono::Utc::now().naive_utc()
             < chrono::NaiveDateTime::from_timestamp(claims.exp.try_into()?, 0)
         {
-            Ok(Self {
-                token: token.to_owned(),
-                user: User::find_by_id(claims.sub.parse()?)
-                    .one(db)
-                    .await?
-                    .ok_or("user not found")?,
-            })
+            let active_credential =
+                credential::get_active_credential(claims.sub.parse()?, db).await?;
+            if claims.cid == active_credential.id {
+                Ok(Self {
+                    token: token.to_owned(),
+                    user: User::find_by_id(claims.sub.parse()?)
+                        .one(db)
+                        .await?
+                        .ok_or("user not found")?,
+                    credential_id: claims.cid,
+                })
+            } else {
+                Err("password has been changed. please re-login".into())
+            }
         } else {
             Err("session expired".into())
         }
@@ -58,12 +70,14 @@ impl Session {
         user: &entity::user::Model,
         db: &DatabaseConnection,
     ) -> Result<Self, Box<dyn Error + Sync + Send>> {
+        let active_credential = credential::get_active_credential(user.id, db).await?;
         let claims = Claims {
             sub: user.id.to_string(),
             exp: (chrono::Utc::now() + chrono::Duration::days(7))
                 .naive_utc()
                 .timestamp()
                 .try_into()?,
+            cid: active_credential.id,
         };
         let key_doc = get_active_key(db).await?;
         let token = jsonwebtoken::encode(
@@ -77,6 +91,7 @@ impl Session {
         Ok(Self {
             token,
             user: user.to_owned(),
+            credential_id: active_credential.id,
         })
     }
 }

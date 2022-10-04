@@ -5,7 +5,7 @@ use sea_orm::{
 
 use crate::entity::{self, prelude::*};
 
-use super::Session;
+use super::session::Session;
 
 pub async fn login_by_password(
     identity: &str,

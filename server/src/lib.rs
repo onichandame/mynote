@@ -6,7 +6,7 @@ use clap::Parser;
 use config::Config;
 use migration::{Migrator, MigratorTrait};
 use resolver::{Mutation, Query, Subscription};
-use sea_orm::Database;
+use sea_orm::{ConnectOptions, Database};
 use tokio::fs;
 use warp::Filter;
 
@@ -27,7 +27,12 @@ pub async fn start_server() -> Result<(), Box<dyn Error + Send + Sync>> {
     trace!("server starting");
     let config = Config::parse();
     config.validate()?;
-    let db = Database::connect(&config.database_url).await?;
+    let db = Database::connect(
+        ConnectOptions::new(config.database_url.clone())
+            .min_connections(1)
+            .to_owned(),
+    )
+    .await?;
     Migrator::up(&db, None).await?;
     let schema = Schema::build(
         Query::default(),

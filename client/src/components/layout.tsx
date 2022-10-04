@@ -1,6 +1,5 @@
 import {
   AppBar,
-  Avatar,
   Box,
   Container,
   Divider,
@@ -12,7 +11,6 @@ import {
   Select,
   Toolbar,
   Typography,
-  useTheme,
 } from "@mui/material"
 import {
   PropsWithChildren,
@@ -23,7 +21,6 @@ import {
   useState,
 } from "react"
 import {
-  AccountCircle,
   ArrowBackIos,
   Login,
   Logout,
@@ -38,6 +35,7 @@ import { Link } from "./link"
 import { NavigationItem } from "./navigationItem"
 import { useTranslateScoped } from "../hooks/translate"
 import * as routes from "../routes"
+import { CurrentAvatar } from "./currentAvatar"
 
 export function Layout({
   children,
@@ -67,14 +65,15 @@ export function Layout({
           <Toolbar variant="dense">
             {originalPath !== `/` ? (
               <IconButton
-                onClick={() =>
-                  navigate(
-                    originalPath
-                      .replace(/\/$/, ``)
-                      .split(`/`)
-                      .slice(0, -1)
-                      .join(`/`)
-                  )
+                onClick={
+                  () => window.history.back()
+                  //navigate(
+                  //  originalPath
+                  //    .replace(/\/$/, ``)
+                  //    .split(`/`)
+                  //    .slice(0, -1)
+                  //    .join(`/`)
+                  //)
                 }
               >
                 <ArrowBackIos />
@@ -109,7 +108,9 @@ export function Layout({
       ) : (
         <main>
           <Toolbar />
-          {isPrivate ? user ? children : <Redirect /> : children}
+          <Container>
+            {isPrivate ? user ? children : <Redirect /> : children}
+          </Container>
         </main>
       )}
     </Box>
@@ -129,19 +130,7 @@ function Ending() {
   return (
     <>
       <IconButton size="small" onClick={openDrawer}>
-        {user ? (
-          user.avatar ? (
-            <Avatar alt={user.name} src={user.avatar} />
-          ) : (
-            <Avatar>
-              {user.name.split(` `).splice(0, 2).join(``).toUpperCase()}
-            </Avatar>
-          )
-        ) : (
-          <Avatar sx={{ bgcolor: theme => theme.palette.primary.dark }}>
-            <AccountCircle />
-          </Avatar>
-        )}
+        <CurrentAvatar />
       </IconButton>
       <Drawer open={drawerOpen} onClose={closeDrawer} anchor="right">
         <List sx={{ minWidth: 200 }}>
@@ -154,7 +143,6 @@ function Ending() {
                 icon={<Settings />}
                 title={translate(`settings`)}
               />
-              <Divider />
               <NavigationItem
                 to={routes.LOG_OUT}
                 icon={<Logout />}
@@ -176,7 +164,6 @@ function Ending() {
               />
             </>
           )}
-          <Divider />
         </List>
       </Drawer>
     </>

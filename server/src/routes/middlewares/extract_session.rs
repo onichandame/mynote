@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use sea_orm::DatabaseConnection;
 use warp::{Filter, Rejection};
 
-use crate::auth::Session;
+use crate::auth::session::Session;
 
 pub fn extract_session(
     db: &DatabaseConnection,

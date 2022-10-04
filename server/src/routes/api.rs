@@ -7,7 +7,7 @@ use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use warp::{http, ws::Ws, Filter, Rejection, Reply};
 
-use crate::{auth::Session, schema::Schema};
+use crate::{auth::session::Session, schema::Schema};
 
 use super::middlewares::extract_session;
 

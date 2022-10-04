@@ -6,7 +6,7 @@ use async_graphql::{
 };
 use async_trait::async_trait;
 
-use crate::auth::Session;
+use crate::auth::session::Session;
 
 pub struct CurrentUser;
 

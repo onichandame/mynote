@@ -8,7 +8,6 @@ import {
 } from "react"
 
 import { useClient } from "./client"
-import { useSession } from "./session"
 
 const CurrentUserContext = createContext<{
   user?: Nullable<User>

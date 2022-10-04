@@ -6,7 +6,7 @@ import { useTranslateScoped } from "../hooks/translate"
 
 export default function NotFoundPage() {
   const translate = useTranslateScoped(`404`)
-  return <Layout title={translate(`title`)}>404</Layout>
+  return <Layout title={translate(`title`)}>404 | Page not found</Layout>
 }
 
 export const Head: HeadFC = () => <SEO />

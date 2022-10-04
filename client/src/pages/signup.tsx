@@ -50,6 +50,7 @@ export default function () {
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 autoFocus
+                disabled={isSubmitting}
                 label="Name"
               />
             </Grid>
@@ -59,6 +60,7 @@ export default function () {
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 label="Password"
+                disabled={isSubmitting}
               />
             </Grid>
             <Grid item>

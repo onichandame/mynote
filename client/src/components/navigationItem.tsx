@@ -28,6 +28,7 @@ export function NavigationItem({
   return (
     <Link to={to}>
       <ListItemButton
+        divider
         sx={{
           color,
         }}

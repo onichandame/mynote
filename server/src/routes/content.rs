@@ -8,7 +8,7 @@ use tokio::{
 };
 use warp::{hyper::StatusCode, multipart::FormData, Buf, Filter, Rejection};
 
-use crate::auth::Session;
+use crate::auth::session::Session;
 
 use super::{error::Error, middlewares::extract_session};
 

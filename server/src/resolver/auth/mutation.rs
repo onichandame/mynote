@@ -2,7 +2,7 @@ use async_graphql::{Context, InputObject, Object, Result};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
 
 use crate::{
-    auth::{login_by_password, signup, Session},
+    auth::{login::login_by_password, session::Session, signup::signup},
     entity,
 };
 

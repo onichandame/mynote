@@ -8,7 +8,7 @@ import {
   Divider,
   Typography,
 } from "@mui/material"
-import { ReactNode } from "react"
+import { PropsWithChildren, ReactNode } from "react"
 import { Link } from "./link"
 
 export function Tile({
@@ -17,21 +17,26 @@ export function Tile({
   icon,
   linkText,
   link,
-}: {
-  title: string
+  actions,
+  children,
+}: PropsWithChildren & {
+  title?: string
   description?: string
   icon?: ReactNode
   linkText?: string
   link?: string
+  actions?: ReactNode
 }) {
+  if (linkText && actions)
+    throw new Error(`a tile must either have a 'to' or 'actions'`)
   const body = (
     <>
       <CardContent>
         <Box display="flex" alignItems="center">
           <Box flexGrow={1} flexShrink={1}>
-            <Typography variant="h5">{title}</Typography>
+            {title && <Typography variant="h5">{title}</Typography>}
             {description && (
-              <Typography>Customize your nickname and avatar</Typography>
+              <Typography variant="body2">{description}</Typography>
             )}
           </Box>
           {icon && (
@@ -40,19 +45,24 @@ export function Tile({
             </Box>
           )}
         </Box>
+        {children}
       </CardContent>
-      {linkText && (
+      {linkText ? (
         <>
           <Divider />
           <CardActions sx={{ color: theme => theme.palette.primary.main }}>
-            Manage your account data
+            {linkText}
           </CardActions>
         </>
+      ) : actions ? (
+        <CardActions sx={{ justifyContent: `flex-end` }}>{actions}</CardActions>
+      ) : (
+        <></>
       )}
     </>
   )
   return (
-    <Card variant="outlined">
+    <Card variant="outlined" sx={{ height: `100%` }}>
       {link ? (
         <Link to={link}>
           <CardActionArea>{body}</CardActionArea>
