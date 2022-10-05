@@ -94,4 +94,4 @@ export const query = graphql`
   }
 `
 
-type FormValues = Pick<UserUpdate, "name">
+type FormValues = Pick<UpdateUserInput, "name">

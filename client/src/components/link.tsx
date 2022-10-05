@@ -1,14 +1,15 @@
 import { useTheme } from "@mui/material"
 import { Link as ILink } from "gatsby-plugin-react-i18next"
-import { ComponentPropsWithRef } from "react"
+import { ComponentPropsWithRef, forwardRef } from "react"
 
-export function Link({
-  original,
-  ...props
-}: { original?: boolean } & ComponentPropsWithRef<typeof ILink>) {
+export const Link = forwardRef<
+  HTMLAnchorElement,
+  { original?: boolean } & ComponentPropsWithRef<typeof ILink>
+>(({ original, ...props }, ref) => {
   const theme = useTheme()
   return (
     <ILink
+      ref={ref}
       {...props}
       {...(original
         ? {}
@@ -21,4 +22,4 @@ export function Link({
           })}
     />
   )
-}
+})

@@ -7,8 +7,10 @@ import * as routes from "../routes"
 import { Layout } from "../components/layout"
 import { SEO } from "../components/seo"
 import { Tile } from "../components/tile"
+import { useTranslateScoped } from "../hooks/translate"
 
 export default function () {
+  const translate = useTranslate()
   const iconStyles: Omit<ComponentProps<typeof StaticImage>, "alt" | "src"> = {
     placeholder: "blurred",
     layout: "fixed",
@@ -20,13 +22,13 @@ export default function () {
       <Grid container alignItems="stretch" spacing={2}>
         <Item>
           <Tile
-            title="Notes"
-            description="Record anything"
-            link={routes.NOTES}
+            title={translate(`memoTitle`)}
+            description={translate(`memoDescription`)}
+            link={routes.MEMO}
             icon={
               <StaticImage
-                alt="notes"
-                src="../images/notes-icon.png"
+                alt="memo"
+                src="../images/memo-icon.png"
                 {...iconStyles}
               />
             }
@@ -34,13 +36,13 @@ export default function () {
         </Item>
         <Item>
           <Tile
-            title="Reports"
-            description="View your weekly report"
-            link={routes.REPORTS}
+            title={translate(`reportTitle`)}
+            description={translate(`reportDescription`)}
+            link={routes.REPORT}
             icon={
               <StaticImage
                 alt="reports"
-                src="../images/reports-icon.png"
+                src="../images/report-icon.png"
                 {...iconStyles}
               />
             }
@@ -57,6 +59,10 @@ function Item({ children }: PropsWithChildren) {
       {children}
     </Grid>
   )
+}
+
+function useTranslate() {
+  return useTranslateScoped(`home`)
 }
 
 export const Head: HeadFC = () => <SEO />

@@ -107,11 +107,7 @@ class Client {
     if (!this.session) return
     const res = await this.gqlClient
       .query<{
-        users: {
-          edges: {
-            node: User
-          }[]
-        }
+        users: Connection<User>
       }>(
         /* GraphQL */ `
           query {
@@ -133,10 +129,10 @@ class Client {
     if (res.data?.users.edges[0]?.node) return res.data?.users.edges[0]?.node
   }
 
-  async updateSelf(update: UserUpdate) {
+  async updateSelf(update: UpdateUserInput) {
     if (!this.session) return
     const res = await this.gqlClient
-      .mutation<{ updateUsers: number }, UserUpdate>(
+      .mutation<{ updateUsers: number }, UpdateUserInput>(
         /* GraphQL */ `
           mutation ($name: String, $email: String, $avatar: String) {
             updateUsers(update: { name: $name, email: $email, avatar: $avatar })
@@ -188,6 +184,104 @@ class Client {
       )
       .toPromise()
     if (!res.data?.changePassword) throw new Error(`change password failed`)
+  }
+
+  async createMemo(input: CreateMemoInput) {
+    const res = await this.gqlClient
+      .mutation<{ createMemo: Memo }, CreateMemoInput>(
+        /* GraphQL */ `
+          mutation ($content: String!) {
+            createMemo(input: { content: $content }) {
+              id
+              content
+              createdAt
+              updatedAt
+            }
+          }
+        `,
+        input
+      )
+      .toPromise()
+    return res.data?.createMemo
+  }
+
+  async listMemos() {
+    const res = await this.gqlClient
+      .query<{ memos: Connection<Memo> }>(
+        /* GraphQL */ `
+          query {
+            memos(sorting: [{ field: CREATED_AT, direction: DESC }]) {
+              edges {
+                node {
+                  id
+                  content
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        `,
+        {}
+      )
+      .toPromise()
+    return res.data?.memos
+  }
+
+  async getMemo(id: number) {
+    const res = await this.gqlClient
+      .query<{ memos: Connection<Memo> }, { id: number }>(
+        /* GraphQL */ `
+          query ($id: Int!) {
+            memos(filter: { id: { eq: $id } }, paging: { first: 1 }) {
+              edges {
+                node {
+                  id
+                  content
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        `,
+        { id }
+      )
+      .toPromise()
+    return res.data?.memos?.edges?.[0]?.node
+  }
+
+  async updateMemo(id: number, update: UpdateMemoInput) {
+    const res = await this.gqlClient
+      .mutation<
+        { updateMemos: number },
+        { id: number; update: UpdateMemoInput }
+      >(
+        /* GraphQL */ `
+          mutation ($id: Int!, $update: MemoUpdate!) {
+            updateMemos(filter: { id: { eq: $id } }, update: $update)
+          }
+        `,
+        { id, update }
+      )
+      .toPromise()
+    if (!res.data?.updateMemos) this.onError?.(new Error(`update memo failed`))
+  }
+
+  async deleteMemo(id: number) {
+    const res = await this.gqlClient
+      .mutation<{ deleteMemos: number }, { id: number }>(
+        /* GraphQL */ `
+          mutation ($id: Int!) {
+            deleteMemos(filter: { id: { eq: $id } })
+          }
+        `,
+        {
+          id,
+        }
+      )
+      .toPromise()
+    if (!res.data?.deleteMemos) this.onError?.(new Error(`delete memo failed`))
   }
 
   async uploadFile(file: File) {

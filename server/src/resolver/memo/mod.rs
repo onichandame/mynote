@@ -12,23 +12,21 @@ use crate::entity;
     from = "author_id",
     to = "id"
 )]
-#[crud(model = "entity::note", deletable, subscribable)]
+#[crud(model = "entity::memo", deletable, subscribable)]
 #[graphql(complex)]
-pub struct Note {
+pub struct Memo {
     pub id: i32,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
 
     pub author_id: i32,
     #[crud(creatable, updatable)]
-    pub title: String,
-    #[crud(creatable, updatable)]
     pub content: String,
 }
 
 #[async_trait]
-impl Hook for Note {
-    type ActiveModel = entity::note::ActiveModel;
+impl Hook for Memo {
+    type ActiveModel = entity::memo::ActiveModel;
     async fn before_create(
         ctx: &async_graphql::Context<'_>,
         mut input: Self::ActiveModel,
@@ -51,12 +49,12 @@ impl Hook for Note {
 }
 
 #[async_trait]
-impl Authorizer for Note {
+impl Authorizer for Memo {
     async fn authorize(
         ctx: &async_graphql::Context<'_>,
     ) -> async_graphql::Result<sea_orm::Condition> {
         use sea_orm::prelude::*;
         let user = ctx.data::<entity::user::Model>()?;
-        Ok(sea_orm::Condition::all().add(entity::note::Column::AuthorId.eq(user.id)))
+        Ok(sea_orm::Condition::all().add(entity::memo::Column::AuthorId.eq(user.id)))
     }
 }

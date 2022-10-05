@@ -21,13 +21,12 @@ pub enum Credential {
 }
 
 #[derive(Iden)]
-pub enum Note {
+pub enum Memo {
     Table,
     Id,
     CreatedAt,
     UpdatedAt,
     AuthorId,
-    Title,
     Content,
 }
 

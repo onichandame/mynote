@@ -3,13 +3,19 @@ import { graphql, HeadFC } from "gatsby"
 import { Dashboard } from "../../components/dashboard"
 import { Layout } from "../../components/layout"
 import { SEO } from "../../components/seo"
+import { useTranslateScoped } from "../../hooks/translate"
 
 export default function () {
+  const translate = useTranslate()
   return (
-    <Layout title="Notes">
-      <Dashboard>notes</Dashboard>
+    <Layout title={translate(`title`)} isPrivate>
+      <Dashboard>To be continued...</Dashboard>
     </Layout>
   )
+}
+
+function useTranslate() {
+  return useTranslateScoped(`report`)
 }
 
 export const Head: HeadFC = () => <SEO />

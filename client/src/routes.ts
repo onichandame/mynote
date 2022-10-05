@@ -7,5 +7,5 @@ export const PROFILE_SETTINGS = `${SETTINGS}/profile`
 export const SECURITY_SETTINGS = `${SETTINGS}/security`
 export const NAME_SETTINGS = `${SETTINGS}/name`
 export const PASSWORD_SETTINGS = `${SETTINGS}/password`
-export const NOTES = `/notes`
-export const REPORTS = `/reports`
+export const MEMO = `/memo`
+export const REPORT = `/report`

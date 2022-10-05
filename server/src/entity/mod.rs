@@ -3,6 +3,6 @@
 pub mod prelude;
 
 pub mod credential;
-pub mod note;
+pub mod memo;
 pub mod session_key;
 pub mod user;

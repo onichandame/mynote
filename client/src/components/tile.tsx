@@ -18,6 +18,7 @@ export function Tile({
   linkText,
   link,
   actions,
+  onClick,
   children,
 }: PropsWithChildren & {
   title?: string
@@ -26,9 +27,12 @@ export function Tile({
   linkText?: string
   link?: string
   actions?: ReactNode
+  onClick?: () => void
 }) {
   if (linkText && actions)
-    throw new Error(`a tile must either have a 'to' or 'actions'`)
+    throw new Error(`a tile cannot have both 'to' and 'actions'`)
+  if (link && onClick)
+    throw new Error(`a tile cannot have both 'link' and 'onClick'`)
   const body = (
     <>
       <CardContent>
@@ -67,6 +71,10 @@ export function Tile({
         <Link to={link}>
           <CardActionArea sx={{ height: `100%` }}>{body}</CardActionArea>
         </Link>
+      ) : onClick ? (
+        <CardActionArea onClick={onClick} sx={{ height: `100%` }}>
+          {body}
+        </CardActionArea>
       ) : (
         body
       )}

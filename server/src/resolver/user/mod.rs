@@ -6,9 +6,9 @@ use crate::entity;
 
 #[derive(SimpleObject, CRUD, Relation)]
 #[connection(
-    name = "notes",
-    target_dto = "super::note::Note",
-    target_model = "entity::note",
+    name = "memos",
+    target_dto = "super::memo::Memo",
+    target_model = "entity::memo",
     from = "id",
     to = "author_id"
 )]
@@ -48,9 +48,9 @@ impl Hook for User {
         txn: &sea_orm::DatabaseTransaction,
     ) -> async_graphql::Result<()> {
         let users = entity::user::Entity::find().filter(filter).all(txn).await?;
-        // delete related notes
-        entity::note::Entity::delete_many()
-            .filter(entity::note::Column::AuthorId.is_in(users.iter().map(|v| v.id)))
+        // delete related memos
+        entity::memo::Entity::delete_many()
+            .filter(entity::memo::Column::AuthorId.is_in(users.iter().map(|v| v.id)))
             .exec(txn)
             .await?;
         Ok(())
