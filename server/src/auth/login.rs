@@ -1,17 +1,15 @@
-use async_graphql::Result;
-use sea_orm::{
-    ColumnTrait, Condition, DatabaseConnection, EntityTrait, ModelTrait, QueryFilter, QueryOrder,
-};
+use anyhow::Context;
+use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
 
 use crate::entity::{self, prelude::*};
 
-use super::session::Session;
+use super::{credential, session::Session};
 
 pub async fn login_by_password(
     identity: &str,
     password: &str,
     db: &DatabaseConnection,
-) -> Result<Session> {
+) -> anyhow::Result<Session> {
     let user = User::find()
         .filter(
             Condition::any()
@@ -20,19 +18,9 @@ pub async fn login_by_password(
         )
         .one(db)
         .await?
-        .ok_or("user not found")?;
-    let credential = user
-        .find_related(Credential)
-        .order_by_desc(entity::credential::Column::CreatedAt)
-        .one(db)
-        .await?;
-    match credential {
-        Some(cred) => {
-            if !bcrypt::verify(password, &cred.password)? {
-                return Err("password do not match".into());
-            }
-        }
-        None => {}
-    };
+        .context("user not found")?;
+    if !credential::check_credential(user.id, password, db).await? {
+        anyhow::bail!("password incorrect");
+    }
     Ok(Session::try_from_user(&user, db).await?)
 }

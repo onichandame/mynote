@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material"
 import { graphql, HeadFC } from "gatsby"
+import { useI18next } from "gatsby-plugin-react-i18next"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -15,10 +16,14 @@ import { SEO } from "../../components/seo"
 import { Tile } from "../../components/tile"
 import { useTranslateScoped } from "../../hooks/translate"
 import { useClient } from "../../providers/client"
+import { useCurrentUser } from "../../providers/currentUser"
+import * as routes from "../../routes"
 
 export default function () {
   const translate = useTranslate()
+  const { navigate } = useI18next()
   const client = useClient()
+  const { reload } = useCurrentUser()
   const {
     register,
     handleSubmit,
@@ -34,7 +39,8 @@ export default function () {
       <form
         onSubmit={handleSubmit(async vals => {
           await client.changePassword(vals)
-          window.history.back()
+          reload()
+          navigate(routes.HOME)
         })}
       >
         <Tile
@@ -54,7 +60,7 @@ export default function () {
           }
         >
           <TextField
-            label="Password"
+            label="New Password"
             type="password"
             {...register(`password`)}
             disabled={isSubmitting}

@@ -1,5 +1,4 @@
-use std::error::Error;
-
+use anyhow::Context;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use rand::{distributions::Alphanumeric, Rng};
 use sea_orm::{
@@ -29,16 +28,13 @@ struct Claims {
 }
 
 impl Session {
-    pub async fn try_from_token(
-        token: &str,
-        db: &DatabaseConnection,
-    ) -> Result<Self, Box<dyn Error + Sync + Send>> {
+    pub async fn try_from_token(token: &str, db: &DatabaseConnection) -> anyhow::Result<Self> {
         let meta = jsonwebtoken::decode_header(token)?;
-        let kid = meta.kid.ok_or("session key id empty")?;
+        let kid = meta.kid.context("session key id empty")?;
         let key_doc = SessionKey::find_by_id(kid.parse()?)
             .one(db)
             .await?
-            .ok_or(format!("session key {} not found", kid))?;
+            .context(format!("session key {} not found", kid))?;
         let claims = jsonwebtoken::decode::<Claims>(
             token,
             &DecodingKey::from_secret(key_doc.key.as_bytes()),
@@ -56,20 +52,20 @@ impl Session {
                     user: User::find_by_id(claims.sub.parse()?)
                         .one(db)
                         .await?
-                        .ok_or("user not found")?,
+                        .context("user not found")?,
                     credential_id: claims.cid,
                 })
             } else {
-                Err("password has been changed. please re-login".into())
+                anyhow::bail!("password has been changed. please re-login");
             }
         } else {
-            Err("session expired".into())
+            anyhow::bail!("session expired");
         }
     }
     pub async fn try_from_user(
         user: &entity::user::Model,
         db: &DatabaseConnection,
-    ) -> Result<Self, Box<dyn Error + Sync + Send>> {
+    ) -> anyhow::Result<Self> {
         let active_credential = credential::get_active_credential(user.id, db).await?;
         let claims = Claims {
             sub: user.id.to_string(),
@@ -96,12 +92,10 @@ impl Session {
     }
 }
 
-async fn get_active_key(
-    db: &DatabaseConnection,
-) -> Result<entity::session_key::Model, Box<dyn Error + Send + Sync>> {
+async fn get_active_key(db: &DatabaseConnection) -> anyhow::Result<entity::session_key::Model> {
     async fn create_key<TDb: ConnectionTrait>(
         txn: &TDb,
-    ) -> Result<entity::session_key::Model, Box<dyn Error + Send + Sync>> {
+    ) -> anyhow::Result<entity::session_key::Model> {
         let key = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(32)

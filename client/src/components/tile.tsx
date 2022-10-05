@@ -65,7 +65,7 @@ export function Tile({
     <Card variant="outlined" sx={{ height: `100%` }}>
       {link ? (
         <Link to={link}>
-          <CardActionArea>{body}</CardActionArea>
+          <CardActionArea sx={{ height: `100%` }}>{body}</CardActionArea>
         </Link>
       ) : (
         body

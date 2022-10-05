@@ -10,6 +10,7 @@ import { SEO } from "../components/seo"
 import { useTranslateScoped } from "../hooks/translate"
 import { useClient } from "../providers/client"
 import { useSession } from "../providers/session"
+import * as routes from "../routes"
 
 export default function () {
   const translate = useTranslateScoped(`login`)
@@ -40,7 +41,7 @@ export default function () {
           const session = await client.login(vals)
           if (session) {
             setSession(session)
-            navigate(`/`, { replace: true })
+            navigate(routes.HOME, { replace: true })
           }
         })}
       >

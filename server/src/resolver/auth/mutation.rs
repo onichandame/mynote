@@ -1,8 +1,8 @@
 use async_graphql::{Context, InputObject, Object, Result};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set};
+use sea_orm::DatabaseConnection;
 
 use crate::{
-    auth::{login::login_by_password, session::Session, signup::signup},
+    auth::{credential, login::login_by_password, session::Session, signup::signup},
     entity,
 };
 
@@ -56,13 +56,7 @@ impl AuthMutation {
     async fn change_password(&self, ctx: &Context<'_>, input: ChangePasswordInput) -> Result<bool> {
         let db = ctx.data::<DatabaseConnection>()?;
         let user = ctx.data::<entity::user::Model>()?;
-        entity::credential::ActiveModel {
-            password: Set(input.password),
-            user_id: Set(user.id),
-            ..Default::default()
-        }
-        .insert(db)
-        .await?;
+        credential::create_credential(user.id, &input.password, db).await?;
         Ok(true)
     }
 }

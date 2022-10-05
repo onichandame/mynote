@@ -20,6 +20,15 @@ pub async fn create_credential<TDb: ConnectionTrait>(
     .await?)
 }
 
+pub async fn check_credential<TDb: ConnectionTrait>(
+    user_id: i32,
+    password: &str,
+    db: &TDb,
+) -> anyhow::Result<bool> {
+    let cred = get_active_credential(user_id, db).await?;
+    Ok(bcrypt::verify(password, &cred.password)?)
+}
+
 pub async fn try_get_active_credential<TDb: ConnectionTrait>(
     user_id: i32,
     db: &TDb,

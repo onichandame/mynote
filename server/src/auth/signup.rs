@@ -1,4 +1,3 @@
-use async_graphql::Result;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
 
 use crate::entity;
@@ -10,7 +9,7 @@ pub async fn signup(
     password: &str,
     email: Option<&str>,
     db: &DatabaseConnection,
-) -> Result<entity::user::Model> {
+) -> anyhow::Result<entity::user::Model> {
     let txn = db.begin().await?;
     let active_model = entity::user::ActiveModel {
         name: Set(name.to_owned()),

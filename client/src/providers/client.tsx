@@ -130,8 +130,7 @@ class Client {
         {}
       )
       .toPromise()
-    if (res.error) this.onError?.(res.error)
-    else return res.data?.users.edges[0]?.node
+    if (res.data?.users.edges[0]?.node) return res.data?.users.edges[0]?.node
   }
 
   async updateSelf(update: UserUpdate) {
@@ -146,8 +145,7 @@ class Client {
         update
       )
       .toPromise()
-    if (res.error) this.onError?.(res.error)
-    else if (!res.data?.updateUsers) throw new Error(`update self failed`)
+    if (!res.data?.updateUsers) throw new Error(`update self failed`)
   }
 
   async signup(input: SignUpInput) {
@@ -161,8 +159,7 @@ class Client {
         input
       )
       .toPromise()
-    if (res.error) this.onError?.(res.error)
-    else return res.data!.signup
+    if (res.data?.signup) return res.data!.signup
   }
 
   async login(input: LogInInput) {
@@ -176,8 +173,7 @@ class Client {
         input
       )
       .toPromise()
-    if (res.error) this.onError?.(res.error)
-    else return res.data!.login
+    if (res.data?.login) return res.data.login
   }
 
   async changePassword(input: ChangePasswordInput) {
@@ -191,9 +187,7 @@ class Client {
         input
       )
       .toPromise()
-    if (res.error) this.onError?.(res.error)
-    else if (!res.data?.changePassword)
-      throw new Error(`change password failed`)
+    if (!res.data?.changePassword) throw new Error(`change password failed`)
   }
 
   async uploadFile(file: File) {
