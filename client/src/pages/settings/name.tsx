@@ -36,7 +36,7 @@ export default function () {
     <Layout title={translate(`profileBasicInfoName`)}>
       <form
         onSubmit={handleSubmit(async vals => {
-          await client.updateSelf(vals)
+          await client?.updateSelf(vals)
           reload()
           window.history.back()
         })}

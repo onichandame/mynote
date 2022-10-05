@@ -38,7 +38,7 @@ export default function () {
     <Layout title={translate(`securityAccountPassword`)}>
       <form
         onSubmit={handleSubmit(async vals => {
-          await client.changePassword(vals)
+          await client?.changePassword(vals)
           reload()
           navigate(routes.HOME)
         })}

@@ -18,6 +18,7 @@ import {
 import { createClient as createWSClient } from "graphql-ws"
 import { useSnackbar } from "notistack"
 import { authExchange } from "@urql/exchange-auth"
+import Ws from "isomorphic-ws"
 import { useSession } from "./session"
 
 class Client {
@@ -36,6 +37,7 @@ class Client {
     this.session = props?.session
     this.onError = props?.onError
     const wsClient = createWSClient({
+      webSocketImpl: Ws,
       url: Client.wsUrl,
       connectionParams: props?.session
         ? { authorization: props.session }
@@ -309,14 +311,9 @@ export function ClientProvider({ children }: PropsWithChildren) {
   const onError = (e: Error) => {
     enqueueSnackbar(e.message, { variant: `error` })
   }
-  const [client, setClient] = useState(new Client({ onError, session }))
-  let inited = useRef(false)
+  const [client, setClient] = useState<null | Client>(null)
   useEffect(() => {
-    if (inited.current) {
-      setClient(new Client({ onError, session }))
-    } else {
-      inited.current = true
-    }
+    setClient(new Client({ onError, session }))
   }, [session])
   return (
     <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
@@ -325,10 +322,6 @@ export function ClientProvider({ children }: PropsWithChildren) {
 
 export function useClient() {
   const client = useContext(ClientContext)
-  if (!client)
-    throw new Error(
-      `useClient must be called within a component wrapped by ClientProvider`
-    )
   return client
 }
 

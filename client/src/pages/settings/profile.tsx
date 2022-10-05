@@ -46,8 +46,8 @@ function AvatarItem() {
           if (files) {
             if (files.length > 1)
               throw new Error(`only one image can be selected`)
-            const url = await client.uploadFile(files[0]!)
-            await client.updateSelf({ avatar: url })
+            const url = await client?.uploadFile(files[0]!)
+            if (url) await client?.updateSelf({ avatar: url })
             reload()
           }
         }}

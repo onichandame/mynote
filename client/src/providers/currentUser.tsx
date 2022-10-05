@@ -26,7 +26,7 @@ export function CurrentUserProvider({ children }: PropsWithChildren) {
   }, [client])
   useEffect(() => {
     let active = true
-    if (loading) {
+    if (loading && client) {
       client
         .getSelf()
         .then(self => {

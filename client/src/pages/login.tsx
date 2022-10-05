@@ -38,7 +38,7 @@ export default function () {
         component="form"
         spacing={2}
         onSubmit={handleSubmit(async vals => {
-          const session = await client.login(vals)
+          const session = await client?.login(vals)
           if (session) {
             setSession(session)
             navigate(routes.HOME, { replace: true })

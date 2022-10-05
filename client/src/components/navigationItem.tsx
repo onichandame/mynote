@@ -26,7 +26,7 @@ export function NavigationItem({
       ? theme.palette.secondary.light
       : theme.palette.text.primary
   return (
-    <Link to={to}>
+    <Link key={Math.random().toString(36).substring(2, 6)} to={to}>
       <ListItemButton
         divider
         sx={{

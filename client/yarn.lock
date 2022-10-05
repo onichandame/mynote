@@ -8957,6 +8957,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic-ws@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "isomorphic-ws@npm:5.0.0"
+  peerDependencies:
+    ws: "*"
+  checksum: e20eb2aee09ba96247465fda40c6d22c1153394c0144fa34fe6609f341af4c8c564f60ea3ba762335a7a9c306809349f9b863c8beedf2beea09b299834ad5398
+  languageName: node
+  linkType: hard
+
 "jest-worker@npm:^26.3.0":
   version: 26.6.2
   resolution: "jest-worker@npm:26.6.2"
@@ -10585,6 +10594,7 @@ __metadata:
     graphql: ^16.6.0
     graphql-ws: ^5.11.2
     i18next: ^21.9.2
+    isomorphic-ws: ^5.0.0
     notistack: ^2.0.5
     react: ^18.1.0
     react-dom: ^18.1.0

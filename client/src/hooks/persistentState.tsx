@@ -1,4 +1,4 @@
-import { useReducer } from "react"
+import { useEffect, useReducer } from "react"
 
 /** Synchronized state which is automatically stored to local storage */
 export function usePersistentState<TData>(
@@ -11,12 +11,18 @@ export function usePersistentState<TData>(
         window.localStorage.setItem(key, JSON.stringify(opts.value))
       return opts.value
     },
-    (() => {
-      const savedValue = window.localStorage.getItem(key)
-      if (savedValue !== null) return JSON.parse(savedValue)
-      else return defaultValue
-    })()
+    defaultValue
   )
+  useEffect(() => {
+    const savedValue = window.localStorage.getItem(key)
+    try {
+      if (savedValue)
+        setValue({ value: JSON.parse(savedValue), noPersistent: true })
+    } catch (e) {
+      console.error(e)
+      window.localStorage.removeItem(key)
+    }
+  }, [])
   return [
     value,
     /** @param sync - If true the new value will be saved to local storage. Default to true */

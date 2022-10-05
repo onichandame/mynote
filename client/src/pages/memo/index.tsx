@@ -49,7 +49,7 @@ export default function () {
   useEffect(() => {
     let active = true
     if (reloading)
-      client.listMemos().then(memos => {
+      client?.listMemos().then(memos => {
         if (active && memos) setMemos(memos.edges.map(v => v.node))
         setReloading(false)
       })
@@ -84,7 +84,7 @@ export default function () {
       <Dialog open={creating} onClose={() => setCreating(false)} keepMounted>
         <form
           onSubmit={handleSubmit(async vals => {
-            await client.createMemo(vals)
+            await client?.createMemo(vals)
             setCreating(false)
             setReloading(true)
           })}
@@ -169,7 +169,7 @@ function Item({ memo, onChanged }: { memo: Memo; onChanged: () => void }) {
       <Dialog open={updating}>
         <form
           onSubmit={handleSubmit(async vals => {
-            await client.updateMemo(memo.id, vals)
+            await client?.updateMemo(memo.id, vals)
             setUpdating(false)
             onChanged()
           })}
@@ -225,7 +225,7 @@ function Item({ memo, onChanged }: { memo: Memo; onChanged: () => void }) {
           <Button
             color="warning"
             onClick={async () => {
-              await client.deleteMemo(memo.id)
+              await client?.deleteMemo(memo.id)
               setDeleting(false)
               onChanged()
             }}

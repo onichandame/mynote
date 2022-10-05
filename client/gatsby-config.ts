@@ -5,6 +5,7 @@ import * as dotenv from "dotenv"
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
 const config: GatsbyConfig = {
+  flags: { DEV_SSR: true },
   siteMetadata: {
     title: `Notebook`,
     siteUrl: `https://www.yourdomain.tld`,

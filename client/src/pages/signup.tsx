@@ -36,7 +36,7 @@ export default function () {
           item
           component="form"
           onSubmit={handleSubmit(async vals => {
-            const session = await client.signup(vals)
+            const session = await client?.signup(vals)
             if (session) {
               setSession(session)
               navigate(`/`, { replace: true })
