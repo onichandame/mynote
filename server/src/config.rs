@@ -22,6 +22,8 @@ pub struct Config {
     pub content_root: String,
     #[clap(skip = "api")]
     pub api_root: String,
+    #[clap(skip = "health")]
+    pub health_root: String,
 }
 
 impl Config {
