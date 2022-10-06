@@ -39,7 +39,7 @@ spec:
       http:
         paths:
           - path: /api
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Exact
             {{- end }}
             backend:
@@ -53,7 +53,7 @@ spec:
               servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /content
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Prefix
             {{- end }}
             backend:
@@ -67,7 +67,7 @@ spec:
               servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: Prefix
             {{- end }}
             backend:
