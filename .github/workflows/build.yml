@@ -15,7 +15,7 @@ on:
         value: ${{ jobs.build_frontend.outputs.tag }}
 jobs:
   build_backend:
-    name: Build image for backend and push to docker hub
+    name: Build backend
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ inputs.env }}-backend
@@ -36,7 +36,7 @@ jobs:
           file: backend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-backend
   build_frontend:
-    name: Build image for frontend and push to docker hub
+    name: Build frontend
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ inputs.env }}-frontend
