@@ -51,6 +51,7 @@ const config: GatsbyConfig = {
         icon: "src/images/icon.png",
       },
     },
+    `gatsby-plugin-offline`,
   ],
 }
 

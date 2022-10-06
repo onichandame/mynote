@@ -13,7 +13,12 @@ export function CurrentAvatar() {
       />
     ) : (
       <Avatar sx={{ bgcolor: theme => theme.palette.primary.dark }}>
-        {user.name.split(` `).splice(0, 2).join(``).toUpperCase()}
+        {user.name
+          .split(` `)
+          .map(v => v.substring(0, 1))
+          .splice(0, 2)
+          .join(``)
+          .toUpperCase()}
       </Avatar>
     )
   ) : (
