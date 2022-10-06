@@ -4,9 +4,6 @@ name: Build
 on:
   workflow_call:
     inputs:
-      repository:
-        required: true
-        type: string
       env:
         required: true
         description: environment for which the build runs (e.g. staging/production/...)
@@ -37,7 +34,7 @@ jobs:
         with:
           push: true
           file: backend.dockerfile
-          tags: ${{ inputs.repository }}:${{ inputs.env }}-backend
+          tags: onichandame/notebook:${{ inputs.env }}-backend
   build_frontend:
     name: Build image for frontend and push to docker hub
     runs-on: ubuntu-latest
@@ -51,11 +48,11 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: onichandame
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           push: true
           file: frontend.dockerfile
-          tags: ${{ inputs.repository }}:${{ inputs.env }}-frontend
+          tags: onichandame/notebook:${{ inputs.tag }}-frontend

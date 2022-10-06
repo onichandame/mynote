@@ -7,7 +7,6 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      repository: ${{ secrets.DOCKERHUB_USERNAME }}/notebook
       env: staging
     secrets: inherit
   deploy:
