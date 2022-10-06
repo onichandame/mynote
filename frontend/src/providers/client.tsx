@@ -1,0 +1,328 @@
+import {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import {
+  Client as GqlClient,
+  createClient,
+  dedupExchange,
+  errorExchange,
+  fetchExchange,
+  makeOperation,
+  subscriptionExchange,
+} from "urql"
+import { createClient as createWSClient } from "graphql-ws"
+import { useSnackbar } from "notistack"
+import { authExchange } from "@urql/exchange-auth"
+import Ws from "isomorphic-ws"
+import { useSession } from "./session"
+
+class Client {
+  private static readonly ApiPath = `/api`
+  private static readonly ContentPath = `/content`
+  private static ApiHost = process.env.GATSBY_API_HOST
+
+  private readonly session?: Nullable<string>
+  private readonly gqlClient: GqlClient
+  private readonly onError?: (err: Error) => void
+
+  constructor(props?: {
+    session?: Nullable<string>
+    onError?: (err: Error) => void
+  }) {
+    this.session = props?.session
+    this.onError = props?.onError
+    const wsClient = createWSClient({
+      webSocketImpl: Ws,
+      url: Client.wsUrl,
+      connectionParams: props?.session
+        ? { authorization: props.session }
+        : undefined,
+    })
+    this.gqlClient = createClient({
+      url: Client.httpUrl,
+      exchanges: [
+        dedupExchange,
+        errorExchange({
+          onError: err => {
+            console.warn(err)
+            props?.onError?.(err)
+          },
+        }),
+        authExchange<AuthState>({
+          getAuth: async () => ({ token: props?.session }),
+          addAuthToOperation: ({ authState, operation }) => {
+            if (!authState?.token) return operation
+            const fetchOptions =
+              typeof operation.context.fetchOptions === "function"
+                ? operation.context.fetchOptions()
+                : operation.context.fetchOptions || {}
+            return makeOperation(operation.kind, operation, {
+              ...operation.context,
+              fetchOptions: {
+                ...fetchOptions,
+                headers: {
+                  ...fetchOptions.headers,
+                  Authorization: `Bearer ${authState.token}`,
+                },
+              },
+            })
+          },
+        }),
+        subscriptionExchange({
+          isSubscriptionOperation: operation =>
+            operation.kind === `subscription`,
+          forwardSubscription: operation => ({
+            subscribe: sink => ({
+              unsubscribe: wsClient.subscribe(operation, sink),
+            }),
+          }),
+          enableAllOperations: true,
+        }),
+        fetchExchange,
+      ],
+    })
+  }
+
+  private static get httpUrl() {
+    if (this.ApiHost) return `${this.ApiHost}${this.ApiPath}`
+    else return this.ApiPath
+  }
+
+  private static get wsUrl() {
+    const host = this.ApiHost?.startsWith(`http`)
+      ? this.ApiHost
+      : `${window.location.protocol}//${window.location.host}:${window.location.port}`
+    return `${host.replace(/^http/, "ws")}${this.ApiPath}`
+  }
+
+  private static get contentUrl() {
+    if (this.ApiHost) return `${this.ApiHost}${this.ContentPath}`
+    else return this.ContentPath
+  }
+
+  async getSelf() {
+    if (!this.session) return
+    const res = await this.gqlClient
+      .query<{
+        users: Connection<User>
+      }>(
+        /* GraphQL */ `
+          query {
+            users {
+              edges {
+                node {
+                  id
+                  name
+                  email
+                  avatar
+                }
+              }
+            }
+          }
+        `,
+        {}
+      )
+      .toPromise()
+    if (res.data?.users.edges[0]?.node) return res.data?.users.edges[0]?.node
+  }
+
+  async updateSelf(update: UpdateUserInput) {
+    if (!this.session) return
+    const res = await this.gqlClient
+      .mutation<{ updateUsers: number }, UpdateUserInput>(
+        /* GraphQL */ `
+          mutation ($name: String, $email: String, $avatar: String) {
+            updateUsers(update: { name: $name, email: $email, avatar: $avatar })
+          }
+        `,
+        update
+      )
+      .toPromise()
+    if (!res.data?.updateUsers) throw new Error(`update self failed`)
+  }
+
+  async signup(input: SignUpInput) {
+    const res = await this.gqlClient
+      .mutation<{ signup: string }, SignUpInput>(
+        /* GraphQL */ `
+          mutation ($name: String!, $password: String!) {
+            signup(input: { name: $name, password: $password })
+          }
+        `,
+        input
+      )
+      .toPromise()
+    if (res.data?.signup) return res.data!.signup
+  }
+
+  async login(input: LogInInput) {
+    const res = await this.gqlClient
+      .mutation<{ login: string }, LogInInput>(
+        /* GraphQL */ `
+          mutation ($identity: String!, $password: String!) {
+            login(input: { identity: $identity, password: $password })
+          }
+        `,
+        input
+      )
+      .toPromise()
+    if (res.data?.login) return res.data.login
+  }
+
+  async changePassword(input: ChangePasswordInput) {
+    const res = await this.gqlClient
+      .mutation<{ changePassword: boolean }, ChangePasswordInput>(
+        /* GraphQL */ `
+          mutation ($password: String!) {
+            changePassword(input: { password: $password })
+          }
+        `,
+        input
+      )
+      .toPromise()
+    if (!res.data?.changePassword) throw new Error(`change password failed`)
+  }
+
+  async createMemo(input: CreateMemoInput) {
+    const res = await this.gqlClient
+      .mutation<{ createMemo: Memo }, CreateMemoInput>(
+        /* GraphQL */ `
+          mutation ($content: String!) {
+            createMemo(input: { content: $content }) {
+              id
+              content
+              createdAt
+              updatedAt
+            }
+          }
+        `,
+        input
+      )
+      .toPromise()
+    return res.data?.createMemo
+  }
+
+  async listMemos() {
+    const res = await this.gqlClient
+      .query<{ memos: Connection<Memo> }>(
+        /* GraphQL */ `
+          query {
+            memos(sorting: [{ field: CREATED_AT, direction: DESC }]) {
+              edges {
+                node {
+                  id
+                  content
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        `,
+        {}
+      )
+      .toPromise()
+    return res.data?.memos
+  }
+
+  async getMemo(id: number) {
+    const res = await this.gqlClient
+      .query<{ memos: Connection<Memo> }, { id: number }>(
+        /* GraphQL */ `
+          query ($id: Int!) {
+            memos(filter: { id: { eq: $id } }, paging: { first: 1 }) {
+              edges {
+                node {
+                  id
+                  content
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        `,
+        { id }
+      )
+      .toPromise()
+    return res.data?.memos?.edges?.[0]?.node
+  }
+
+  async updateMemo(id: number, update: UpdateMemoInput) {
+    const res = await this.gqlClient
+      .mutation<
+        { updateMemos: number },
+        { id: number; update: UpdateMemoInput }
+      >(
+        /* GraphQL */ `
+          mutation ($id: Int!, $update: MemoUpdate!) {
+            updateMemos(filter: { id: { eq: $id } }, update: $update)
+          }
+        `,
+        { id, update }
+      )
+      .toPromise()
+    if (!res.data?.updateMemos) this.onError?.(new Error(`update memo failed`))
+  }
+
+  async deleteMemo(id: number) {
+    const res = await this.gqlClient
+      .mutation<{ deleteMemos: number }, { id: number }>(
+        /* GraphQL */ `
+          mutation ($id: Int!) {
+            deleteMemos(filter: { id: { eq: $id } })
+          }
+        `,
+        {
+          id,
+        }
+      )
+      .toPromise()
+    if (!res.data?.deleteMemos) this.onError?.(new Error(`delete memo failed`))
+  }
+
+  async uploadFile(file: File) {
+    const data = new FormData()
+    data.append(file.name, file)
+    const res = await fetch(Client.contentUrl, {
+      method: `POST`,
+      body: data,
+      headers: { authorization: `Bearer ${this.session}` },
+    }).then(async v => {
+      if (v.status >= 400) throw new Error(await v.text())
+      return v.json()
+    })
+    const fileUrl = res[file.name]
+    if (!fileUrl) throw new Error(`file url not received`)
+    return `${Client.contentUrl}/${fileUrl}`
+  }
+}
+
+const ClientContext = createContext<Client | null>(null)
+
+export function ClientProvider({ children }: PropsWithChildren) {
+  const [session] = useSession()
+  const { enqueueSnackbar } = useSnackbar()
+  const onError = (e: Error) => {
+    enqueueSnackbar(e.message, { variant: `error` })
+  }
+  const [client, setClient] = useState<null | Client>(null)
+  useEffect(() => {
+    setClient(new Client({ onError, session }))
+  }, [session])
+  return (
+    <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
+  )
+}
+
+export function useClient() {
+  const client = useContext(ClientContext)
+  return client
+}
+
+type AuthState = { token?: Nullable<string> }

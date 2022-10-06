@@ -1,0 +1,13 @@
+{
+  "title": "Settings",
+  "profileTitle": "Profile",
+  "profileDescription": "Customize your nickname and avatar",
+  "profileLinkText": "Manage your account data",
+  "profileBasicInfoTitle": "Basic Info",
+  "profileBasicInfoAvatar": "Avatar",
+  "profileBasicInfoName": "Name",
+  "securityTitle": "Security",
+  "securityDescription": "Change password",
+  "securityLinkText": "Review your security settings",
+  "securityAccountPassword": "Password"
+}

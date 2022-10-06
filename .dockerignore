@@ -1,2 +1,9 @@
-target
 .github
+
+# backend
+backend/target
+
+# frontend
+frontend/.cache
+frontend/node_modules
+frontend/public
