@@ -55,4 +55,4 @@ jobs:
         with:
           push: true
           file: frontend.dockerfile
-          tags: onichandame/notebook:${{ inputs.tag }}-frontend
+          tags: onichandame/notebook:${{ inputs.env }}-frontend
