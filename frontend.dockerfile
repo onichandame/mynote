@@ -2,9 +2,9 @@ ARG nodeVersion=16-alpine
 ARG nginxVersion=1.23-alpine
 
 FROM node:${nodeVersion} as builder
-ADD client /builder
+ADD frontend /builder
 WORKDIR /builder
-RUN yarn build
+RUN yarn && yarn build
 RUN mv /builder/public /app
 
 FROM nginx:${nginxVersion}

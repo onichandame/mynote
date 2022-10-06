@@ -1403,6 +1403,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "notebook"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-warp",
+ "async-trait",
+ "bcrypt",
+ "chrono",
+ "clap",
+ "crud",
+ "futures",
+ "jsonwebtoken",
+ "opentelemetry",
+ "rand",
+ "sea-orm",
+ "sea-orm-migration",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "warp",
+]
+
+[[package]]
 name = "num-bigint"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2178,33 +2205,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-graphql-warp",
- "async-trait",
- "bcrypt",
- "chrono",
- "clap",
- "crud",
- "futures",
- "jsonwebtoken",
- "opentelemetry",
- "rand",
- "sea-orm",
- "sea-orm-migration",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
- "warp",
 ]
 
 [[package]]
