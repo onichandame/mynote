@@ -13,7 +13,7 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{- include "app.fullname" . -}}
+  name: {{ include "app.fullname" . }}
   labels:
     {{- include "app.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -45,11 +45,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{- include "backend.fullname" . }}
+                name: {{ include "backend.fullname" . }}
                 port:
                   number: {{ .Values.backend.service.port }}
               {{- else }}
-              serviceName: {{- include "backend.fullname" . }}
+              serviceName: {{ include "backend.fullname" . }}
               servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /content
@@ -59,11 +59,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{- include "backend.fullname" . }}
+                name: {{ include "backend.fullname" . }}
                 port:
                   number: {{ .Values.backend.service.port }}
               {{- else }}
-              serviceName: {{- include "backend.fullname" . }}
+              serviceName: {{ include "backend.fullname" . }}
               servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /
@@ -73,11 +73,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{- include "frontend.fullname" . }}
+                name: {{ include "frontend.fullname" . }}
                 port:
                   number: {{ .Values.frontend.service.port }}
               {{- else }}
-              serviceName: {{- include "frontend.fullname" . }}
+              serviceName: {{ include "frontend.fullname" . }}
               servicePort: {{ .Values.frontend.service.port }}
               {{- end }}
 {{- end }}
