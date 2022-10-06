@@ -47,10 +47,10 @@ spec:
               service:
                 name: {{- include "backend.fullname" . }}
                 port:
-                  number: {{ .Values.backend.args.service.port }}
+                  number: {{ .Values.backend.service.port }}
               {{- else }}
               serviceName: {{- include "backend.fullname" . }}
-              servicePort: {{ .Values.backend.args.service.port }}
+              servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /content
             {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
@@ -61,10 +61,10 @@ spec:
               service:
                 name: {{- include "backend.fullname" . }}
                 port:
-                  number: {{ .Values.backend.args.service.port }}
+                  number: {{ .Values.backend.service.port }}
               {{- else }}
               serviceName: {{- include "backend.fullname" . }}
-              servicePort: {{ .Values.backend.args.service.port }}
+              servicePort: {{ .Values.backend.service.port }}
               {{- end }}
           - path: /
             {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
@@ -75,9 +75,9 @@ spec:
               service:
                 name: {{- include "frontend.fullname" . }}
                 port:
-                  number: {{ .Values.frontend.args.service.port }}
+                  number: {{ .Values.frontend.service.port }}
               {{- else }}
               serviceName: {{- include "frontend.fullname" . }}
-              servicePort: {{ .Values.frontend.args.service.port }}
+              servicePort: {{ .Values.frontend.service.port }}
               {{- end }}
 {{- end }}
