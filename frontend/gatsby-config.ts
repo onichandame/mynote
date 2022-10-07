@@ -48,7 +48,12 @@ const config: GatsbyConfig = {
     {
       resolve: "gatsby-plugin-manifest",
       options: {
+        name: "Notebook",
+        short_name: "Notebook",
         icon: "src/images/icon.png",
+        start_url: "/",
+        background_color: "#145ea8",
+        display: `standalone`,
       },
     },
     `gatsby-plugin-offline`,
