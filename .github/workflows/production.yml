@@ -1,17 +1,17 @@
-name: Staging
+name: Production
 on:
   push:
     branches:
-      - "master"
+      - "production"
     paths:
       - "!.github/workflows"
-      - ".github/workflows/staging.yml"
+      - ".github/workflows/production.yml"
       - ".github/workflows/build.yml"
 jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      env: staging
+      env: production
     secrets: inherit
   deploy:
     name: Deploy
@@ -40,14 +40,14 @@ jobs:
           version: "v3.9.0"
       - name: Deploy
         run: >
-          helm upgrade --install notebook-staging ./helm
+          helm upgrade --install notebook ./helm
           --create-namespace
-          -n notebook-staging
+          -n notebook
           --set backend.image.tag=${{ needs.build.outputs.backend }}
           --set backend.image.pullPolicy=Always
           --set backend.args.port=80
-          --set backend.args.databaseUrl=sqlite:db.sqlite?mode=rwc
-          --set "backend.args.allowOrigins={https://notebook-staging.onichandame.com}"
+          --set backend.args.databaseUrl=${{ secrets.PRODUCTION_DB }}
+          --set "backend.args.allowOrigins={https://notebook.onichandame.com}"
           --set backend.service.port=80
           --set backend.autoRollout=true
           --set frontend.image.tag=${{ needs.build.outputs.frontend }}
@@ -56,6 +56,6 @@ jobs:
           --set frontend.autoRollout=true
           --set ingress.enabled=true
           --set ingress.className=nginx
-          --set ingress.tls[0].secretName=notebook-staging
-          --set ingress.tls[0].hosts[0]=notebook-staging.onichandame.com
-          --set ingress.host=notebook-staging.onichandame.com
+          --set ingress.tls[0].secretName=notebook
+          --set ingress.tls[0].hosts[0]=notebook.onichandame.com
+          --set ingress.host=notebook.onichandame.com
