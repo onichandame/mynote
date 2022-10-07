@@ -18,6 +18,10 @@ spec:
     metadata:
       labels:
         {{- include "backend.labels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.backend.autoRollout -}}
+        rollme: {{ randAlphaNum 5 | quote }}
+        {{- end }}
     spec:
       containers:
         - name: {{ .Chart.Name }}

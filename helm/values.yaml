@@ -14,6 +14,8 @@ backend:
     # Overrides the image tag whose default is the chart appVersion.
     tag: "backend"
   annotations: {}
+  # if true the pods will be recreated in every update
+  autoRollout: false
 
   args:
     port: 80
@@ -40,6 +42,8 @@ frontend:
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: "frontend"
+  # if true the pods will be recreated in every update
+  autoRollout: false
   annotations: {}
 
   service:

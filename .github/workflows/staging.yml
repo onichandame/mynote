@@ -45,11 +45,11 @@ jobs:
           --set backend.args.databaseUrl=sqlite:db.sqlite?mode=rwc
           --set "backend.args.allowOrigins={https://notebook-staging.onichandame.com}"
           --set backend.service.port=80
-          --set backend.annotations.timestamp="$\"(date +%s)\""
+          --set backend.autoRollout=true
           --set frontend.image.tag=${{ needs.build.outputs.frontend }}
           --set frontend.image.pullPolicy=Always
           --set frontend.service.port=80
-          --set frontend.annotations.timestamp="\"$(date +%s)\""
+          --set frontend.autoRollout=true
           --set ingress.enabled=true
           --set ingress.className=nginx
           --set ingress.tls[0].secretName=notebook-staging
