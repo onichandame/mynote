@@ -5,6 +5,10 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
     {{- include "backend.labels" . | nindent 4 }}
+  {{- with .Values.backend.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
