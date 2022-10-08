@@ -42,7 +42,7 @@ jobs:
           --set backend.image.tag=${{ needs.build.outputs.backend }}
           --set backend.image.pullPolicy=Always
           --set backend.args.port=80
-          --set backend.args.databaseUrl=${{ secrets.PRODUCTION_DB }}
+          --set backend.args.databaseUrl="${{ secrets.PRODUCTION_DB }}"
           --set "backend.args.allowOrigins={https://notebook.onichandame.com}"
           --set backend.service.port=80
           --set backend.autoRollout=true
