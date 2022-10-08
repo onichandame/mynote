@@ -13,5 +13,7 @@ RUN mv /builder/target/release/notebook /app/notebook
 
 FROM ${OS}:${OS_VERSION}
 COPY --from=builder /app /app
+# required by native tls
+RUN apk update && apk add libgcc
 WORKDIR /app
 ENTRYPOINT [ "/app/notebook" ]
