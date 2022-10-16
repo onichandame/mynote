@@ -78,7 +78,6 @@ export default function () {
                   const targetIndex = newMemos.findIndex(
                     v => v.id === target.id
                   )
-                  console.log(sourceIndex, targetIndex)
                   if (targetIndex >= 0) {
                     newMemos.splice(
                       sourceIndex > targetIndex ? targetIndex : targetIndex + 1,
