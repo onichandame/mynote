@@ -11,7 +11,7 @@ pub struct Model {
     pub updated_at: Option<DateTime>,
     pub author_id: i32,
     pub content: String,
-    pub weight: i32,
+    pub weight: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

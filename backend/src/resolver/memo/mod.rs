@@ -23,7 +23,7 @@ pub struct Memo {
     #[crud(creatable, updatable)]
     pub content: String,
     #[crud(creatable, updatable)]
-    pub weight: i32,
+    pub weight: Option<i32>,
 }
 
 #[async_trait]

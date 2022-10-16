@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { DeleteForever, Edit } from "@mui/icons-material"
 import {
   Button,
   Dialog,
@@ -29,7 +30,7 @@ import { SEO } from "../../components/seo"
 import { Tile } from "../../components/tile"
 import { useTranslateScoped } from "../../hooks/translate"
 import { useClient } from "../../providers/client"
-import { DeleteForever, Edit } from "@mui/icons-material"
+import { Draggable, DraggableItemType } from "../../components/draggble"
 
 export default function () {
   const translate = useTranslate()
@@ -64,12 +65,41 @@ export default function () {
         <Grid container alignItems="stretch" spacing={2}>
           {memos.map(memo => (
             <Grid item key={memo.id} xs={12} sm={6} md={4} lg={3}>
-              <Item
-                memo={memo}
-                onChanged={() => {
+              <Draggable
+                type={DraggableItemType.Memo}
+                item={memo}
+                onHover={(source, target) => {
+                  if (source.id === target.id) return
+                  const newMemos = [...memos]
+                  const sourceIndex = newMemos.indexOf(source)
+                  const sourceItem = newMemos.splice(sourceIndex, 1)[0]!
+                  const targetIndex = newMemos.indexOf(target)
+                  if (targetIndex >= 0) {
+                    newMemos.splice(
+                      sourceIndex > targetIndex ? targetIndex : targetIndex + 1,
+                      0,
+                      sourceItem
+                    )
+                    setMemos(newMemos)
+                  }
+                }}
+                onDrop={async () => {
+                  await Promise.all(
+                    memos.map(async (memo, index) => {
+                      if (memo.weight != index)
+                        await client?.updateMemo(memo.id, { weight: index })
+                    })
+                  )
                   setReloading(true)
                 }}
-              />
+              >
+                <Item
+                  memo={memo}
+                  onChanged={() => {
+                    setReloading(true)
+                  }}
+                />
+              </Draggable>
             </Grid>
           ))}
         </Grid>

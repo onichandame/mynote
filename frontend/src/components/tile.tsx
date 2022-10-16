@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@mui/material"
 import { PropsWithChildren, ReactNode } from "react"
+
 import { Link } from "./link"
 
 export function Tile({
@@ -20,15 +21,7 @@ export function Tile({
   actions,
   onClick,
   children,
-}: PropsWithChildren & {
-  title?: string
-  description?: string
-  icon?: ReactNode
-  linkText?: string
-  link?: string
-  actions?: ReactNode
-  onClick?: () => void
-}) {
+}: BasicProps) {
   if (linkText && actions)
     throw new Error(`a tile cannot have both 'to' and 'actions'`)
   if (link && onClick)
@@ -80,4 +73,14 @@ export function Tile({
       )}
     </Card>
   )
+}
+
+type BasicProps = PropsWithChildren & {
+  title?: string
+  description?: string
+  icon?: ReactNode
+  linkText?: string
+  link?: string
+  actions?: ReactNode
+  onClick?: () => void
 }

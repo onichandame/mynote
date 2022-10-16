@@ -1,6 +1,6 @@
 import { CssBaseline } from "@mui/material"
 import { DndProvider } from "react-dnd"
-import { TouchBackend } from "react-dnd-touch-backend"
+import { HTML5Backend } from "react-dnd-html5-backend"
 import { SnackbarProvider } from "notistack"
 import { GatsbyBrowser } from "gatsby"
 import React from "react"
@@ -24,7 +24,7 @@ export const wrapRootElement: GatsbyBrowser["wrapRootElement"] = ({
   element,
 }) => {
   return (
-    <DndProvider backend={TouchBackend}>
+    <DndProvider backend={HTML5Backend}>
       <SnackbarProvider>
         <SessionProvider>
           <ClientProvider>
