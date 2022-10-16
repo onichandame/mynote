@@ -71,9 +71,14 @@ export default function () {
                 onHover={(source, target) => {
                   if (source.id === target.id) return
                   const newMemos = [...memos]
-                  const sourceIndex = newMemos.indexOf(source)
+                  const sourceIndex = newMemos.findIndex(
+                    v => v.id === source.id
+                  )
                   const sourceItem = newMemos.splice(sourceIndex, 1)[0]!
-                  const targetIndex = newMemos.indexOf(target)
+                  const targetIndex = newMemos.findIndex(
+                    v => v.id === target.id
+                  )
+                  console.log(sourceIndex, targetIndex)
                   if (targetIndex >= 0) {
                     newMemos.splice(
                       sourceIndex > targetIndex ? targetIndex : targetIndex + 1,
