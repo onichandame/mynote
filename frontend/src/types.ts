@@ -7,10 +7,11 @@ type ChangePasswordInput = { password: string }
 type Memo = {
   id: number
   content: string
+  weight?: number
   createdAt: Date
   updatedAt?: Date
 }
 type CreateMemoInput = Pick<Memo, "content">
-type UpdateMemoInput = Pick<Partial<Memo>, "content">
+type UpdateMemoInput = Pick<Partial<Memo>, "content" | "weight">
 
 type Nullable<T> = T | null | undefined

@@ -28,6 +28,7 @@ pub enum Memo {
     UpdatedAt,
     AuthorId,
     Content,
+    Weight,
 }
 
 #[derive(Iden)]

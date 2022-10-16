@@ -212,7 +212,12 @@ class Client {
       .query<{ memos: Connection<Memo> }>(
         /* GraphQL */ `
           query {
-            memos(sorting: [{ field: CREATED_AT, direction: DESC }]) {
+            memos(
+              sorting: [
+                { field: WEIGHT, direction: ASC }
+                { field: CREATED_AT, direction: DESC }
+              ]
+            ) {
               edges {
                 node {
                   id
