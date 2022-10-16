@@ -32,6 +32,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           file: backend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-backend
@@ -55,6 +56,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           file: frontend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-frontend
