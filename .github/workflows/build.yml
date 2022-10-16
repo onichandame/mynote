@@ -35,6 +35,8 @@ jobs:
           push: true
           file: backend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-backend
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build_frontend:
     name: Build frontend
     runs-on: ubuntu-latest
@@ -56,3 +58,5 @@ jobs:
           push: true
           file: frontend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-frontend
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
