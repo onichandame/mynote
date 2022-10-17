@@ -4,6 +4,7 @@ mod m20220711_000001_create_table_user;
 mod m20220711_000002_create_table_credential;
 mod m20220711_000003_create_table_memo;
 mod m20220714_000001_create_table_session_key;
+mod m20221009_000001_update_table_memo;
 mod tables;
 
 pub struct Migrator;
@@ -16,6 +17,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20220711_000002_create_table_credential::Migration),
             Box::new(m20220711_000003_create_table_memo::Migration),
             Box::new(m20220714_000001_create_table_session_key::Migration),
+            Box::new(m20221009_000001_update_table_memo::Migration),
         ]
     }
 }

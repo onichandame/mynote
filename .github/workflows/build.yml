@@ -20,6 +20,8 @@ jobs:
     outputs:
       tag: ${{ inputs.env }}-backend
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -32,15 +34,20 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           file: backend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-backend
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
   build_frontend:
     name: Build frontend
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ inputs.env }}-frontend
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -53,6 +60,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           file: frontend.dockerfile
           tags: onichandame/notebook:${{ inputs.env }}-frontend
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

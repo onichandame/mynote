@@ -1,4 +1,6 @@
 import { CssBaseline } from "@mui/material"
+import { DndProvider } from "react-dnd"
+import { HTML5Backend } from "react-dnd-html5-backend"
 import { SnackbarProvider } from "notistack"
 import { GatsbySSR } from "gatsby"
 import React from "react"
@@ -18,12 +20,14 @@ export const wrapPageElement: GatsbySSR["wrapPageElement"] = ({ element }) => {
 
 export const wrapRootElement: GatsbySSR["wrapRootElement"] = ({ element }) => {
   return (
-    <SnackbarProvider>
-      <SessionProvider>
-        <ClientProvider>
-          <CurrentUserProvider>{element}</CurrentUserProvider>
-        </ClientProvider>
-      </SessionProvider>
-    </SnackbarProvider>
+    <DndProvider backend={HTML5Backend}>
+      <SnackbarProvider>
+        <SessionProvider>
+          <ClientProvider>
+            <CurrentUserProvider>{element}</CurrentUserProvider>
+          </ClientProvider>
+        </SessionProvider>
+      </SnackbarProvider>
+    </DndProvider>
   )
 }
