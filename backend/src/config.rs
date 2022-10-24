@@ -1,36 +1,31 @@
-use std::error::Error;
-
 use clap::Parser;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author,version,about,long_about=None)]
 pub struct Config {
-    #[clap(short, long, value_parser, default_value = "sqlite::memory:")]
+    #[clap(short, long, value_parser, env, default_value = "sqlite::memory:")]
     pub database_url: String,
-    #[clap(short, long, default_value = "80")]
+    #[clap(short, long, env, default_value = "80")]
     pub port: u16,
     #[clap(long, short = 'o')]
     pub allow_origins: Vec<String>,
-    #[clap(
-        long,
-        short = 'c',
-        default_value = "content",
-        help = "Root directory of contents. Contents are plain files stored locally"
-    )]
-    pub content_dir: String,
-    #[clap(skip = "content")]
-    pub content_root: String,
     #[clap(skip = "api")]
-    pub api_root: String,
+    pub api_path: String,
     #[clap(skip = "health")]
-    pub health_root: String,
+    pub health_path: String,
+    #[clap(long, env)]
+    pub cdn_api_secret: String,
+    #[clap(long, env)]
+    pub cdn_api_key: String,
+    #[clap(skip = "notebook")]
+    pub cdn_content_folder: String,
+    /// If set to true, new users are only allowed to sign up when a valid invitation key is provided
+    #[clap(long, env, value_parser, default_value_t = false)]
+    pub invitation_only: bool,
 }
 
 impl Config {
-    pub fn validate(&self) -> Result<(), Box<dyn Error + Sync + Send>> {
-        if self.api_root == self.content_root {
-            return Err("content and api cannot share the same root path".into());
-        }
+    pub fn validate(&self) -> anyhow::Result<()> {
         Ok(())
     }
 }

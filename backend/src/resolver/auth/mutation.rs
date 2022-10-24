@@ -1,10 +1,6 @@
 use async_graphql::{Context, InputObject, Object, Result};
-use sea_orm::DatabaseConnection;
 
-use crate::{
-    auth::{credential, login::login_by_password, session::Session, signup::signup},
-    entity,
-};
+use crate::{entity, Notebook};
 
 #[derive(Default)]
 pub struct AuthMutation {}
@@ -20,6 +16,7 @@ struct SignupInput {
     pub name: String,
     pub password: String,
     pub email: Option<String>,
+    pub invitation_key: Option<String>,
 }
 
 #[derive(InputObject)]
@@ -33,30 +30,41 @@ impl AuthMutation {
         ctx.data::<entity::user::Model>()
             .err()
             .ok_or("logged in user cannot signup again")?;
-        let db = ctx.data::<DatabaseConnection>()?;
-        let user = signup(&input.name, &input.password, input.email.as_deref(), db).await?;
-        Ok(Session::try_from_user(&user, db).await?.token)
+        let nb = ctx.data::<Notebook>()?;
+        let user = nb
+            .auth
+            .signup(
+                &input.name,
+                &input.password,
+                input.email.as_deref(),
+                input.invitation_key.as_deref(),
+            )
+            .await?;
+        Ok(nb.auth.session.generate_for_user(&user).await?.token)
     }
 
     async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> Result<String> {
         ctx.data::<entity::user::Model>()
             .err()
             .ok_or("logged in user cannot log in again")?;
-        let db = ctx.data::<DatabaseConnection>()?;
-        let session = login_by_password(&input.identity, &input.password, db).await?;
+        let nb = ctx.data::<Notebook>()?;
+        let session = nb
+            .auth
+            .login_by_password(&input.identity, &input.password)
+            .await?;
         Ok(session.token)
     }
 
     async fn renew_session(&self, ctx: &Context<'_>) -> Result<String> {
         let user = ctx.data::<entity::user::Model>()?;
-        let db = ctx.data::<DatabaseConnection>()?;
-        Ok(Session::try_from_user(&user, &db).await?.token)
+        let nb = ctx.data::<Notebook>()?;
+        Ok(nb.auth.session.generate_for_user(&user).await?.token)
     }
 
     async fn change_password(&self, ctx: &Context<'_>, input: ChangePasswordInput) -> Result<bool> {
-        let db = ctx.data::<DatabaseConnection>()?;
+        let nb = ctx.data::<Notebook>()?;
         let user = ctx.data::<entity::user::Model>()?;
-        credential::create_credential(user.id, &input.password, db).await?;
+        nb.auth.credential.update(user.id, &input.password).await?;
         Ok(true)
     }
 }

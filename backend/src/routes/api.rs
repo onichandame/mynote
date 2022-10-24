@@ -3,21 +3,20 @@ use async_graphql::{
     Data, Request,
 };
 use async_graphql_warp::{graphql, graphql_protocol, GraphQLResponse, GraphQLWebSocket};
-use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use warp::{http, ws::Ws, Filter, Rejection, Reply};
 
-use crate::{auth::session::Session, schema::Schema};
+use crate::{schema::Schema, Notebook};
 
 use super::middlewares::extract_session;
 
 pub fn create_api_route(
     schema: Schema,
-    db: &DatabaseConnection,
+    nb: &Notebook,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
-    let db = db.clone();
+    let nb = nb.clone();
     let query_mutation = warp::post()
-        .and(extract_session(&db))
+        .and(extract_session(&nb))
         .and(graphql(schema.clone()))
         .and_then(
             |session, (schema, mut request): (Schema, Request)| async move {
@@ -28,13 +27,15 @@ pub fn create_api_route(
             },
         );
     let subscription = warp::ws()
-        .and(extract_session(&db))
+        .and(extract_session(&nb))
         .and(warp::any().map(move || schema.clone()))
         .and(graphql_protocol())
         .and_then(move |ws: Ws, session, schema, protocol| {
-            let db = db.clone();
+            let nb = nb.clone();
             async move {
+                let nb = nb.clone();
                 let reply = ws.on_upgrade(move |sock| {
+                    let nb = nb.clone();
                     let mut data = Data::default();
                     if let Some(session) = session {
                         data.insert(session);
@@ -42,6 +43,7 @@ pub fn create_api_route(
                     GraphQLWebSocket::new(sock, schema, protocol)
                         .with_data(data)
                         .on_connection_init(|v: serde_json::Value| async move {
+                            let nb = nb.clone();
                             let mut data = Data::default();
                             #[derive(Deserialize)]
                             struct ConnectionInitPayload {
@@ -49,8 +51,11 @@ pub fn create_api_route(
                             }
                             if let Ok(payload) = serde_json::from_value::<ConnectionInitPayload>(v)
                             {
-                                if let Ok(session) =
-                                    Session::try_from_token(&payload.authorization, &db).await
+                                if let Ok(session) = nb
+                                    .auth
+                                    .session
+                                    .parse_from_token(&payload.authorization)
+                                    .await
                                 {
                                     data.insert(session);
                                 }

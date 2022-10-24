@@ -1,20 +1,20 @@
 use std::convert::Infallible;
 
-use sea_orm::DatabaseConnection;
 use warp::{Filter, Rejection};
 
-use crate::auth::session::Session;
+use crate::{auth::session::Session, Notebook};
 
 pub fn extract_session(
-    db: &DatabaseConnection,
+    nb: &Notebook,
 ) -> impl Filter<Extract = (Option<Session>,), Error = Rejection> + Clone {
-    let db = db.clone();
+    let nb = nb.clone();
     warp::header::optional::<String>("Authorization").and_then(move |token: Option<String>| {
-        let db = db.clone();
+        let nb = nb.clone();
         async move {
+            let nb = nb.clone();
             if let Some(token) = token {
                 if let Some(token) = token.strip_prefix("Bearer ") {
-                    return Ok::<_, Infallible>(Session::try_from_token(token, &db).await.ok());
+                    return Ok::<_, Infallible>(nb.auth.session.parse_from_token(token).await.ok());
                 }
             }
             Ok(None)

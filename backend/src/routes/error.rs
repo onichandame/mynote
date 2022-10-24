@@ -30,12 +30,6 @@ impl Error {
             ..Default::default()
         }
     }
-    pub fn with_code_and_message(code: StatusCode, msg: &str) -> Self {
-        Self {
-            code,
-            message: msg.to_owned(),
-        }
-    }
 }
 
 impl warp::reject::Reject for Error {}

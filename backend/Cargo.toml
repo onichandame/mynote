@@ -11,7 +11,12 @@ anyhow = { version = "1.0.65" }
 crud = { git = "https://github.com/onichandame/crud-rs", version = "^0.1" }
 tokio = { version = "^1", features = ["full"] }
 clap = { version = "^3", features = ["derive", "env"] }
-sea-orm = { version = "^0.9", features = ["sqlx-sqlite", "runtime-tokio-native-tls", "with-chrono", "macros", "sqlx-postgres"] }
+sea-orm = { version = "^0.9", features = [
+    "runtime-tokio-native-tls",
+    "with-chrono",
+    "macros",
+    "sqlx-postgres",
+] }
 async-graphql = { version = "^4", features = ["chrono", "tracing"] }
 tracing = "^0.1"
 tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
@@ -27,5 +32,7 @@ chrono = "^0.4"
 bcrypt = "^0.13"
 async-trait = "^0.1"
 futures = "0.3.24"
+sha1 = "0.10.5"
+dotenvy = "0.15.5"
 [dependencies.sea-orm-migration]
 version = "^0"

@@ -3,7 +3,6 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react"
 import {
@@ -19,11 +18,11 @@ import { createClient as createWSClient } from "graphql-ws"
 import { useSnackbar } from "notistack"
 import { authExchange } from "@urql/exchange-auth"
 import Ws from "isomorphic-ws"
+
 import { useSession } from "./session"
 
 class Client {
   private static readonly ApiPath = `/api`
-  private static readonly ContentPath = `/content`
   private static ApiHost = process.env.GATSBY_API_HOST
 
   private readonly session?: Nullable<string>
@@ -98,11 +97,6 @@ class Client {
       ? this.ApiHost
       : `${window.location.protocol}//${window.location.host}:${window.location.port}`
     return `${host.replace(/^http/, "ws")}${this.ApiPath}`
-  }
-
-  private static get contentUrl() {
-    if (this.ApiHost) return `${this.ApiHost}${this.ContentPath}`
-    else return this.ContentPath
   }
 
   async getSelf() {
@@ -291,20 +285,36 @@ class Client {
     if (!res.data?.deleteMemos) this.onError?.(new Error(`delete memo failed`))
   }
 
+  private async uploadParams() {
+    const res = await this.gqlClient
+      .query<{ uploadParams: string }>(
+        /* GraphQL */ `
+          query {
+            uploadParams
+          }
+        `,
+        {}
+      )
+      .toPromise()
+    return res.data?.uploadParams
+  }
+
   async uploadFile(file: File) {
     const data = new FormData()
-    data.append(file.name, file)
-    const res = await fetch(Client.contentUrl, {
+    data.append(`file`, file)
+    const paramStr = await this.uploadParams()
+    if (!paramStr) throw new Error(`cannot upload file`)
+    for (const [key, val] of Object.entries(JSON.parse(paramStr))) {
+      data.append(key, val!.toString())
+    }
+    const res = await fetch(process.env.GATSBY_CDN_UPLOAD_URL!, {
       method: `POST`,
       body: data,
-      headers: { authorization: `Bearer ${this.session}` },
     }).then(async v => {
       if (v.status >= 400) throw new Error(await v.text())
       return v.json()
     })
-    const fileUrl = res[file.name]
-    if (!fileUrl) throw new Error(`file url not received`)
-    return `${Client.contentUrl}/${fileUrl}`
+    return res.secure_url
   }
 }
 

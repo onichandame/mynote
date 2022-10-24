@@ -3,23 +3,22 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "memo")]
+#[sea_orm(table_name = "invitation")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
-    pub author_id: i32,
-    #[sea_orm(column_type = "Text")]
-    pub content: String,
-    pub weight: Option<i32>,
+    pub inviter_id: i32,
+    #[sea_orm(column_type = "Text", unique)]
+    pub key: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::user::Entity",
-        from = "Column::AuthorId",
+        from = "Column::InviterId",
         to = "super::user::Column::Id",
         on_update = "NoAction",
         on_delete = "NoAction"

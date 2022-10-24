@@ -1,6 +1,16 @@
 use sea_orm_migration::prelude::*;
 
 #[derive(Iden)]
+pub enum Invitation {
+    Table,
+    Id,
+    CreatedAt,
+    UpdatedAt,
+    InviterId,
+    Key,
+}
+
+#[derive(Iden)]
 pub enum User {
     Table,
     Id,
@@ -9,6 +19,7 @@ pub enum User {
     Name,
     Email,
     Avatar,
+    InvitationId,
 }
 
 #[derive(Iden)]
