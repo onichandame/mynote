@@ -1,0 +1,4 @@
+
+[workspace]
+members = ["backend", "apps/*", "libs/*", "tools/*"]
+exclude = ["apps/frontend"]

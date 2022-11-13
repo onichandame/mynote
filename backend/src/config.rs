@@ -5,6 +5,8 @@ use clap::Parser;
 pub struct Config {
     #[clap(short, long, value_parser, env, default_value = "sqlite::memory:")]
     pub database_url: String,
+    #[clap(short, long, value_parser, env, default_value = "amqp://127.0.0.1:5672")]
+    pub pubsub_url:String,
     #[clap(short, long, env, default_value = "80")]
     pub port: u16,
     #[clap(long, short = 'o')]

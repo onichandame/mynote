@@ -1,9 +1,9 @@
 .github
+.git
 
-# backend
-backend/target
+# rust
+/target
 
-# frontend
-frontend/.cache
-frontend/node_modules
-frontend/public
+# yarn
+**/.cache
+**/node_modules
