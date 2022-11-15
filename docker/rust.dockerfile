@@ -20,4 +20,4 @@ COPY --from=builder /app /app
 # required by native tls
 RUN apk update && apk add libgcc
 WORKDIR /app
-ENTRYPOINT [ "/app/noteboo$PKG" ]
+ENTRYPOINT [ "/app/$PKG" ]

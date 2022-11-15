@@ -4,37 +4,56 @@ use std::{
 };
 
 use clap::Parser;
+use serde::Deserialize;
 use thiserror::Error;
 
 static PKG_ROOT: &str = "apps";
+static CONFIG_PATH: &str = "build.yaml";
 
 #[derive(Parser)]
 pub struct Build {
-    /// Choose which package to build. If not provided, all packages will be built
+    /// Choose which packages to build. If not provided, all packages will be built
     #[clap(short = 'p', long, env)]
     package: Option<Vec<String>>,
-    /// Specify the name of the script to be run for this build
-    #[clap(short = 'f', long, env)]
-    file: String,
+}
+
+#[derive(Deserialize)]
+struct Config {
+    script: String,
 }
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
     IoError(#[from] io::Error),
+    #[error(transparent)]
+    ValueParseError(#[from] serde_yaml::Error),
     #[error("build error: {0}")]
     Unknown(String),
 }
 
 pub fn run(cmd: Build) -> Result<(), Error> {
-    let packages = cmd.package.unwrap_or(get_all_packages()?);
-    for pkg in packages {
-        build_package(&pkg, &cmd.file);
+    let packages = get_all_packages()?
+        .into_iter()
+        .filter(|(pkg, _)| {
+            if let Some(pkgs) = cmd.package.as_ref() {
+                if pkgs.iter().any(|v| v == pkg) {
+                    true
+                } else {
+                    false
+                }
+            } else {
+                true
+            }
+        })
+        .collect::<Vec<_>>();
+    for (pkg, config) in packages {
+        build_package(&pkg, &config);
     }
     Ok(())
 }
 
-fn build_package(package: &str, file: &str) {
+fn build_package(package: &str, config: &Config) {
     Command::new("docker")
         .args([
             "build",
@@ -44,7 +63,7 @@ fn build_package(package: &str, file: &str) {
             "--build-arg",
             &format!("PKG={}", &package),
             "-f",
-            file,
+            &format!("docker/{}.dockerfile", &config.script),
         ])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -52,14 +71,23 @@ fn build_package(package: &str, file: &str) {
         .unwrap();
 }
 
-fn get_all_packages() -> Result<Vec<String>, Error> {
+fn get_all_packages() -> Result<Vec<(String, Config)>, Error> {
     let mut pkgs = vec![];
     for subfile in fs::read_dir(PKG_ROOT)? {
         if let Ok(subfile) = subfile {
             if subfile.file_type()?.is_dir() {
-                pkgs.push(subfile.file_name().into_string().map_err(|_| {
-                    Error::Unknown("a package's path contains non UTF-8 characters".to_owned())
-                })?);
+                let config_path = subfile.path().join(CONFIG_PATH);
+                if config_path.exists() {
+                    let config = serde_yaml::from_str::<Config>(&fs::read_to_string(config_path)?)?;
+                    pkgs.push((
+                        subfile.file_name().into_string().map_err(|_| {
+                            Error::Unknown(
+                                "a package's path contains non UTF-8 characters".to_owned(),
+                            )
+                        })?,
+                        config,
+                    ));
+                }
             }
         }
     }

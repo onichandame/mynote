@@ -1,5 +1,6 @@
 .github
 .git
+/docker
 
 # rust
 /target

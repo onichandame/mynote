@@ -1,5 +1,5 @@
 use clap::Parser;
-use commands::{build, Command};
+use commands::{build, publish, Command};
 use thiserror::Error;
 
 mod commands;
@@ -15,6 +15,8 @@ struct Opts {
 enum Error {
     #[error(transparent)]
     BuildError(#[from] build::Error),
+    #[error(transparent)]
+    PublishError(#[from] publish::Error),
 }
 
 fn main() -> Result<(), Error> {
@@ -23,6 +25,9 @@ fn main() -> Result<(), Error> {
         match cmd {
             Command::Build(cmd) => {
                 build::run(cmd)?;
+            }
+            Command::Publish(cmd) => {
+                publish::run(cmd)?;
             }
         }
     }
