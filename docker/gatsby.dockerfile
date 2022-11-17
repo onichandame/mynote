@@ -4,7 +4,8 @@ ARG PKG
 
 FROM node:${nodeVersion} as builder
 ARG PKG
-ADD /apps/${PKG} /builder
+ARG PKG_ROOT
+ADD ${PKG_ROOT} /builder
 WORKDIR /builder
 RUN yarn && yarn build
 RUN mv /builder/public /app
