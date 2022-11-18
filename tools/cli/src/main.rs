@@ -4,15 +4,19 @@ use clap::Parser;
 use commands::{build, publish, Command};
 use config::Config;
 use constants::{CONFIG_PATH, PKG_ROOT};
+use package::Package;
 use thiserror::Error;
 
 mod commands;
 mod config;
 mod constants;
+mod package;
 
+/// Cli tool to build/publish the apps
 #[derive(Parser)]
 #[command(author, version, about)]
-struct Opts {
+struct CliMain {
+    /// The relevent package(app)s involved
     #[clap(short = 'p', long, env)]
     packages: Option<Vec<String>>,
     #[command(subcommand)]
@@ -34,12 +38,12 @@ enum Error {
 }
 
 fn main() -> Result<(), Error> {
-    let opts = Opts::parse();
+    let opts = CliMain::parse();
     let pkgs = get_all_packages()?
         .into_iter()
-        .filter(|(name, _, _)| {
+        .filter(|pkg| {
             if let Some(pkgs) = opts.packages.as_ref() {
-                pkgs.contains(name)
+                pkgs.contains(&pkg.name)
             } else {
                 true
             }
@@ -50,15 +54,15 @@ fn main() -> Result<(), Error> {
             Command::Build(_) => {
                 build::run(&pkgs)?;
             }
-            Command::Publish(_) => {
-                publish::run()?;
+            Command::Publish(opts) => {
+                publish::run(opts, &pkgs)?;
             }
         }
     }
     Ok(())
 }
 
-fn get_all_packages() -> Result<Vec<(String, String, Config)>, Error> {
+fn get_all_packages() -> Result<Vec<Package>, Error> {
     let mut pkgs = vec![];
     for subfile in fs::read_dir(PKG_ROOT)? {
         if let Ok(subdir) = subfile {
@@ -69,9 +73,9 @@ fn get_all_packages() -> Result<Vec<(String, String, Config)>, Error> {
                     let package_name = subdir.file_name().into_string().map_err(|_| {
                         Error::Unknown("a package's name contains non UTF-8 characters".to_owned())
                     })?;
-                    pkgs.push((
-                        package_name,
-                        subdir
+                    pkgs.push(Package {
+                        name: package_name,
+                        path: subdir
                             .path()
                             .to_str()
                             .ok_or(Error::Unknown(
@@ -79,7 +83,7 @@ fn get_all_packages() -> Result<Vec<(String, String, Config)>, Error> {
                             ))?
                             .to_owned(),
                         config,
-                    ));
+                    });
                 }
             }
         }

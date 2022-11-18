@@ -6,7 +6,7 @@ use std::{
 use clap::Parser;
 use thiserror::Error;
 
-use crate::config::Config;
+use crate::package::Package;
 
 #[derive(Parser)]
 pub struct Build {}
@@ -19,29 +19,29 @@ pub enum Error {
     ValueParseError(#[from] serde_yaml::Error),
 }
 
-pub fn run(pkgs: &Vec<(String, String, Config)>) -> Result<(), Error> {
-    for (name, path, config) in pkgs {
-        build_package(name, path, config);
+pub fn run(pkgs: &Vec<Package>) -> Result<(), Error> {
+    for pkg in pkgs {
+        build_package(pkg)?;
     }
     Ok(())
 }
 
-fn build_package(name: &str, path: &str, config: &Config) {
+fn build_package(pkg: &Package) -> Result<(), Error> {
     Command::new("docker")
         .args([
             "build",
             ".",
             "-t",
-            &name,
+            &pkg.get_image_tag(),
             "--build-arg",
-            &format!("PKG={}", &name),
+            &format!("PKG={}", &pkg.name),
             "--build-arg",
-            &format!("PKG_ROOT={}", &path),
+            &format!("PKG_ROOT={}", &pkg.path),
             "-f",
-            &format!("docker/{}.dockerfile", &config.build_script),
+            &format!("docker/{}.dockerfile", &pkg.config.build_script),
         ])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .output()
-        .unwrap();
+        .output()?;
+    Ok(())
 }
