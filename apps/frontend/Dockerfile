@@ -1,6 +1,7 @@
 ARG nodeVersion=16-alpine
 ARG nginxVersion=1.23-alpine
-ARG PKG
+ARG PKG=frontend
+ARG PKG_ROOT=apps/${PKG}
 
 FROM node:${nodeVersion} as builder
 ARG PKG

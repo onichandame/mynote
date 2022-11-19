@@ -6,13 +6,13 @@ use async_graphql_warp::{graphql, graphql_protocol, GraphQLResponse, GraphQLWebS
 use serde::Deserialize;
 use warp::{http, ws::Ws, Filter, Rejection, Reply};
 
-use crate::{schema::Schema, Notebook};
+use crate::{schema::Schema, Gateway};
 
 use super::middlewares::extract_session;
 
 pub fn create_api_route(
     schema: Schema,
-    nb: &Notebook,
+    nb: &Gateway,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     let nb = nb.clone();
     let query_mutation = warp::post()

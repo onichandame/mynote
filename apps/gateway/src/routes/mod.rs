@@ -1,6 +1,6 @@
 use warp::{Filter, Rejection, Reply};
 
-use crate::{schema::Schema, Notebook};
+use crate::{schema::Schema, Gateway};
 
 use self::{api::create_api_route, error::handle_error, health::create_health_route};
 
@@ -11,7 +11,7 @@ mod middlewares;
 
 pub fn create_routes(
     schema: Schema,
-    nb: &Notebook,
+    nb: &Gateway,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     let api_route = warp::path(nb.config.api_path.clone())
         .and(warp::path::end())

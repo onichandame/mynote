@@ -23,13 +23,13 @@ mod routes;
 mod schema;
 
 #[derive(Clone)]
-pub struct Notebook {
+pub struct Gateway {
     pub db: DatabaseConnection,
     pub config: Config,
     pub auth: AuthModule,
 }
 
-impl Notebook {
+impl Gateway {
     pub async fn create() -> anyhow::Result<Self> {
         let config = Config::try_parse()?;
         config.validate()?;

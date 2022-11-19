@@ -5,14 +5,14 @@
 nameOverride: ""
 fullnameOverride: ""
 
-backend:
+gateway:
   replicaCount: 1
 
   image:
     repository: onichandame/notebook
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "backend"
+    tag: "gateway"
   annotations: {}
   # if true the pods will be recreated in every update
   autoRollout: false

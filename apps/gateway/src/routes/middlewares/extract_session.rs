@@ -2,10 +2,10 @@ use std::convert::Infallible;
 
 use warp::{Filter, Rejection};
 
-use crate::{auth::session::Session, Notebook};
+use crate::{auth::session::Session, Gateway};
 
 pub fn extract_session(
-    nb: &Notebook,
+    nb: &Gateway,
 ) -> impl Filter<Extract = (Option<Session>,), Error = Rejection> + Clone {
     let nb = nb.clone();
     warp::header::optional::<String>("Authorization").and_then(move |token: Option<String>| {
