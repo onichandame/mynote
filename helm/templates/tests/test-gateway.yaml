@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "app.fullname" . }}-test-backend"
+  name: "{{ include "app.fullname" . }}-test-gateway"
   labels:
     {{- include "app.labels" . | nindent 4 }}
   annotations:
@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "backend.fullname" . }}:{{ .Values.backend.service.port }}/health']
+      args: ['{{ include "gateway.fullname" . }}:{{ .Values.gateway.service.port }}/health']
   restartPolicy: Never
