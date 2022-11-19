@@ -41,13 +41,13 @@ jobs:
           helm upgrade --install notebook-staging ./helm
           --create-namespace
           -n notebook-staging
-          --set backend.image.tag=${{ needs.build.outputs.backend }}
-          --set backend.image.pullPolicy=Always
-          --set backend.args.port=80
-          --set backend.args.databaseUrl=sqlite:db.sqlite?mode=rwc
-          --set "backend.args.allowOrigins={https://notebook-staging.onichandame.com}"
-          --set backend.service.port=80
-          --set backend.autoRollout=true
+          --set gateway.image.tag=production-gateway
+          --set gateway.image.pullPolicy=Always
+          --set gateway.args.port=80
+          --set gateway.args.databaseUrl=sqlite:db.sqlite?mode=rwc
+          --set "gateway.args.allowOrigins={https://notebook-staging.onichandame.com}"
+          --set gateway.service.port=80
+          --set gateway.autoRollout=true
           --set frontend.image.tag=${{ needs.build.outputs.frontend }}
           --set frontend.image.pullPolicy=Always
           --set frontend.service.port=80

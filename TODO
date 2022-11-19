@@ -1,7 +1,10 @@
-1. replace content with cdn
-2. change signup to invitation
-3. memo custom weight
+1. crop image before upload
+2. allow enter url for avatar
+3. change signup to invitation
+4. align memo tiles vertically
+5. auto renew session
 
 # Note
 
 - free cloud db: bit.io fauna.com fly.io
+- free cdn: cloudinary

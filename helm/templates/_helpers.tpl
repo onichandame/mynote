@@ -2,8 +2,8 @@
 {{- default .Chart.Name .Values.nameOverride }}
 {{- end }}
 
-{{- define "backend.name" -}}
-{{ include "app.name" . }}-backend
+{{- define "gateway.name" -}}
+{{ include "app.name" . }}-gateway
 {{- end }}
 
 {{- define "frontend.name" -}}
@@ -28,8 +28,8 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
-{{- define "backend.fullname" -}}
-{{ include "app.fullname" . }}-backend
+{{- define "gateway.fullname" -}}
+{{ include "app.fullname" . }}-gateway
 {{- end}}
 
 {{- define "frontend.fullname" -}}
@@ -57,8 +57,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "backend.labels" -}}
-app.kubernetes.io/name: {{ include "backend.name" . }}
+{{- define "gateway.labels" -}}
+app.kubernetes.io/name: {{ include "gateway.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
