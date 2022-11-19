@@ -45,12 +45,12 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "backend.fullname" . }}
+                name: {{ include "gateway.fullname" . }}
                 port:
-                  number: {{ .Values.backend.service.port }}
+                  number: {{ .Values.gateway.service.port }}
               {{- else }}
-              serviceName: {{ include "backend.fullname" . }}
-              servicePort: {{ .Values.backend.service.port }}
+              serviceName: {{ include "gateway.fullname" . }}
+              servicePort: {{ .Values.gateway.service.port }}
               {{- end }}
           - path: /content
             {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
@@ -59,12 +59,12 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "backend.fullname" . }}
+                name: {{ include "gateway.fullname" . }}
                 port:
-                  number: {{ .Values.backend.service.port }}
+                  number: {{ .Values.gateway.service.port }}
               {{- else }}
-              serviceName: {{ include "backend.fullname" . }}
-              servicePort: {{ .Values.backend.service.port }}
+              serviceName: {{ include "gateway.fullname" . }}
+              servicePort: {{ .Values.gateway.service.port }}
               {{- end }}
           - path: /
             {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
