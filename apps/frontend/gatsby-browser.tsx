@@ -8,6 +8,7 @@ import React from "react"
 import { ClientProvider } from "./src/providers/client"
 import { CurrentUserProvider } from "./src/providers/currentUser"
 import { SessionProvider } from "./src/providers/session"
+import { StoreProvider } from "./src/providers/store"
 
 export const wrapPageElement: GatsbyBrowser["wrapPageElement"] = ({
   element,
@@ -26,11 +27,13 @@ export const wrapRootElement: GatsbyBrowser["wrapRootElement"] = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <SnackbarProvider>
-        <SessionProvider>
-          <ClientProvider>
-            <CurrentUserProvider>{element}</CurrentUserProvider>
-          </ClientProvider>
-        </SessionProvider>
+        <StoreProvider>
+          <SessionProvider>
+            <ClientProvider>
+              <CurrentUserProvider>{element}</CurrentUserProvider>
+            </ClientProvider>
+          </SessionProvider>
+        </StoreProvider>
       </SnackbarProvider>
     </DndProvider>
   )
