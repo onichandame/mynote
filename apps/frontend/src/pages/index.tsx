@@ -18,7 +18,7 @@ export default function () {
     height: 80,
   }
   return (
-    <Layout isPrivate>
+    <Layout>
       <Grid container alignItems="stretch" spacing={2}>
         <Item>
           <Tile

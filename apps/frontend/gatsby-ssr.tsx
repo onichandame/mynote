@@ -6,8 +6,6 @@ import { GatsbySSR } from "gatsby"
 import React from "react"
 
 import { ClientProvider } from "./src/providers/client"
-import { CurrentUserProvider } from "./src/providers/currentUser"
-import { SessionProvider } from "./src/providers/session"
 import { StoreProvider } from "./src/providers/store"
 
 export const wrapPageElement: GatsbySSR["wrapPageElement"] = ({ element }) => {
@@ -24,11 +22,7 @@ export const wrapRootElement: GatsbySSR["wrapRootElement"] = ({ element }) => {
     <DndProvider backend={HTML5Backend}>
       <SnackbarProvider>
         <StoreProvider>
-          <SessionProvider>
-            <ClientProvider>
-              <CurrentUserProvider>{element}</CurrentUserProvider>
-            </ClientProvider>
-          </SessionProvider>
+          <ClientProvider>{element}</ClientProvider>
         </StoreProvider>
       </SnackbarProvider>
     </DndProvider>

@@ -12,24 +12,24 @@ import * as routes from "../../routes"
 export default function () {
   const translate = useTranslateScoped(`settings`)
   return (
-    <Layout title={translate(`title`)} isPrivate>
+    <Layout title={translate(`title`)}>
       <Grid container spacing={2} alignItems="stretch">
         <Item>
           <Tile
-            title={translate(`profileTitle`)}
-            description={translate(`profileDescription`)}
+            title={translate(`accountTitle`)}
+            description={translate(`accountDescription`)}
             icon={<AccountCircle fontSize="large" color="info" />}
-            linkText={translate(`profileLinkText`)}
-            link={routes.PROFILE_SETTINGS}
+            linkText={translate(`accountLinkText`)}
+            link={routes.ACCOUNT_SETTINGS}
           />
         </Item>
         <Item>
           <Tile
-            title={translate(`securityTitle`)}
-            description={translate(`securityDescription`)}
+            title={translate(`syncTitle`)}
+            description={translate(`syncDescription`)}
             icon={<Lock fontSize="large" color="success" />}
-            linkText={translate(`securityLinkText`)}
-            link={routes.SECURITY_SETTINGS}
+            linkText={translate(`syncLinkText`)}
+            link={routes.SYNC_SETTINGS}
           />
         </Item>
       </Grid>

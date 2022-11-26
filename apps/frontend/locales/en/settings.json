@@ -1,13 +1,13 @@
 {
   "title": "Settings",
-  "profileTitle": "Profile",
-  "profileDescription": "Customize your nickname and avatar",
-  "profileLinkText": "Manage your account data",
-  "profileBasicInfoTitle": "Basic Info",
-  "profileBasicInfoAvatar": "Avatar",
-  "profileBasicInfoName": "Name",
-  "securityTitle": "Security",
-  "securityDescription": "Change password",
-  "securityLinkText": "Review your security settings",
-  "securityAccountPassword": "Password"
+  "accountTitle": "account",
+  "accountDescription": "Log-in to backup your data to the cloud",
+  "accountLinkText": "Manage your account data",
+  "accountBasicInfoTitle": "Basic Info",
+  "accountBasicInfoAvatar": "Avatar",
+  "accountBasicInfoName": "Name",
+  "syncTitle": "Sync",
+  "syncDescription": "Sync your data to the cloud",
+  "syncLinkText": "Review your sync settings",
+  "syncAccountPassword": "Password"
 }

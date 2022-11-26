@@ -22,28 +22,28 @@ import Ws from "isomorphic-ws"
 import { useSession } from "./session"
 
 class Client {
-  private static readonly ApiPath = `/api`
-  private static ApiHost = process.env.GATSBY_API_HOST
-
   private readonly session?: Nullable<string>
   private readonly gqlClient: GqlClient
   private readonly onError?: (err: Error) => void
 
-  constructor(props?: {
-    session?: Nullable<string>
-    onError?: (err: Error) => void
-  }) {
+  constructor(
+    url: string,
+    props?: {
+      session?: Nullable<string>
+      onError?: (err: Error) => void
+    }
+  ) {
     this.session = props?.session
     this.onError = props?.onError
     const wsClient = createWSClient({
       webSocketImpl: Ws,
-      url: Client.wsUrl,
+      url: getWsUrl(url),
       connectionParams: props?.session
         ? { authorization: props.session }
         : undefined,
     })
     this.gqlClient = createClient({
-      url: Client.httpUrl,
+      url,
       exchanges: [
         dedupExchange,
         errorExchange({
@@ -85,18 +85,6 @@ class Client {
         fetchExchange,
       ],
     })
-  }
-
-  private static get httpUrl() {
-    if (this.ApiHost) return `${this.ApiHost}${this.ApiPath}`
-    else return this.ApiPath
-  }
-
-  private static get wsUrl() {
-    const host = this.ApiHost?.startsWith(`http`)
-      ? this.ApiHost
-      : `${window.location.protocol}//${window.location.host}:${window.location.port}`
-    return `${host.replace(/^http/, "ws")}${this.ApiPath}`
   }
 
   async getSelf() {
@@ -322,13 +310,33 @@ const ClientContext = createContext<Client | null>(null)
 
 export function ClientProvider({ children }: PropsWithChildren) {
   const [session] = useSession()
+  const [client, setClient] = useState<Client | null>(null)
   const { enqueueSnackbar } = useSnackbar()
   const onError = (e: Error) => {
     enqueueSnackbar(e.message, { variant: `error` })
   }
-  const [client, setClient] = useState<null | Client>(null)
   useEffect(() => {
-    setClient(new Client({ onError, session }))
+    let active = true
+    ;(async () => {
+      try {
+        if (active) {
+          setClient(
+            new Client([process.env.GATSBY_API_HOST, `api`].join(`/`), {
+              onError,
+              session,
+            })
+          )
+        }
+      } catch (e) {
+        enqueueSnackbar(e instanceof Error ? e.message : JSON.stringify(e), {
+          variant: `error`,
+          persist: true,
+        })
+      }
+    })()
+    return () => {
+      active = false
+    }
   }, [session])
   return (
     <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
@@ -338,6 +346,10 @@ export function ClientProvider({ children }: PropsWithChildren) {
 export function useClient() {
   const client = useContext(ClientContext)
   return client
+}
+
+function getWsUrl(url: string) {
+  return url.replace(/^http/, `ws`)
 }
 
 type AuthState = { token?: Nullable<string> }

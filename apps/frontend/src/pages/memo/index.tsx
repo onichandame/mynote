@@ -29,37 +29,45 @@ import { Loading } from "../../components/loading"
 import { SEO } from "../../components/seo"
 import { Tile } from "../../components/tile"
 import { useTranslateScoped } from "../../hooks/translate"
-import { useClient } from "../../providers/client"
 import { Draggable, DraggableItemType } from "../../components/draggble"
+import { useStore } from "../../providers/store"
+import { Memo } from "../../providers/store/collections"
 
 export default function () {
   const translate = useTranslate()
   const [creating, setCreating] = useState(false)
   const [memos, setMemos] = useState<Memo[]>([])
   const [reloading, setReloading] = useState(true)
-  const client = useClient()
+  const store = useStore()
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CreateMemoInput>({
+  } = useForm<CreateInput>({
     resolver: zodResolver(
-      z.object({ content: z.string() }).strict() as z.Schema<CreateMemoInput>
+      z.object({ content: z.string() }).strict() as z.Schema<CreateInput>
     ),
   })
   useEffect(() => {
     let active = true
-    if (reloading)
-      client?.listMemos().then(memos => {
-        if (active && memos) setMemos(memos.edges.map(v => v.node))
-        setReloading(false)
-      })
+    ;(async () => {
+      if (reloading && store) {
+        try {
+          const memos = await store.memos
+            .find({ selector: { deletedAt: { $exists: false } } })
+            .exec()
+          if (active) setMemos(memos ?? [])
+        } finally {
+          setReloading(false)
+        }
+      }
+    })()
     return () => {
       active = false
     }
-  }, [reloading])
+  }, [reloading, store])
   return (
-    <Layout title={translate(`title`)} isPrivate>
+    <Layout title={translate(`title`)}>
       {reloading && <Loading />}
       <Dashboard>
         <Grid container alignItems="stretch" spacing={2}>
@@ -91,7 +99,7 @@ export default function () {
                   await Promise.all(
                     memos.map(async (memo, index) => {
                       if (memo.weight != index)
-                        await client?.updateMemo(memo.id, { weight: index })
+                        await memo.atomicPatch({ weight: index })
                     })
                   )
                   setReloading(true)
@@ -118,7 +126,9 @@ export default function () {
       <Dialog open={creating} onClose={() => setCreating(false)} keepMounted>
         <form
           onSubmit={handleSubmit(async vals => {
-            await client?.createMemo(vals)
+            await store?.memos.insert({
+              ...vals,
+            })
             setCreating(false)
             setReloading(true)
           })}
@@ -152,20 +162,19 @@ function Item({ memo, onChanged }: { memo: Memo; onChanged: () => void }) {
   const [editing, setEditing] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const client = useClient()
   const theme = useTheme()
   const deleteColor = theme.palette.secondary.light
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<UpdateMemoInput>({
+  } = useForm<UpdateInput>({
     resolver: zodResolver(
       z.object({
         content: z.string().optional(),
-      }) as z.Schema<UpdateMemoInput>
+      }) as z.Schema<UpdateInput>
     ),
-    defaultValues: { ...memo },
+    defaultValues: memo.toJSON(),
   })
   return (
     <>
@@ -203,7 +212,7 @@ function Item({ memo, onChanged }: { memo: Memo; onChanged: () => void }) {
       <Dialog open={updating}>
         <form
           onSubmit={handleSubmit(async vals => {
-            await client?.updateMemo(memo.id, vals)
+            await memo.atomicPatch({ ...vals })
             setUpdating(false)
             onChanged()
           })}
@@ -259,7 +268,7 @@ function Item({ memo, onChanged }: { memo: Memo; onChanged: () => void }) {
           <Button
             color="warning"
             onClick={async () => {
-              await client?.deleteMemo(memo.id)
+              await memo.softDelete()
               setDeleting(false)
               onChanged()
             }}
@@ -291,3 +300,6 @@ export const query = graphql`
     }
   }
 `
+
+type CreateInput = Pick<Memo, "content">
+type UpdateInput = Pick<Partial<Memo>, "content" | "weight">
