@@ -18,12 +18,12 @@ export default function () {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LogInInput>({
+  } = useForm<SignUpInput>({
     mode: `onChange`,
     resolver: zodResolver(
       z
-        .object({ identity: z.string().min(1), password: z.string().min(5) })
-        .strict() as z.Schema<LogInInput>
+        .object({ name: z.string().min(1), password: z.string().min(5) })
+        .strict() as z.Schema<SignUpInput>
     ),
   })
   return (
@@ -35,7 +35,7 @@ export default function () {
         alignItems="center"
         spacing={2}
         onSubmit={handleSubmit(async vals => {
-          const session = await client?.login(vals)
+          const session = await client?.signup(vals)
           if (session) {
             setSession(session)
             window.history.back()
@@ -47,10 +47,10 @@ export default function () {
             autoFocus
             required
             disabled={isSubmitting}
-            label="Username/Email"
-            {...register(`identity`)}
-            error={!!errors.identity}
-            helperText={errors.identity?.message}
+            label="Username"
+            {...register(`name`)}
+            error={!!errors.name}
+            helperText={errors.name?.message}
           />
         </Grid>
         <Grid item>
@@ -66,7 +66,7 @@ export default function () {
         </Grid>
         <Grid item>
           <Button type="submit" disabled={isSubmitting} variant="contained">
-            log in
+            sign up
           </Button>
         </Grid>
       </Grid>

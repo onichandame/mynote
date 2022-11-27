@@ -58,5 +58,8 @@
     "dotenv": "^16.0.3",
     "typescript": "^4.8.3"
   },
+  "resolutions": {
+    "graphql": "^16.6.0"
+  },
   "packageManager": "yarn@3.2.3"
 }

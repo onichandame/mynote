@@ -10,7 +10,6 @@ import {
   createClient,
   dedupExchange,
   errorExchange,
-  fetchExchange,
   makeOperation,
   subscriptionExchange,
 } from "urql"
@@ -73,8 +72,6 @@ class Client {
           },
         }),
         subscriptionExchange({
-          isSubscriptionOperation: operation =>
-            operation.kind === `subscription`,
           forwardSubscription: operation => ({
             subscribe: sink => ({
               unsubscribe: wsClient.subscribe(operation, sink),
@@ -82,7 +79,6 @@ class Client {
           }),
           enableAllOperations: true,
         }),
-        fetchExchange,
       ],
     })
   }

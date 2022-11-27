@@ -1,10 +1,11 @@
-import { useEffect, useReducer } from "react"
+import { useEffect, useReducer, useState } from "react"
 
 /** Synchronized state which is automatically stored to local storage */
 export function usePersistentState<TData>(
   key: string,
   defaultValue: TData
 ): PersistentState<TData> {
+  const [loading, setLoading] = useState(true)
   const [value, setValue] = useReducer(
     (_old: TData, opts: { value: TData; noPersistent: boolean }) => {
       if (!opts.noPersistent)
@@ -18,6 +19,7 @@ export function usePersistentState<TData>(
     try {
       if (savedValue)
         setValue({ value: JSON.parse(savedValue), noPersistent: true })
+      setLoading(false)
     } catch (e) {
       console.error(e)
       window.localStorage.removeItem(key)
@@ -27,10 +29,13 @@ export function usePersistentState<TData>(
     value,
     /** @param sync - If true the new value will be saved to local storage. Default to true */
     (value: TData, sync = true) => setValue({ value, noPersistent: !sync }),
+    loading,
   ]
 }
 
 export type PersistentState<TData> = [
   TData,
-  (value: TData, sync?: boolean) => void
+  (value: TData, sync?: boolean) => void,
+  /** loading */
+  boolean
 ]

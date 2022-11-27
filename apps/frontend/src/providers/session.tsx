@@ -5,6 +5,7 @@ import { PersistentState, usePersistentState } from "../hooks/persistentState"
 const SessionContext = createContext<PersistentState<null | string>>([
   null,
   () => {},
+  true,
 ])
 
 export function SessionProvider({ children }: PropsWithChildren) {
