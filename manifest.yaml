@@ -1,0 +1,7 @@
+icon: "assets/icon.png"
+android:
+  gradle: true
+  wry: true
+  manifest:
+    uses_permission:
+      - name: android.permission.INTERNET
