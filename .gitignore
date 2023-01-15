@@ -27,3 +27,5 @@ dist-ssr
 # already existing elements were commented out
 
 #/target
+
+src/app/app.css
