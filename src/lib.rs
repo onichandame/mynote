@@ -5,7 +5,7 @@ mod app;
 pub extern "C" fn start_app() {
     android_logger::init_once(
         android_logger::Config::default()
-            .with_min_level(log::Level::Trace)
+            .with_min_level(log::Level::Warn)
             .with_tag("notebook"),
     );
 
@@ -27,9 +27,10 @@ pub fn main() {
     dioxus_desktop::launch_cfg(app::app, dioxus_desktop::Config::new());
 }
 
-#[cfg(target_family = "wasm")]
-pub fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
-    console_error_panic_hook::set_once();
-    dioxus_web::launch(app);
-}
+// No web support
+//#[cfg(target_family = "wasm")]
+//pub fn main() {
+//    wasm_logger::init(wasm_logger::Config::default());
+//    console_error_panic_hook::set_once();
+//    dioxus_web::launch(app);
+//}

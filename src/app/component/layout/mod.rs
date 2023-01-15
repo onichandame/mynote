@@ -9,10 +9,7 @@ pub fn layout<'a>(cx: Scope<'a>, children: Element<'a>) -> Element {
             navbar::navbar{}
         }
         main{
-            div{
-                class:"uk-container",
-                children
-            }
+            children
         }
     })
 }

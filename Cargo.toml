@@ -4,30 +4,35 @@ description = "Your private notebook"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["migration", "entity"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+migration = { path = "./migration" }
+entity = { path = "./entity" }
 anyhow = "1.0.66"
-dioxus = "0.2.4"
-dioxus-router = "0.2.3"
+dioxus = "0.3.0"
+dioxus-router = "0.3.0"
+log = "0.4.17"
+sea-orm = { version = "0.10.6", features = [
+    "macros",
+    "sqlx-sqlite",
+    "runtime-tokio-native-tls",
+] }
+app-path = { path = "../app-path" }
+thiserror = "1.0.38"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-dioxus-desktop = "0.2.3"
+dioxus-desktop = "0.3.0"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.11.1"
-log = "0.4.17"
-ndk-context = "0.1.1"
 paste = "1.0.9"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 console_error_panic_hook = "0.1.7"
-dioxus-web = "0.2.1"
+dioxus-web = "0.3.0"
 wasm-logger = "0.2.0"
-
-[patch.crates-io]
-dioxus = { git = "https://github.com/dioxuslabs/dioxus", rev = "1e99e35" }
-dioxus-desktop = { git = "https://github.com/dioxuslabs/dioxus", rev = "1e99e35" }
-dioxus-web = { git = "https://github.com/dioxuslabs/dioxus", rev = "1e99e35" }
-dioxus-router = { git = "https://github.com/dioxuslabs/dioxus", rev = "1e99e35" }
