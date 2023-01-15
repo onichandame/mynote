@@ -11,18 +11,7 @@ pub fn app(cx: Scope) -> Element {
     cx.render(rsx! {
         link { rel:"stylesheet", href:"https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" }
         style{
-            // hide the page scrollbar
-            vec![r#"
-            html::-webkit-scrollbar {
-              display: none;
-            }
-            
-            /* Hide scrollbar for IE, Edge and Firefox */
-            html {
-              -ms-overflow-style: none;  /* IE and Edge */
-              scrollbar-width: none;  /* Firefox */
-            }
-            "#].into_iter().map(|v|rsx!(v))
+            vec![include_str!("app.css")].into_iter().map(|v|rsx!(v))
         }
         provider::provider{
             Router{

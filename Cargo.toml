@@ -24,6 +24,7 @@ sea-orm = { version = "0.10.6", features = [
 ] }
 app-path = { path = "../app-path" }
 thiserror = "1.0.38"
+url = "2.3.1"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 dioxus-desktop = "0.3.0"

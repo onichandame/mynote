@@ -2215,6 +2215,7 @@ dependencies = [
  "paste",
  "sea-orm",
  "thiserror",
+ "url",
  "wasm-logger",
 ]
 

@@ -37,15 +37,14 @@ pub fn path_provider<'a>(cx: Scope, children: Element<'a>) -> Element {
     let fut = use_future(&cx, (), |_| async {
         Ok::<Paths, Error>(Paths::create(app_path::get_data_dir()?)?)
     });
-    cx.render(rsx!(loading::loading {}))
-    //cx.render(match fut.value() {
-    //    None => {
-    //        rsx!(loading::loading {})
-    //    }
-    //    Some(Ok(paths)) => {
-    //        cx.provide_context(paths.to_owned());
-    //        rsx!(children)
-    //    }
-    //    Some(Err(e)) => rsx!(error::error { e.to_string() }),
-    //})
+    cx.render(match fut.value() {
+        None => {
+            rsx!(loading::loading {"initializing data directory..."})
+        }
+        Some(Ok(paths)) => {
+            cx.provide_context(paths.to_owned());
+            rsx!(children)
+        }
+        Some(Err(e)) => rsx!(error::error { e.to_string() }),
+    })
 }
