@@ -9,6 +9,7 @@ pub enum Memo {
     CreatedAt,
     UpdatedAt,
     DeletedAt,
+    Title,
     Content,
     Weight, // unsigned int. 0 at top
 }

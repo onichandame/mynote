@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_router::Link;
 
-use crate::app::{component::layout, page::_route};
+use crate::app::page::_route;
 
 struct Tile {
     to: &'static str,
@@ -12,7 +12,7 @@ struct Tile {
 
 static TILES:&[Tile]=&[
     Tile {
-        to: _route::MEMO,
+        to: _route::MEMOS,
         title: "Memo",
         subtitle: "Record anything",
         icon: "https://notebook.onichandame.com/static/3a95c03de945575537b880c2e0a882cc/60b4d/memo-icon.webp",
@@ -21,25 +21,23 @@ static TILES:&[Tile]=&[
 
 pub fn home(cx: Scope) -> Element {
     cx.render(rsx! {
-        layout::layout{
+        div{
+            class:"tile is-ancestor",
             div{
-                class:"tile is-ancestor",
-                div{
-                    class:"tile is-parent",
-                    TILES.iter().map(|tile|
-                        rsx!(
-                            div{
-                                class:"tile is-child p-2",
-                                self::tile{
-                                    to:tile.to,
-                                    title:tile.title,
-                                    subtitle:tile.subtitle,
-                                    icon:tile.icon
-                                }
+                class:"tile is-parent",
+                TILES.iter().map(|tile|
+                    rsx!(
+                        div{
+                            class:"tile is-child p-2",
+                            self::tile{
+                                to:tile.to,
+                                title:tile.title,
+                                subtitle:tile.subtitle,
+                                icon:tile.icon
                             }
-                        )
+                        }
                     )
-                }
+                )
             }
         }
     })

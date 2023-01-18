@@ -42,7 +42,7 @@ pub fn path_provider<'a>(cx: Scope, children: Element<'a>) -> Element {
             rsx!(loading::loading {"initializing data directory..."})
         }
         Some(Ok(paths)) => {
-            cx.provide_context(paths.to_owned());
+            use_context_provider(&cx, || paths.to_owned());
             rsx!(children)
         }
         Some(Err(e)) => rsx!(error::error { e.to_string() }),

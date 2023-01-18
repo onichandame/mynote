@@ -40,7 +40,8 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Memo::UpdatedAt).date_time())
                     .col(ColumnDef::new(Memo::DeletedAt).date_time())
-                    .col(ColumnDef::new(Memo::Content).text().not_null())
+                    .col(ColumnDef::new(Memo::Title).text().not_null())
+                    .col(ColumnDef::new(Memo::Content).text())
                     .col(
                         ColumnDef::new(Memo::Weight)
                             .unsigned()

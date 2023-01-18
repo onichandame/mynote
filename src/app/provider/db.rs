@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, ops::Deref};
 
 use dioxus::prelude::*;
 use migration::{Migrator, MigratorTrait};
@@ -9,7 +9,11 @@ use crate::app::component::{error, loading};
 
 use super::path::Paths;
 
-pub type Db = DatabaseConnection;
+#[derive(Clone)]
+pub struct Db {
+    conn: DatabaseConnection,
+    id: uuid::Uuid,
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -21,12 +25,34 @@ pub enum Error {
     Unknown(String),
 }
 
+impl Db {
+    fn new(conn: DatabaseConnection) -> Self {
+        Self {
+            conn,
+            id: uuid::Uuid::new_v4(),
+        }
+    }
+}
+
+impl PartialEq for Db {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Deref for Db {
+    type Target = DatabaseConnection;
+    fn deref(&self) -> &Self::Target {
+        &self.conn
+    }
+}
+
 /// The only database instance in this app is provided by this provider. All
 /// persistent data should be stored in this database
 #[inline_props]
 pub fn db_provider<'a>(cx: Scope, children: Element<'a>) -> Element {
     let paths = use_context::<Paths>(&cx).unwrap();
-    let fut = use_future(&cx, (paths,), |(paths,)| async move {
+    let fut = use_future(&cx, paths, |paths| async move {
         if let Some(dir) = paths.db_path.parent() {
             fs::create_dir_all(&dir)?;
         }
@@ -38,7 +64,7 @@ pub fn db_provider<'a>(cx: Scope, children: Element<'a>) -> Element {
         );
         let db = Database::connect(ConnectOptions::new(uri).min_connections(1).to_owned()).await?;
         Migrator::up(&db, None).await?;
-        Ok::<Db, Error>(db)
+        Ok::<Db, Error>(Db::new(db))
     });
     cx.render(match fut.value() {
         None => rsx!(loading::loading{"loading database..."}),

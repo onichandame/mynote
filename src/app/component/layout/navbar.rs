@@ -3,6 +3,18 @@ use dioxus_router::Link;
 
 use crate::app::page::_route;
 
+struct Toggler(bool);
+
+impl Toggler {
+    fn toggle(&mut self) {
+        self.0 = !self.0;
+    }
+
+    fn value(&self) -> bool {
+        self.0
+    }
+}
+
 /// ```text
 /// -----  ----
 /// brand  menu
@@ -10,12 +22,12 @@ use crate::app::page::_route;
 /// ```
 /// Brand contains the brand button and a burger button. Menu contains all the navigations
 pub fn navbar(cx: Scope) -> Element {
-    let menu_state = use_state(&cx, || false);
+    use_shared_state_provider(&cx, || Toggler(false));
     cx.render(rsx! {
         nav{
             class: "navbar is-link",
-            self::brand {toggle_menu:||menu_state.modify(|prev|!prev), menu_open:**menu_state},
-            self::menu {open:**menu_state},
+            self::brand {},
+            self::menu {},
         }
     })
 }
@@ -27,10 +39,8 @@ pub fn navbar(cx: Scope) -> Element {
 /// ```
 /// The brand button redirects to the homepage. The burger button toggles the menu
 #[inline_props]
-fn brand<T>(cx: Scope, toggle_menu: T, menu_open: bool) -> Element
-where
-    T: Fn(),
-{
+fn brand(cx: Scope) -> Element {
+    let menu_state = use_shared_state::<Toggler>(&cx).unwrap();
     cx.render(rsx! {
         div{
             class:"navbar-brand",
@@ -47,8 +57,8 @@ where
                 "data-target":"navigation",
                 aria_label:"menu",
                 aria_expanded:"false",
-                onclick:move|_|{toggle_menu()},
-                class:if *menu_open{"navbar-burger is-active"}else{"navbar-burger"},
+                onclick:move |_|{menu_state.write().toggle()},
+                class:if menu_state.read().value(){"navbar-burger is-active"}else{"navbar-burger"},
                 span{aria_hidden:"true"}
                 span{aria_hidden:"true"}
                 span{aria_hidden:"true"}
@@ -59,19 +69,28 @@ where
 
 /// Shown in desktop(>=1024px), hidden otherwise. Can be toggled by the burger button
 #[inline_props]
-fn menu(cx: Scope, open: bool) -> Element {
+fn menu(cx: Scope) -> Element {
+    let menu_state = use_shared_state::<Toggler>(&cx).unwrap();
     cx.render(rsx! {
         div{
             id:"navigation",
-            class:if *open{"navbar-menu is-active"}else{"navbar-menu"},
+            class:if menu_state.read().value(){"navbar-menu is-active"}else{"navbar-menu"},
             div{
                 class:"navbar-start",
-                Link{
-                    to:_route::MEMO,
-                    class:"navbar-item",
-                    "Memo"
-                }
+                menu_item{ to:_route::MEMOS, name:"Memo" }
+                menu_item{ to:_route::SETTINGS, name:"Settings" }
             }
         }
     })
+}
+
+#[inline_props]
+fn menu_item(cx: Scope, to: &'static str, name: &'static str) -> Element {
+    let menu_state = use_shared_state::<Toggler>(&cx).unwrap();
+    cx.render(rsx!(Link {
+        to: to,
+        onclick:move |_|{menu_state.write().toggle()},
+        class: "navbar-item",
+        *name
+    }))
 }

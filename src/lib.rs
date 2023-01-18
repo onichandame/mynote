@@ -24,6 +24,8 @@ fn _start_app() {
 pub fn main() {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     std::env::set_var("RUST_BACKTRACE", "1");
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    env_logger::init();
     dioxus_desktop::launch_cfg(app::app, dioxus_desktop::Config::new());
 }
 
