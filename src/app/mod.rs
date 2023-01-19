@@ -23,6 +23,7 @@ pub fn app(cx: Scope) -> Element {
                     Route{ to:_route::HOME, home::home{} }
                     Route{ to:_route::MEMOS, memo::memo{} }
                     Route{ to:_route::CREATE_MEMO, memo::create{} }
+                    Route{ to:_route::MEMO_DETAIL, memo::detail{} }
                     Route{ to:_route::NOT_FOUND, not_found::not_found{} }
                     Redirect{ from:"", to: _route::NOT_FOUND }
                 }

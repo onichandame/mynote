@@ -51,7 +51,7 @@ impl Deref for Db {
 /// persistent data should be stored in this database
 #[inline_props]
 pub fn db_provider<'a>(cx: Scope, children: Element<'a>) -> Element {
-    let paths = use_context::<Paths>(&cx).unwrap();
+    let Some(paths )= use_context::<Paths>(&cx)else{return cx.render(rsx!(error::error{"data directory not initialized"}))};
     let fut = use_future(&cx, paths, |paths| async move {
         if let Some(dir) = paths.db_path.parent() {
             fs::create_dir_all(&dir)?;

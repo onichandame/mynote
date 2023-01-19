@@ -4,14 +4,15 @@ use entity::prelude::*;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 
 use crate::app::{
-    component::{error, icon, layout, loading},
+    component::{error, icon, loading},
     page::_route,
     provider::db::Db,
 };
 
 mod create;
+mod detail;
 
-pub use create::create;
+pub use {create::create, detail::detail};
 
 #[derive(thiserror::Error, Debug)]
 enum Error {
@@ -20,16 +21,14 @@ enum Error {
 }
 
 pub fn memo(cx: Scope) -> Element {
-    let db = use_context::<Db>(&cx).unwrap();
+    let Some(db )= use_context::<Db>(&cx) else {return cx.render(rsx!(error::error{"database not initialized"}))};
     let fut = use_future(&cx, (db,), |(db,)| async move {
-        log::info!("loading memos");
         let memos = Memo::find()
             .filter(entity::memo::Column::DeletedAt.is_null())
             .order_by_asc(entity::memo::Column::Weight)
             .order_by_desc(entity::memo::Column::CreatedAt)
             .all(&*db)
             .await?;
-        log::info!("loaded memos: {:?}", &memos);
         Ok::<Vec<entity::memo::Model>, Error>(memos)
     });
     cx.render(match fut.value() {
